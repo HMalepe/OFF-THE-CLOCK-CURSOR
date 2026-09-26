@@ -397,7 +397,7 @@
     const items = $$(':scope > li', list);
     const imgs = items.map((i) => $('.ph', i));
     gsap.set(items, { clipPath: 'inset(100% 0% 0% 0%)' });
-    gsap.set(imgs, { scale: 1.3 });
+    gsap.set(imgs, { scale: 1.08 });
     ScrollTrigger.batch(items, {
       start: 'top 90%',
       once: true,
@@ -493,7 +493,7 @@
     },
   });
   storyTl
-    .fromTo('[data-story-img]', { scale: 1.3 }, { scale: 1, duration: 1 }, 0)
+    .fromTo('[data-story-img]', { scale: 1.06 }, { scale: 1, duration: 1 }, 0)
     .fromTo('[data-story-shade]', { opacity: 0.1 }, { opacity: 0.55, duration: 1 }, 0)
     .fromTo(storyCard, { y: () => window.innerHeight * 0.8 }, { y: 0, duration: 1, ease: 'power2.out' }, 0)
     .fromTo(storyWords, { yPercent: 118 }, { yPercent: 0, duration: 0.5, stagger: 0.05, ease: 'power3.out' }, 0.45)
@@ -507,7 +507,7 @@
     let z = slides.length;
     let timer = null;
     gsap.set(slides, { opacity: (i) => (i === 0 ? 1 : 0), zIndex: (i) => (i === 0 ? z : 0) });
-    const kenBurns = (el) => gsap.fromTo(el, { scale: 1.08 }, { scale: 1, duration: 8, ease: 'none', overwrite: 'auto' });
+    const kenBurns = (el) => gsap.fromTo(el, { scale: 1.03 }, { scale: 1, duration: 8, ease: 'none', overwrite: 'auto' });
     const next = () => {
       const prev = slides[cur];
       cur = (cur + 1) % slides.length;

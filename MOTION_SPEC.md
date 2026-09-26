@@ -26,7 +26,7 @@ Source of truth for every animation. If the site is ported (Next.js, Astro, Webf
 | `fadeUp(el)` | Fade-up for `[data-fade]` | `top 88%`, once | y 40, opacity 0 → y 0, opacity 1 | 1.0s, expo.out |
 | `reveal(scope)` | Runs wordRise/fadeUp on every `[data-split]` / `[data-fade]` inside scope in DOM order | none | none | none |
 | `leave(el)` | Soft exit as a block leaves the top | `bottom 35%` → `bottom top`, scrub 1 | opacity 1, y 0 → opacity 0, y −60 | linear |
-| `batchReveal(list)` | Card clip reveal + image un-zoom (`ScrollTrigger.batch`), plus `drift()` on each card image | `top 90%`, once | li `clipPath inset(100% 0 0 0)` → `inset(0)`; `.ph` scale 1.3 → 1 | 1.2s clip / 1.6s scale, expo.out, 0.1; clipPath cleared after (scale kept so drift survives) |
+| `batchReveal(list)` | Card clip reveal + image un-zoom (`ScrollTrigger.batch`), plus `drift()` on each card image | `top 90%`, once | li `clipPath inset(100% 0 0 0)` → `inset(0)`; `.ph` scale 1.08 → 1 | 1.2s clip / 1.6s scale, expo.out, 0.1; clipPath cleared after (scale kept so drift survives) |
 | `staggerUp(el)` | Children of `[data-stagger]` fade up in sequence | `top 90%`, once | y 24, opacity 0 → 0/1 | 0.9s, expo.out, 0.08 |
 | `drift(ph)` | Image drifts inside its frame while visible (`.ph` has 10% headroom) | parent `top bottom` → `bottom top`, scrub 1 | yPercent −6 → 6 | linear |
 | `speed(el)` | `[data-speed]` parallax float (desktop only). `<1` = slower than scroll | `top bottom` → `bottom top`, scrub 1, invalidateOnRefresh | y `−(1−s)·(vh+h)/2` → `+(1−s)·(vh+h)/2` | linear |
@@ -98,7 +98,7 @@ Trigger `.story`, start `top top`, end `+= 2.2 × innerHeight`, `pin: true`, `sc
 
 | Step | Timeline pos | Scroll % (approx) | Target | From → To | Ease |
 |---|---|---|---|---|---|
-| 1 | 0 → 1 | 0 → 36% | `[data-story-img]` | scale 1.3 → 1 (un-zoom) | none |
+| 1 | 0 → 1 | 0 → 36% | `[data-story-img]` | scale 1.06 → 1 (un-zoom) | none |
 | 1 | 0 → 1 | 0 → 36% | `[data-story-shade]` | opacity 0.1 → 0.55 | none |
 | 1 | 0 → 1 | 0 → 36% | `[data-story-card]` | y `0.8 × innerHeight` → 0 (lands centred) | power2.out |
 | 2 | 0.45 → ~1.05 | 16 → 38% | card heading words | yPercent 118 → 0, stagger 0.05 | power3.out |
@@ -113,7 +113,7 @@ Trigger `.story`, start `top top`, end `+= 2.2 × innerHeight`, `pin: true`, `sc
 |---|---|
 | Slides | `[data-slide]` inside `.story__media` (1–5). Slide 1 is the static-mode image |
 | Cycle | Hold 6s → next slide gets `zIndex++`, fades opacity 0 → 1 over 2s `power1.inOut` → previous is set to 0. Repeats every 8s |
-| Ken Burns | Each incoming slide scale 1.08 → 1 over 8s linear |
+| Ken Burns | Each incoming slide scale 1.03 → 1 over 8s linear |
 | Play/pause | `ScrollTrigger` `top bottom` → `bottom top` on `.story`: the timer is paused while the section is off screen |
 | Interaction with pin | The pinned un-zoom scales the `.story__media` wrapper. Ken Burns scales the individual slides, so they stack cleanly |
 
