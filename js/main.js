@@ -348,7 +348,7 @@
       y: 0, opacity: 1, duration: 1.05, ease: 'expo.out', stagger: 0.12, delay: 0.12,
     });
 
-    $$('[data-split], [data-fade], [data-reveal], [data-stagger], [data-principle], [data-footer-mark], .qcard, .jcard')
+    $$('[data-split], [data-fade], [data-reveal], [data-stagger], [data-principle], .qcard, .jcard')
       .filter((el) => !el.closest('.hero'))
       .filter((el) => !el.parentElement.closest('[data-split], [data-fade], [data-reveal], [data-stagger]'))
       .forEach((el) => {
@@ -848,23 +848,10 @@
   reveal($('.newsletter'));
 
   /* ------------------------------------------------------------------------
-     11 · FOOTER — content reveals + giant wordmark rises as the page ends
+     11 · FOOTER
      ------------------------------------------------------------------------ */
   fadeUp($('.ftr__top'), 'top 92%');
   reveal($('.ftr'));
-  const mark = $('[data-footer-mark]');
-  const markChars = [...mark.textContent.trim()].map((ch) => {
-    const s = document.createElement('span');
-    s.className = 'ch';
-    s.textContent = ch;
-    return s;
-  });
-  mark.textContent = '';
-  markChars.forEach((s) => mark.appendChild(s));
-  gsap.fromTo(markChars, { yPercent: 110 }, {
-    yPercent: 0, ease: 'none', stagger: 0.24,
-    scrollTrigger: { trigger: '.ftr', start: 'top bottom', end: 'bottom bottom', scrub: 1 },
-  });
   bindClocks(false);
 
   /* ------------------------------------------------------------------------

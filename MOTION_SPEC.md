@@ -141,7 +141,7 @@ Trigger `.story`, start `top top`, end `+= 3.2 × innerHeight`, `pin: true`, `sc
 | Cycle | Hold 6s → next slide gets `zIndex++`, fades opacity 0 → 1 over 2s `power1.inOut` → previous is set to 0. Repeats every 8s |
 | Ken Burns | Each incoming slide scale 1.03 → 1 over 8s linear |
 | Play/pause | `ScrollTrigger` `top bottom` → `bottom top` on `.story`: the timer is paused while the section is off screen |
-| Interaction with pin | The pinned un-zoom scales the `.story__media` wrapper. Ken Burns scales the individual slides, so they stack cleanly |
+| Interaction with pin | The pinned un-zoom scales the `.story__media` wrapper. Ken Burns scales the individual slides, so they stack cleanly. The photos stay very blurred (`filter: blur(32px)`, oversized so the edge stays off screen) so the card is what you read |
 
 Verified: from 50% progress onward the card centre = `innerHeight / 2` at 1280×800 and 390×844. The card has `max-height: calc(100svh − 120px)` and verified 0px overflow.
 
@@ -173,7 +173,7 @@ Static mode: the track becomes a native `overflow-x: auto` swipe row with scroll
 - Quiz steps: each new question or score screen staggers in with `enter()`. After an answer, the explanation + Next button stagger in (0.1). `ScrollTrigger.refresh()` runs after each render.
 
 ### 07 Mission
-- `[data-drift]` image (inset −12% top/bottom for headroom): yPercent −8 → 8, trigger `top bottom` → `bottom top`, scrub 1.
+- `[data-drift]` image (inset −12% top/bottom for headroom): yPercent −8 → 8, trigger `top bottom` → `bottom top`, scrub 1. The photo is blurred (`filter: blur(12px)`, oversized so the edge doesn’t show) so the heading stays the focus.
 - Heading `colorWipe` (muted line, white copy wipes on as you scroll). Paragraph + link `fadeUp`. `.mission__content` → `leave()`.
 - Image fades as it exits: `.mission__media` opacity 1 → 0.25, trigger `bottom 70%` → `bottom top`, scrub 1.
 
@@ -189,8 +189,7 @@ Static mode: the track becomes a native `overflow-x: auto` swipe row with scroll
 - Heading `scrubWords` (the rise is tied to scroll and reverses). Copy, form and fine print `fadeUp`. The form message `enter()`s (y 8, 0.6s) on every submit.
 
 ### 11 Footer
-- `[data-footer-mark]` giant "CLOCK", split into letters: each letter yPercent 110 → 0, stagger 0.24, trigger `.ftr` `top bottom` → `bottom bottom`, scrub 1 (a wave rise as the page ends). The marquee is the horizontal text-on-scroll. Hello's "The hosts" keeps the plain `wordRise`, so the page still has one quiet heading.
-- `.ftr__top` `fadeUp` at `top 92%`. Social icons (`staggerUp`), the link row (`staggerUp`, 0.08) and the disclaimer/copyright (`fadeUp`) follow in DOM order.
+- `.ftr__top` `fadeUp` at `top 92%`. Social icons (`staggerUp`), the link row (`staggerUp`, 0.08) and the disclaimer/copyright (`fadeUp`) follow in DOM order. The wordmark clock in the footer logo still takes the last time (11:50).
 
 ## Reduced motion
 
@@ -199,7 +198,7 @@ Static mode: the track becomes a native `overflow-x: auto` swipe row with scroll
 | Kept | Dropped |
 |---|---|
 | Hero title, eyebrow, sub and cue: y 16, opacity 0 → 1, 1.05s expo.out, stagger 0.12 | Loader, Lenis, hero video (no file request) |
-| Each heading, fade target, principle, card and the footer word: y 14, opacity 0 → 1, 1.0s power2.out, `top 88%`, once | Pins, parallax, drift, tilt, Ken Burns, marquee loop, blur, decode, 3D flip |
+| Each heading, fade target, principle and card: y 14, opacity 0 → 1, 1.0s power2.out, `top 88%`, once | Pins, parallax, drift, tilt, Ken Burns, marquee loop, blur, decode, 3D flip |
 | Stagger lists: children y 10 → 0, 0.9s, stagger 0.09 | |
 | Menu, quiz, FAQ and form `enter()`, distance capped at 8px, duration capped at 0.75s | |
 
