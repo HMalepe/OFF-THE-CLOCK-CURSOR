@@ -107,14 +107,23 @@ section { position: relative; }
 .brand-logo--lg { height: 96px; }
 .drawer__logo { height: 58px; }
 .drawer .brand { margin: 0 0 28px; }
-/* Clock hands sit in the cyan O of the wordmark. Percents are measured off logo-white.png (720×280). */
+/* One vector O: a ring plus the quarter that leaves the dark three-quarter block. */
 .brand { position: relative; display: inline-block; line-height: 0; }
 .brand__clock {
-  position: absolute; left: 38.06%; top: 79.29%; height: 17.2%; aspect-ratio: 1;
+  position: absolute; left: 38.47%; top: 77.86%; height: 47%; aspect-ratio: 1;
   transform: translate(-50%, -50%); pointer-events: none; overflow: visible;
+  color: var(--accent);
 }
-.brand__clock line { stroke: currentColor; fill: none; stroke-width: 12; stroke-linecap: round; }
-.brand__clock circle { fill: currentColor; }
+.brand__clock circle { fill: none; stroke: currentColor; }
+.brand__clock path { fill: currentColor; }
+.brand__clock [data-pie] {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  animation: clock-sweep 12s linear infinite;
+}
+.reduce .brand__clock [data-pie] { animation-duration: 2.8s; animation-iteration-count: 1; }
+.static .brand__clock [data-pie] { animation: none; }
+@keyframes clock-sweep { to { transform: rotate(360deg); } }
 
 /* display headings */
 .h-display {
@@ -302,7 +311,7 @@ section { position: relative; }
 .story__stage { position: relative; height: 100svh; overflow: hidden; display: grid; place-items: center; }
 .story__media { position: absolute; inset: -8%; }
 .story__slide:not(:first-child) { opacity: 0; } /* JS crossfades them; static mode keeps slide 1 */
-.story__slide > img { filter: blur(32px); width: 124%; height: 124%; margin: -12%; }
+.story__slide > img { width: 124%; height: 124%; margin: -12%; }
 .story__shade { position: absolute; inset: 0; background: var(--shade); opacity: .25; }
 .story__card {
   position: relative; z-index: 2; width: min(100% - 2 * var(--gutter), 620px); max-height: calc(100svh - 120px); overflow: hidden;
@@ -496,6 +505,8 @@ section { position: relative; }
 .static .hero__cue svg { animation: none; }
 .static .story__stage,
 .reduce .story__stage { height: auto; min-height: 100svh; padding-block: 120px; }
+.static .story__slide > img,
+.reduce .story__slide > img { filter: blur(24px); }
 .static .topics__stage,
 .reduce .topics__stage { height: auto; min-height: 0; padding-block: var(--sec-pad); }
 .static .topics__viewport,

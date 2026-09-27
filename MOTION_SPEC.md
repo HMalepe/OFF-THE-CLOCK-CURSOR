@@ -67,18 +67,13 @@ The wordmark clock is separate from this timeline. See "Wordmark clock" below.
 CSS failsafe: `.js .loader` hides itself at 8 s (`animation: loader-safety 0s 8s forwards`).
 
 ### Wordmark clock
-The cyan O in `logo-white.png` / `logo-navy.png` is the clock face. An SVG (`.brand__clock`) sits on that O in the loader, header, drawer and footer. Hands start at 10:10. Without GSAP they stay there.
+The cyan O is a ring. Inside it, a quarter wedge of cyan (`[data-pie]`) leaves a dark three-quarter block, which is the page showing through. There are no hands. The wedge starts at 12–3. It sweeps clockwise around the centre of the O (`transform-box: view-box`), so it stays a quarter-circle. Without CSS animation it stays at 12–3.
 
-| When | Minute hand | Hour hand | Duration |
-|---|---|---|---|
-| Loader, with the mark fade | 60° → 420° (one spin) | 305° → 360° | 1.8s power2.inOut |
-| `#hello` enters, top 72%, once | to 12:00, clockwise | follows the real hour | 2s expo.out (1.05s if reduced motion) |
-| `#story` | 3:45 | same | same |
-| `#episodes` | 6:20 | same | same |
-| `#mission` | 8:55 | same | same |
-| footer | 11:50 | same | same |
-
-Header, drawer and footer share one pair of angles, so the fixed header clock is the one you watch. The loader hands are separate and do not join the scroll beats. Reduced motion uses the same times with the shorter spin. No libraries: hands stay at 10:10.
+| Where | Motion |
+|---|---|
+| Every logo, including the loader | `clock-sweep`, 0° → 360°, linear, 12s, repeat |
+| Reduced motion | The same sweep, once, 2.8s, then it rests |
+| No libraries (`html.static`) | No sweep |
 
 ### Hero video (basics, `main.js` §1)
 Reference behaviour: a looping muted background video (~18s) under a 65% dark gradient. This build:
@@ -125,6 +120,7 @@ Trigger `.story`, start `top top`, end `+= 3.2 × innerHeight`, `pin: true`, `sc
 | Step | Timeline pos | Scroll % (approx) | Target | From → To | Ease |
 |---|---|---|---|---|---|
 | 1 | 0 → 1 | 0 → 21% | `[data-story-img]` | scale 1.06 → 1 (un-zoom) | none |
+| 1 | 0 → 1 | 0 → 21% | `.story__slide > img` | blur 0 → 24px, in step with the card | none |
 | 1 | 0 → 1 | 0 → 21% | `[data-story-shade]` | opacity 0.1 → 0.55 | none |
 | 1 | 0 → 1 | 0 → 21% | `[data-story-card]` | y `0.8 × innerHeight` → 0 (lands centred) | power2.out |
 | 2 | 0.75 → ~1.94 | 16 → 41% | card heading letters | opacity 0 → 1, stagger 0.045 (type-on, tied to the pin) | none |
@@ -141,7 +137,7 @@ Trigger `.story`, start `top top`, end `+= 3.2 × innerHeight`, `pin: true`, `sc
 | Cycle | Hold 6s → next slide gets `zIndex++`, fades opacity 0 → 1 over 2s `power1.inOut` → previous is set to 0. Repeats every 8s |
 | Ken Burns | Each incoming slide scale 1.03 → 1 over 8s linear |
 | Play/pause | `ScrollTrigger` `top bottom` → `bottom top` on `.story`: the timer is paused while the section is off screen |
-| Interaction with pin | The pinned un-zoom scales the `.story__media` wrapper. Ken Burns scales the individual slides, so they stack cleanly. The photos stay very blurred (`filter: blur(32px)`, oversized so the edge stays off screen) so the card is what you read |
+| Interaction with pin | The pinned un-zoom scales the `.story__media` wrapper. Ken Burns scales the individual slides, so they stack cleanly. The photos start sharp and blur to 24px as the card rises (oversized so the soft edge stays off screen). Reduced motion and static mode keep the 24px blur, because the card is already in front |
 
 Verified: from 50% progress onward the card centre = `innerHeight / 2` at 1280×800 and 390×844. The card has `max-height: calc(100svh − 120px)` and verified 0px overflow.
 

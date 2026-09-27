@@ -291,47 +291,10 @@
     return;
   }
 
-  // Hands live in the cyan O of the wordmark. Each chapter sets a new time.
-  // The minute hand only travels clockwise, so every change reads as a spin.
-  function bindClocks(gentle) {
-    const hours = $$('[data-hour]').filter((el) => !el.closest('.loader'));
-    const mins = $$('[data-min]').filter((el) => !el.closest('.loader'));
-    if (!hours.length) return;
-    const arm = (els, angle) => gsap.to(els, {
-      rotation: angle, svgOrigin: '50 50', overwrite: 'auto',
-      duration: gentle ? 1.05 : 2, ease: 'expo.out',
-    });
-    gsap.set(hours, { svgOrigin: '50 50', rotation: 305 });
-    gsap.set(mins, { svgOrigin: '50 50', rotation: 60 });
-    let prevM = 60;
-    let prevH = 305;
-    [
-      { sel: '#hello', h: 12, m: 0 },
-      { sel: '#story', h: 3, m: 45 },
-      { sel: '#episodes', h: 6, m: 20 },
-      { sel: '#mission', h: 8, m: 55 },
-      { sel: '.ftr', h: 11, m: 50 },
-    ].forEach((t) => {
-      let ma = t.m * 6;
-      let ha = t.h * 30 + t.m * 0.5;
-      while (ma <= prevM) ma += 360;
-      while (ha <= prevH) ha += 360;
-      prevM = ma;
-      prevH = ha;
-      if (!$(t.sel)) return;
-      ScrollTrigger.create({
-        trigger: t.sel,
-        start: 'top 72%',
-        once: true,
-        onEnter: () => { arm(mins, ma); arm(hours, ha); },
-      });
-    });
-  }
-
   /* ------------------------------------------------------------------------
      2b · REDUCED MOTION — short fades only. No loader, pins, parallax,
          Lenis, marquee loop, or hero video. Anchor jumps still ease.
-         The wordmark clock still moves, just with a shorter spin.
+         The wordmark clock still sweeps once, then rests.
      ------------------------------------------------------------------------ */
   if (reduce) {
     root.classList.add('is-loaded');
@@ -360,7 +323,6 @@
         } else fade(el);
       });
 
-    bindClocks(true);
     ScrollTrigger.sort();
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => ScrollTrigger.refresh());
     window.addEventListener('load', () => ScrollTrigger.refresh());
@@ -653,8 +615,6 @@
   });
   intro
     .fromTo('.loader__mark', { yPercent: 40, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.9, ease: EASE })
-    .fromTo('.loader [data-min]', { rotation: 60 }, { rotation: 420, svgOrigin: '50 50', duration: 1.8, ease: 'power2.inOut' }, '<')
-    .fromTo('.loader [data-hour]', { rotation: 305 }, { rotation: 360, svgOrigin: '50 50', duration: 1.8, ease: 'power2.inOut' }, '<')
     .fromTo('.loader__rule', { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: 'expo.inOut' }, '-=0.5')
     .fromTo('.loader__word', { opacity: 0, y: 12 }, { opacity: 0.85, y: 0, duration: 0.7, ease: 'power2.out' }, '-=0.4')
     .to('.loader__inner', { opacity: 0, y: -20, duration: 0.6, ease: 'power2.in' }, '+=0.6')
@@ -710,6 +670,7 @@
   });
   storyTl
     .fromTo('[data-story-img]', { scale: 1.06 }, { scale: 1, duration: 1 }, 0)
+    .fromTo('.story__slide > img', { filter: 'blur(0px)' }, { filter: 'blur(24px)', duration: 1 }, 0)
     .fromTo('[data-story-shade]', { opacity: 0.1 }, { opacity: 0.55, duration: 1 }, 0)
     .fromTo(storyCard, { y: () => window.innerHeight * 0.8 }, { y: 0, duration: 1, ease: 'power2.out' }, 0)
     .fromTo(storyChars, { opacity: 0 }, { opacity: 1, duration: 0.6, stagger: 0.045, ease: 'none' }, 0.75)
@@ -852,7 +813,6 @@
      ------------------------------------------------------------------------ */
   fadeUp($('.ftr__top'), 'top 92%');
   reveal($('.ftr'));
-  bindClocks(false);
 
   /* ------------------------------------------------------------------------
      4 · FINALISE
