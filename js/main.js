@@ -15,16 +15,19 @@
   const $$ = (s, c = document) => [...c.querySelectorAll(s)];
   let lenis = null; // set in motion mode
 
-  // Motion is allowed only when the user hasn't asked for reduced motion AND the libraries loaded
+  // Libraries missing → fully static. Reduced motion still animates, just quietly (see gentleMotion).
   const reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
-  const motionOK = !reduce && !!window.gsap && !!window.ScrollTrigger;
+  const motionOK = !!window.gsap && !!window.ScrollTrigger;
   if (!motionOK) root.classList.add('static');
 
-  // Small entrance used by UI that re-renders (menu, quiz). No-op in static mode.
+  // Small entrance used by UI that re-renders (menu, quiz). No-op only when GSAP is missing.
   const enter = (els, opts = {}) => {
     if (!motionOK || !els || (Array.isArray(els) && !els.length)) return;
-    gsap.fromTo(els, { y: opts.y ?? 18, opacity: 0 }, {
-      y: 0, opacity: 1, duration: opts.duration ?? 0.8, ease: 'expo.out', stagger: opts.stagger ?? 0.06, delay: opts.delay ?? 0,
+    const dist = opts.y ?? 18;
+    gsap.fromTo(els, { y: reduce ? Math.sign(dist || 1) * Math.min(Math.abs(dist), 8) : dist, opacity: 0 }, {
+      y: 0, opacity: 1,
+      duration: reduce ? Math.min(opts.duration ?? 1.05, 0.75) : (opts.duration ?? 1.05),
+      ease: 'expo.out', stagger: opts.stagger ?? 0.06, delay: opts.delay ?? 0,
     });
   };
 
@@ -75,7 +78,7 @@
     drawer.inert = false;
     burger.setAttribute('aria-expanded', 'true');
     lenis && lenis.stop();
-    enter($$('.drawer__title, .drawer details, .drawer__social a', drawer), { y: 28, stagger: 0.05, delay: 0.15, duration: 0.9 });
+    enter($$('.drawer__title, .drawer details, .drawer__social a', drawer), { y: 28, stagger: 0.09, delay: 0.2, duration: 1.25 });
     setTimeout(() => $('.drawer__close').focus(), 50);
   };
   const closeMenu = () => {
@@ -114,7 +117,7 @@
     const wasOpen = root.classList.contains('menu-open');
     closeMenu();
     const go = () => {
-      if (lenis) lenis.scrollTo(target, { duration: 1.4, offset: target.tagName === 'SECTION' ? 0 : -96 });
+      if (lenis) lenis.scrollTo(target, { duration: 1.9, offset: target.tagName === 'SECTION' ? 0 : -96 });
       else target.scrollIntoView({ behavior: motionOK ? 'smooth' : 'auto' });
     };
     wasOpen ? setTimeout(go, 120) : go();
@@ -243,7 +246,7 @@
       : [[d.srcWebm, 'video/webm'], [d.srcMp4, 'video/mp4']]
     ).filter(([src, type]) => src && video.canPlayType(type));
     const drop = () => { video.remove(); toggle && toggle.remove(); };
-    if (!motionOK || conn.saveData || !candidates.length) { drop(); return; }
+    if (!motionOK || reduce || conn.saveData || !candidates.length) { drop(); return; }
 
     candidates.forEach(([src, type]) => {
       const s = document.createElement('source');
@@ -281,10 +284,86 @@
   })();
 
   /* ------------------------------------------------------------------------
-     2 · STATIC MODE — reduced motion or libraries missing
+     2 · NO LIBRARIES — everything stays visible, no tweens
      ------------------------------------------------------------------------ */
   if (!motionOK) {
     root.classList.add('is-loaded');
+    return;
+  }
+
+  // Hands live in the cyan O of the wordmark. Each chapter sets a new time.
+  // The minute hand only travels clockwise, so every change reads as a spin.
+  function bindClocks(gentle) {
+    const hours = $$('[data-hour]').filter((el) => !el.closest('.loader'));
+    const mins = $$('[data-min]').filter((el) => !el.closest('.loader'));
+    if (!hours.length) return;
+    const arm = (els, angle) => gsap.to(els, {
+      rotation: angle, svgOrigin: '50 50', overwrite: 'auto',
+      duration: gentle ? 1.05 : 2, ease: 'expo.out',
+    });
+    gsap.set(hours, { svgOrigin: '50 50', rotation: 305 });
+    gsap.set(mins, { svgOrigin: '50 50', rotation: 60 });
+    let prevM = 60;
+    let prevH = 305;
+    [
+      { sel: '#hello', h: 12, m: 0 },
+      { sel: '#story', h: 3, m: 45 },
+      { sel: '#episodes', h: 6, m: 20 },
+      { sel: '#mission', h: 8, m: 55 },
+      { sel: '.ftr', h: 11, m: 50 },
+    ].forEach((t) => {
+      let ma = t.m * 6;
+      let ha = t.h * 30 + t.m * 0.5;
+      while (ma <= prevM) ma += 360;
+      while (ha <= prevH) ha += 360;
+      prevM = ma;
+      prevH = ha;
+      if (!$(t.sel)) return;
+      ScrollTrigger.create({
+        trigger: t.sel,
+        start: 'top 72%',
+        once: true,
+        onEnter: () => { arm(mins, ma); arm(hours, ha); },
+      });
+    });
+  }
+
+  /* ------------------------------------------------------------------------
+     2b · REDUCED MOTION — short fades only. No loader, pins, parallax,
+         Lenis, marquee loop, or hero video. Anchor jumps still ease.
+         The wordmark clock still moves, just with a shorter spin.
+     ------------------------------------------------------------------------ */
+  if (reduce) {
+    root.classList.add('is-loaded');
+    gsap.registerPlugin(ScrollTrigger);
+    ScrollTrigger.config({ ignoreMobileResize: true });
+    const ease = 'power2.out';
+    const fade = (el, start = 'top 88%') =>
+      gsap.fromTo(el, { y: 14, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 1, ease,
+        scrollTrigger: { trigger: el, start, once: true },
+      });
+
+    gsap.fromTo('[data-hero-content] > *, .hero__cue', { y: 16, opacity: 0 }, {
+      y: 0, opacity: 1, duration: 1.05, ease: 'expo.out', stagger: 0.12, delay: 0.12,
+    });
+
+    $$('[data-split], [data-fade], [data-reveal], [data-stagger], [data-principle], [data-footer-mark], .qcard, .jcard')
+      .filter((el) => !el.closest('.hero'))
+      .filter((el) => !el.parentElement.closest('[data-split], [data-fade], [data-reveal], [data-stagger]'))
+      .forEach((el) => {
+        if (el.hasAttribute('data-stagger')) {
+          gsap.fromTo([...el.children], { y: 10, opacity: 0 }, {
+            y: 0, opacity: 1, duration: 0.9, ease, stagger: 0.09,
+            scrollTrigger: { trigger: el, start: 'top 90%', once: true },
+          });
+        } else fade(el);
+      });
+
+    bindClocks(true);
+    ScrollTrigger.sort();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => ScrollTrigger.refresh());
+    window.addEventListener('load', () => ScrollTrigger.refresh());
     return;
   }
 
@@ -295,7 +374,7 @@
   ScrollTrigger.config({ ignoreMobileResize: true });
 
   if (window.Lenis) {
-    lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
+    lenis = new Lenis({ lerp: 0.075, smoothWheel: true });
     window.__lenis = lenis; // handy for debugging / tests
     lenis.on('scroll', ScrollTrigger.update);
     gsap.ticker.add((t) => lenis.raf(t * 1000));
@@ -336,34 +415,167 @@
     return el._words;
   };
 
+  // Letters inside the word masks. Spaces stay between words.
+  const splitChars = (el) => {
+    if (el._chars) return el._chars;
+    const chars = [];
+    split(el).forEach((wi) => {
+      const text = wi.textContent;
+      wi.textContent = '';
+      [...text].forEach((ch) => {
+        const s = document.createElement('span');
+        s.className = 'ch';
+        s.textContent = ch;
+        wi.appendChild(s);
+        chars.push(s);
+      });
+    });
+    el._chars = chars;
+    return chars;
+  };
+
+  const once = (el, start) => ({ trigger: el, start, once: true });
+
   // Primitive: masked word-rise, once
   const wordRise = (el, start = 'top 85%') =>
     gsap.fromTo(split(el), { yPercent: 118 }, {
-      yPercent: 0, duration: 1.1, ease: EASE, stagger: 0.07,
-      scrollTrigger: { trigger: el, start, once: true },
+      yPercent: 0, duration: 1.55, ease: EASE, stagger: 0.12,
+      scrollTrigger: once(el, start),
     });
 
   // Primitive: fade-up, once
   const fadeUp = (el, start = 'top 88%') =>
     gsap.fromTo(el, { y: 40, opacity: 0 }, {
-      y: 0, opacity: 1, duration: 1, ease: EASE,
-      scrollTrigger: { trigger: el, start, once: true },
+      y: 0, opacity: 1, duration: 1.35, ease: EASE,
+      scrollTrigger: once(el, start),
     });
+
+  // Words fade and rise, unmasked, so a paragraph can cascade without a clip
+  const wordFade = (el, start = 'top 86%') =>
+    gsap.fromTo(split(el), { y: 16, opacity: 0 }, {
+      y: 0, opacity: 1, duration: 1.25, ease: EASE, stagger: 0.05,
+      scrollTrigger: once(el, start),
+    });
+
+  // Words sharpen as they arrive. Filter is cleared so it doesn't linger on the layer.
+  const blurIn = (el, start = 'top 84%') =>
+    gsap.fromTo(split(el), { y: 14, opacity: 0, filter: 'blur(12px)' }, {
+      y: 0, opacity: 1, filter: 'blur(0px)', duration: 1.6, ease: EASE, stagger: 0.14,
+      clearProps: 'filter',
+      scrollTrigger: once(el, start),
+    });
+
+  // Letters fall in and settle. back.out is the one ease that isn't expo: a drop needs the overshoot.
+  const dropIn = (el, start = 'top 84%') =>
+    gsap.fromTo(splitChars(el), {
+      y: -48, rotation: (i) => (i % 2 ? 5 : -5), opacity: 0,
+    }, {
+      y: 0, rotation: 0, opacity: 1, duration: 1.35, ease: 'back.out(1.4)', stagger: 0.09,
+      scrollTrigger: once(el, start),
+    });
+
+  // Letters arrive on a sine wave, then land on the baseline
+  const waveIn = (el, start = 'top 84%') =>
+    gsap.fromTo(splitChars(el), {
+      y: (i) => 22 + Math.sin(i * 0.7) * 16, opacity: 0,
+    }, {
+      y: 0, opacity: 1, duration: 1.45, ease: EASE, stagger: 0.05,
+      scrollTrigger: once(el, start),
+    });
+
+  // Each line wipes open left to right. Lines are authored as span.line so wrapping can't reshuffle them.
+  const maskLines = (el, start = 'top 82%') => {
+    const lines = $$('.line', el);
+    const targets = lines.length ? lines : [el];
+    return gsap.fromTo(targets, { clipPath: 'inset(0% 100% 0% 0%)' }, {
+      clipPath: 'inset(0% 0% 0% 0%)', duration: 1.45, ease: 'expo.inOut', stagger: 0.24,
+      scrollTrigger: once(el, start),
+      onComplete: () => gsap.set(targets, { clearProps: 'clipPath' }),
+    });
+  };
+
+  // Fill colour wipes across a duplicate of the line. The dim copy stays put underneath.
+  const colorWipe = (el) => {
+    const text = el.textContent.replace(/\s+/g, ' ').trim();
+    el.setAttribute('aria-label', text);
+    el.textContent = '';
+    const dim = document.createElement('span');
+    dim.className = 'wipe__dim';
+    dim.textContent = text;
+    const fill = document.createElement('span');
+    fill.className = 'wipe__fill';
+    fill.textContent = text;
+    fill.setAttribute('aria-hidden', 'true');
+    el.append(dim, fill);
+    return gsap.fromTo(fill, { clipPath: 'inset(0% 100% 0% 0%)' }, {
+      clipPath: 'inset(0% 0% 0% 0%)', ease: 'none',
+      scrollTrigger: { trigger: el, start: 'top 85%', end: 'top 30%', scrub: 1.4 },
+    });
+  };
+
+  // Masked word rise locked to scroll, so it reverses if you scroll back
+  const scrubWords = (el) =>
+    gsap.fromTo(split(el), { yPercent: 118 }, {
+      yPercent: 0, ease: 'none', stagger: 0.28,
+      scrollTrigger: { trigger: el, start: 'top 92%', end: 'top 38%', scrub: 1.4 },
+    });
+
+  // Letters cycle through capitals, then settle. Question marks and spaces stay still.
+  const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const decodeIn = (el, start = 'top 72%') => {
+    const chars = splitChars(el);
+    const finals = chars.map((c) => c.textContent);
+    ScrollTrigger.create({
+      ...once(el, start),
+      onEnter: () => {
+        chars.forEach((ch, i) => {
+          const real = finals[i];
+          if (!/[A-Za-z]/.test(real)) return;
+          const steps = 7;
+          const o = { n: 0 };
+          gsap.to(o, {
+            n: steps, duration: 0.8, delay: i * 0.07, ease: 'none',
+            onUpdate: () => {
+              ch.textContent = (steps - o.n) > 0.35 ? GLYPHS[(Math.random() * GLYPHS.length) | 0] : real;
+            },
+            onComplete: () => { ch.textContent = real; },
+            onInterrupt: () => { ch.textContent = real; },
+          });
+        });
+      },
+    });
+  };
 
   // Primitive: staggered children fade-up, once ([data-stagger])
   const staggerUp = (el, start = 'top 90%') =>
     gsap.fromTo([...el.children], { y: 24, opacity: 0 }, {
-      y: 0, opacity: 1, duration: 0.9, ease: EASE, stagger: 0.08,
+      y: 0, opacity: 1, duration: 1.2, ease: EASE, stagger: 0.12,
       scrollTrigger: { trigger: el, start, once: true },
     });
 
-  // Primitive: reveal every [data-split] / [data-fade] / [data-stagger] inside a scope (DOM order)
+  // Primitive: one reveal per element, in DOM order. data-reveal picks the treatment; data-split alone stays the masked word rise.
+  const playReveal = (el) => {
+    switch (el.dataset.reveal) {
+      case 'words': return wordFade(el);
+      case 'blur': return blurIn(el);
+      case 'drop': return dropIn(el);
+      case 'wave': return waveIn(el);
+      case 'mask': return maskLines(el);
+      case 'wipe': return colorWipe(el);
+      case 'scrub': return scrubWords(el);
+      case 'decode': return decodeIn(el);
+      default:
+        if (el.hasAttribute('data-split')) return wordRise(el);
+        if (el.hasAttribute('data-stagger')) return staggerUp(el);
+        return fadeUp(el);
+    }
+  };
+
   const reveal = (scope, skip) => {
-    $$('[data-split], [data-fade], [data-stagger]', scope).forEach((el) => {
+    $$('[data-split], [data-fade], [data-stagger], [data-reveal]', scope).forEach((el) => {
       if (skip && skip(el)) return;
-      if (el.hasAttribute('data-split')) wordRise(el);
-      else if (el.hasAttribute('data-stagger')) staggerUp(el);
-      else fadeUp(el);
+      if (el.dataset.reveal === 'flip' || el.dataset.reveal === 'type') return;
+      playReveal(el);
     });
   };
 
@@ -402,8 +614,8 @@
       start: 'top 90%',
       once: true,
       onEnter: (batch) => {
-        gsap.to(batch, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.2, ease: EASE, stagger: 0.1, clearProps: 'clipPath' });
-        gsap.to(batch.map((b) => $('.ph', b)), { scale: 1, duration: 1.6, ease: EASE, stagger: 0.1 });
+        gsap.to(batch, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.55, ease: EASE, stagger: 0.16, clearProps: 'clipPath' });
+        gsap.to(batch.map((b) => $('.ph', b)), { scale: 1, duration: 2, ease: EASE, stagger: 0.16 });
       },
     });
     imgs.forEach((ph) => drift(ph));
@@ -432,7 +644,7 @@
   }
   lenis && lenis.stop();
   const loader = $('.loader');
-  const heroWords = split($('[data-split="hero"]'));
+  const heroChars = splitChars($('[data-split="hero"]'));
   const heroFades = $$('[data-hero-fade], .hero__toggle:not([hidden])');
 
   const intro = gsap.timeline({
@@ -441,14 +653,18 @@
   });
   intro
     .fromTo('.loader__mark', { yPercent: 40, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.9, ease: EASE })
+    .fromTo('.loader [data-min]', { rotation: 60 }, { rotation: 420, svgOrigin: '50 50', duration: 1.8, ease: 'power2.inOut' }, '<')
+    .fromTo('.loader [data-hour]', { rotation: 305 }, { rotation: 360, svgOrigin: '50 50', duration: 1.8, ease: 'power2.inOut' }, '<')
     .fromTo('.loader__rule', { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: 'expo.inOut' }, '-=0.5')
     .fromTo('.loader__word', { opacity: 0, y: 12 }, { opacity: 0.85, y: 0, duration: 0.7, ease: 'power2.out' }, '-=0.4')
-    .to('.loader__inner', { opacity: 0, y: -20, duration: 0.5, ease: 'power2.in' }, '+=0.35')
-    .to(loader, { yPercent: -100, duration: 1.1, ease: 'expo.inOut' }, '-=0.1')
-    .fromTo('[data-hero-zoom]', { scale: 1.25 }, { scale: 1, duration: 2, ease: EASE }, '-=0.75')
-    .fromTo(hdr, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 1, ease: EASE, clearProps: 'transform' }, '<0.2')
-    .fromTo(heroWords, { yPercent: 118 }, { yPercent: 0, duration: 1.2, ease: EASE, stagger: 0.07 }, '<')
-    .fromTo(heroFades, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 1, ease: EASE, stagger: 0.1 }, '<0.4');
+    .to('.loader__inner', { opacity: 0, y: -20, duration: 0.6, ease: 'power2.in' }, '+=0.6')
+    .to(loader, { yPercent: -100, duration: 1.35, ease: 'expo.inOut' }, '-=0.15')
+    .fromTo('[data-hero-zoom]', { scale: 1.25 }, { scale: 1, duration: 2.6, ease: EASE }, '-=0.9')
+    .fromTo(hdr, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 1.25, ease: EASE, clearProps: 'transform' }, '<0.25')
+    .fromTo(heroChars, { rotationX: -88, yPercent: 50, opacity: 0 }, {
+      rotationX: 0, yPercent: 0, opacity: 1, duration: 1.5, ease: EASE, stagger: 0.07,
+    }, '<')
+    .fromTo(heroFades, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 1.3, ease: EASE, stagger: 0.14 }, '<0.55');
 
   /* 02 · HERO scroll-out (scrub) */
   const heroST = { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 1 };
@@ -470,7 +686,7 @@
     const suf = el.dataset.suffix || '';
     const o = { v: 0 };
     gsap.to(o, {
-      v: end, duration: 1.8, ease: 'power2.out',
+      v: end, duration: 2.4, ease: 'power2.out',
       scrollTrigger: { trigger: el, start: 'top 92%', once: true },
       onStart: () => { el.textContent = '0' + suf; },
       onUpdate: () => (el.textContent = Math.round(o.v) + suf),
@@ -484,21 +700,23 @@
      ------------------------------------------------------------------------ */
   const story = $('.story');
   const storyCard = $('[data-story-card]');
-  const storyWords = split($('[data-split]', storyCard));
+  const storyChars = splitChars($('[data-split]', storyCard));
   const storyTl = gsap.timeline({
     defaults: { ease: 'none' },
     scrollTrigger: {
-      trigger: story, start: 'top top', end: () => '+=' + window.innerHeight * 2.2,
-      pin: true, scrub: 1, anticipatePin: 1, invalidateOnRefresh: true,
+      trigger: story, start: 'top top', end: () => '+=' + window.innerHeight * 3.2,
+      pin: true, scrub: 1.4, anticipatePin: 1, invalidateOnRefresh: true,
     },
   });
   storyTl
     .fromTo('[data-story-img]', { scale: 1.06 }, { scale: 1, duration: 1 }, 0)
     .fromTo('[data-story-shade]', { opacity: 0.1 }, { opacity: 0.55, duration: 1 }, 0)
     .fromTo(storyCard, { y: () => window.innerHeight * 0.8 }, { y: 0, duration: 1, ease: 'power2.out' }, 0)
-    .fromTo(storyWords, { yPercent: 118 }, { yPercent: 0, duration: 0.5, stagger: 0.05, ease: 'power3.out' }, 0.45)
-    .fromTo('[data-principle]', { opacity: 0.2, x: 16 }, { opacity: 1, x: 0, duration: 0.3, stagger: 0.5, ease: 'power2.out' }, 1.1)
-    .to({}, { duration: 0.4 }); // hold
+    .fromTo(storyChars, { opacity: 0 }, { opacity: 1, duration: 0.6, stagger: 0.045, ease: 'none' }, 0.75)
+    .fromTo('[data-principle]', { clipPath: 'inset(0% 100% 0% 0%)' }, {
+      clipPath: 'inset(0% 0% 0% 0%)', duration: 0.55, stagger: 0.8, ease: 'power2.out',
+    }, 1.9)
+    .to({}, { duration: 0.7 }); // hold
 
   // Background slideshow (crossfade 2s, hold 6s, loop, slow Ken Burns) — runs only while the story is on screen
   const slides = $$('[data-slide]', story);
@@ -530,7 +748,7 @@
      ------------------------------------------------------------------------ */
   const mRow = $('[data-marquee]');
   if (mRow) {
-    const loop = gsap.to(mRow, { xPercent: -50, duration: 32, ease: 'none', repeat: -1 });
+    const loop = gsap.to(mRow, { xPercent: -50, duration: 46, ease: 'none', repeat: -1 });
     const skew = gsap.quickTo(mRow, 'skewX', { duration: 0.5, ease: 'power3.out' });
     let skewReset = null;
     ScrollTrigger.create({
@@ -563,8 +781,8 @@
     const hTween = gsap.fromTo(track, { x: 0 }, {
       x: () => -dist(), ease: 'none',
       scrollTrigger: {
-        trigger: topics, start: 'top top', end: () => '+=' + dist(),
-        pin: true, scrub: 1, anticipatePin: 1, invalidateOnRefresh: true,
+        trigger: topics, start: 'top top', end: () => '+=' + dist() * 1.4,
+        pin: true, scrub: 1.4, anticipatePin: 1, invalidateOnRefresh: true,
         onUpdate: (self) => gsap.set('[data-track-bar]', { scaleX: 0.02 + self.progress * 0.98 }),
       },
     });
@@ -591,6 +809,7 @@
   batchReveal($('.qgrid'));
   $$('[data-tilt]').forEach(tilt);
   fadeUp($('.tryquiz'));
+  decodeIn($('.tryquiz__title'));
   $$('.quizzes [data-speed]').forEach(speed);
   leave($('.sec-head', quizzes));
 
@@ -633,10 +852,20 @@
      ------------------------------------------------------------------------ */
   fadeUp($('.ftr__top'), 'top 92%');
   reveal($('.ftr'));
-  gsap.fromTo('[data-footer-mark]', { yPercent: 100 }, {
-    yPercent: 0, ease: 'none',
+  const mark = $('[data-footer-mark]');
+  const markChars = [...mark.textContent.trim()].map((ch) => {
+    const s = document.createElement('span');
+    s.className = 'ch';
+    s.textContent = ch;
+    return s;
+  });
+  mark.textContent = '';
+  markChars.forEach((s) => mark.appendChild(s));
+  gsap.fromTo(markChars, { yPercent: 110 }, {
+    yPercent: 0, ease: 'none', stagger: 0.24,
     scrollTrigger: { trigger: '.ftr', start: 'top bottom', end: 'bottom bottom', scrub: 1 },
   });
+  bindClocks(false);
 
   /* ------------------------------------------------------------------------
      4 · FINALISE

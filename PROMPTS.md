@@ -24,7 +24,7 @@ Port this site to Next.js 15 App Router + TypeScript, keeping it visually and be
 - Create a <LenisProvider> (lenis/react) that drives gsap.ticker and calls ScrollTrigger.update on scroll.
 - Keep DOM-order trigger creation: sections mount in order, and a final effect in page.tsx calls ScrollTrigger.sort() + refresh() after fonts load.
 - Tokens become CSS variables in globals.css (same names). Use next/font for Oswald and Manrope. The wordmark is the logo image, not a webfont.
-- Keep the static mode: a useReducedMotion hook that skips all GSAP and renders everything visible.
+- Keep reduced motion: short fade-ups still run. Skip pins, Lenis, parallax and the hero video. `html.static` is only the no-library fallback.
 - Port the hero <HeroVideo> exactly per MOTION_SPEC "Hero video" (injected sources, poster <picture>, Save-Data check, IntersectionObserver + visibility pause, accessible toggle).
 - Port the story slideshow, velocity marquee, back-to-top progress ring and drawer stagger as their own components.
 - Split headings with my own splitter (port split() from main.js) — don't add SplitText.

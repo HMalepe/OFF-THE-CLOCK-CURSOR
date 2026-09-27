@@ -32,7 +32,10 @@ Static creator site. **No build step, no framework.** Keep it that way unless th
 - Keep the Pause/Play toggle, the off-screen/hidden-tab pausing and the Save-Data check.
 
 ## Static mode
-`html.static` is added when `prefers-reduced-motion: reduce` is set or GSAP is missing. In static mode: no loader, no pins, no Lenis, everything visible, and the topics track is a native swipe row. Every new feature must work and be readable in static mode.
+`html.static` is added only when GSAP is missing. Then there is no loader, no pins, no Lenis, everything is visible, and the topics track is a native swipe row.
+
+## Reduced motion
+`html.reduce` is added when `prefers-reduced-motion: reduce`. Short fade-ups still play (hero, headings, cards, menu, quiz). No loader, pins, Lenis, parallax, marquee loop, or hero video. The story and topics use the same unpinned layout as static mode. Every new feature must stay readable in both modes.
 
 ## Testing (before calling anything done)
 - Widths: **390×844** and **1280×800** (also check 1440+).

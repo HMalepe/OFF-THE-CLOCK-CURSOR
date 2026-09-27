@@ -80,8 +80,8 @@ Every image is a `.ph` placeholder block (gradient + film grain). Look for `<!--
 
 ## Accessibility and fallbacks
 
-- `prefers-reduced-motion: reduce` → `html.static`: no loader, no pins, no smooth scroll. All content is visible and the topic gallery becomes a native swipe row.
-- If GSAP fails to load, the same static mode kicks in. Content is never hidden by CSS. Start states are only set by JS (`gsap.set` / `fromTo`).
+- `prefers-reduced-motion: reduce` → `html.reduce`: short fade-ups still play. No loader, pins, smooth-scroll library, parallax or hero video. Topics become a native swipe row.
+- If GSAP fails to load, `html.static` freezes motion and shows everything. Content is never hidden by CSS. Start states are only set by JS (`gsap.set` / `fromTo`).
 - The loader has a CSS safety timeout and hides itself after 5 s even if JS stalls.
 - Hero video: never downloads in reduced-motion or Save-Data mode, is `aria-hidden`, has a visible Pause/Play control, and pauses off screen.
 - Decorative marquee is `aria-hidden` (its words already appear in the topics section).

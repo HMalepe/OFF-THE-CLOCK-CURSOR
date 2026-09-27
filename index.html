@@ -19,7 +19,7 @@
 
   <script>
     document.documentElement.classList.add('js');
-    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('static');
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('reduce');
   </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -52,7 +52,7 @@
      ============================================================ -->
 <div class="loader" aria-hidden="true">
   <div class="loader__inner">
-    <span class="loader__mark"><img src="assets/logo-white.png" alt=""></span>
+    <span class="loader__mark"><span class="brand"><img src="assets/logo-white.png" alt=""><svg class="brand__clock" viewBox="0 0 100 100" aria-hidden="true"><line data-hour x1="50" y1="50" x2="50" y2="22" transform="rotate(305 50 50)"/><line data-min x1="50" y1="50" x2="50" y2="14" transform="rotate(60 50 50)"/><circle cx="50" cy="50" r="7"/></svg></span></span>
     <span class="loader__rule"></span>
     <span class="loader__word">Leadership &amp; wellbeing</span>
   </div>
@@ -67,7 +67,7 @@
     <span>Subscribe</span>
   </a>
   <a class="hdr__brand" href="#top" aria-label="Off The Clock — home">
-    <img class="brand-logo" src="assets/logo-white.png" alt="">
+    <span class="brand"><img class="brand-logo" src="assets/logo-white.png" alt=""><svg class="brand__clock" viewBox="0 0 100 100" aria-hidden="true"><line data-hour x1="50" y1="50" x2="50" y2="22" transform="rotate(305 50 50)"/><line data-min x1="50" y1="50" x2="50" y2="14" transform="rotate(60 50 50)"/><circle cx="50" cy="50" r="7"/></svg></span>
   </a>
   <button class="hdr__burger" type="button" aria-expanded="false" aria-controls="drawer" data-menu-open>
     <span class="sr">Open menu</span>
@@ -78,7 +78,7 @@
 <div class="drawer-scrim" data-menu-close></div>
 <aside class="drawer" id="drawer" aria-label="Main menu" inert>
   <button class="drawer__close" type="button" data-menu-close><span class="sr">Close menu</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg></button>
-  <img class="brand-logo drawer__logo" src="assets/logo-navy.png" alt="Off The Clock">
+  <span class="brand"><img class="brand-logo drawer__logo" src="assets/logo-navy.png" alt="Off The Clock"><svg class="brand__clock" viewBox="0 0 100 100" aria-hidden="true"><line data-hour x1="50" y1="50" x2="50" y2="22" transform="rotate(305 50 50)"/><line data-min x1="50" y1="50" x2="50" y2="14" transform="rotate(60 50 50)"/><circle cx="50" cy="50" r="7"/></svg></span>
   <p class="drawer__title">Main menu</p>
   <nav class="drawer__nav">
     <details><summary>The show</summary>
@@ -127,7 +127,7 @@
   <div class="hero__shade"></div>
   <div class="hero__content" data-hero-content>
     <p class="eyebrow" data-hero-fade>Leadership · Wellbeing · Podcast</p>
-    <h1 class="hero__title" data-split="hero">
+    <h1 class="hero__title" data-split="hero" data-reveal="flip">
       <span class="line">Off the</span>
       <span class="line">clock</span>
     </h1>
@@ -180,7 +180,7 @@
     </div>
     <div class="story__shade" data-story-shade></div>
     <article class="story__card" data-story-card>
-      <h2 class="h-display h-display--ink" data-split>Titles fall away</h2>
+      <h2 class="h-display h-display--ink" data-split data-reveal="type">Titles fall away</h2>
       <p>Off The Clock was founded to demystify the CEO and bring the human back into leadership. The book sits beside the show: eight moves for doing business in Africa, written by Peter.</p>
       <ol class="principles">
         <li data-principle><span>01</span><div><strong>Rest isn’t weakness</strong><em>Burnout is not a strategy.</em></div></li>
@@ -207,7 +207,7 @@
 <section class="topics section--ink" id="topics" data-pin="topics">
   <div class="topics__stage">
     <div class="topics__head wrap">
-      <h2 class="h-display" data-split>The conversation</h2>
+      <h2 class="h-display" data-split data-reveal="blur">The conversation</h2>
       <p class="topics__hint" data-fade><span class="hint-scroll">Keep scrolling</span><span class="hint-swipe">Swipe</span> <span aria-hidden="true">→</span></p>
     </div>
     <div class="topics__viewport">
@@ -230,8 +230,8 @@
   <div class="wrap">
     <header class="sec-head">
       <p class="eyebrow eyebrow--dark" data-fade>The show</p>
-      <h2 class="h-display h-display--ink" data-split>Sit in</h2>
-      <p class="sec-head__lead" data-fade>A few of the conversations already on the record. The full episodes are on YouTube.</p>
+      <h2 class="h-display h-display--ink" data-split data-reveal="drop">Sit in</h2>
+      <p class="sec-head__lead" data-reveal="words">A few of the conversations already on the record. The full episodes are on YouTube.</p>
     </header>
 
     <ul class="qgrid" data-batch>
@@ -256,7 +256,7 @@
     <div class="tryquiz" id="try" data-fade>
       <div class="tryquiz__intro" data-speed="0.92">
         <p class="eyebrow eyebrow--dark">From the show</p>
-        <h3 class="tryquiz__title">Myth or fact?</h3>
+        <h3 class="tryquiz__title" data-reveal="decode">Myth or fact?</h3>
         <p>Three lines Off The Clock keeps coming back to.</p>
       </div>
       <div class="tryquiz__panel" data-quiz aria-live="polite">
@@ -277,7 +277,7 @@
   </div>
   <div class="mission__shade"></div>
   <div class="mission__content wrap">
-    <h2 class="h-display" data-split>Rest isn’t a weakness</h2>
+    <h2 class="h-display" data-reveal="wipe">Rest isn’t a weakness</h2>
     <p data-fade>The show exists so executive rest, stress and mental wellness are not treated as off-limits. Burnout is not a strategy. If leadership is going to last, there has to be room for the person behind the title.</p>
     <a class="tlink" href="#hello" data-fade>The hosts</a>
   </div>
@@ -289,7 +289,7 @@
 <section class="journal section--paper" id="journal">
   <div class="wrap">
     <header class="sec-head sec-head--center">
-      <h2 class="h-display h-display--ink" data-split>From the conversations</h2>
+      <h2 class="h-display h-display--ink" data-split data-reveal="wave">From the conversations</h2>
     </header>
     <ul class="jgrid" data-batch>
       <li class="jcard"><a href="https://www.youtube.com/results?search_query=Off+The+Clock+Jedd+Myers" target="_blank" rel="noopener"><div class="jcard__media"><div class="zoom"><div class="ph" style="--g1:#70ccdc;--g2:#16325c;--g3:#e7eef3"></div></div></div><p><span>Health —</span> Dr Jedd Myers on why lack of sleep is not a badge of honour</p></a></li>
@@ -308,7 +308,7 @@
   <div class="wrap faq__grid">
     <header class="sec-head" data-speed="0.85">
       <p class="eyebrow eyebrow--dark" data-fade>FAQ</p>
-      <h2 class="h-display h-display--ink" data-split>Before you press play</h2>
+      <h2 class="h-display h-display--ink" data-reveal="mask"><span class="line">Before you</span><span class="line">press play</span></h2>
     </header>
     <div class="faq__list">
       <details data-fade><summary>What is Off The Clock?</summary><p>A leadership and wellbeing podcast. It was founded to demystify the CEO and talk about executive rest, stress and the person behind the title — not strategy decks.</p></details>
@@ -325,7 +325,7 @@
      ============================================================ -->
 <section class="newsletter section--ink" id="newsletter">
   <div class="wrap newsletter__inner">
-    <h2 class="h-display" data-split>New episodes</h2>
+    <h2 class="h-display" data-split data-reveal="scrub">New episodes</h2>
     <p data-fade>One note when a conversation lands: who sat down, and the line worth keeping.</p>
     <form class="signup" data-signup data-fade action="#" method="post" novalidate>
       <label class="sr" for="email">Email address</label>
@@ -345,7 +345,7 @@
      ============================================================ -->
 <footer class="ftr" id="footer">
   <div class="wrap ftr__top">
-    <img class="brand-logo brand-logo--lg" src="assets/logo-white.png" alt="">
+    <span class="brand"><img class="brand-logo brand-logo--lg" src="assets/logo-white.png" alt=""><svg class="brand__clock" viewBox="0 0 100 100" aria-hidden="true"><line data-hour x1="50" y1="50" x2="50" y2="22" transform="rotate(305 50 50)"/><line data-min x1="50" y1="50" x2="50" y2="14" transform="rotate(60 50 50)"/><circle cx="50" cy="50" r="7"/></svg></span>
     <p class="ftr__name">Off The Clock</p>
     <p class="ftr__script">Leadership &amp; wellbeing</p>
     <ul class="ftr__social" data-stagger>

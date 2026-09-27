@@ -105,7 +105,16 @@ section { position: relative; }
 
 .brand-logo { display: block; height: 60px; width: auto; }
 .brand-logo--lg { height: 96px; }
-.drawer__logo { height: 58px; margin: 0 0 28px; }
+.drawer__logo { height: 58px; }
+.drawer .brand { margin: 0 0 28px; }
+/* Clock hands sit in the cyan O of the wordmark. Percents are measured off logo-white.png (720×280). */
+.brand { position: relative; display: inline-block; line-height: 0; }
+.brand__clock {
+  position: absolute; left: 38.06%; top: 79.29%; height: 17.2%; aspect-ratio: 1;
+  transform: translate(-50%, -50%); pointer-events: none; overflow: visible;
+}
+.brand__clock line { stroke: currentColor; fill: none; stroke-width: 12; stroke-linecap: round; }
+.brand__clock circle { fill: currentColor; }
 
 /* display headings */
 .h-display {
@@ -115,9 +124,25 @@ section { position: relative; }
 }
 .h-display--ink { color: var(--slate-d); }
 
-/* split-word masks (built by main.js) */
+/* split-word masks (built by main.js). Overflow clips the masked rises only. */
 .w { display: inline-block; overflow: hidden; vertical-align: top; padding: .06em 0 .1em; margin: -.06em 0 -.1em; }
 .wi { display: inline-block; }
+.ch { display: inline-block; }
+.h-display .line { display: block; }
+/* These reveals travel outside the mask, so the word box must not clip them. */
+[data-reveal="drop"] .w,
+[data-reveal="wave"] .w,
+[data-reveal="blur"] .w,
+[data-reveal="words"] .w,
+[data-reveal="decode"] .w { overflow: visible; }
+[data-reveal="words"] .w { vertical-align: baseline; padding: 0; margin: 0; }
+.hero__title .line { perspective: 640px; }
+.hero__title .ch { transform-origin: 50% 0; backface-visibility: hidden; }
+/* Colour wipe: both layers stay in the DOM. JS clips the fill; without JS the fill covers the dim copy. */
+[data-reveal="wipe"] { position: relative; }
+.wipe__dim, .wipe__fill { display: block; }
+.wipe__dim { color: var(--muted); }
+.wipe__fill { position: absolute; inset: 0; color: inherit; pointer-events: none; }
 
 .eyebrow {
   font-weight: 500; font-size: var(--fs-small); letter-spacing: var(--track-caps);
@@ -180,7 +205,7 @@ section { position: relative; }
 .js .loader {
   position: fixed; inset: 0; z-index: 100; display: grid; place-items: center;
   background: var(--ink); color: var(--mist);
-  animation: loader-safety 0s linear 5s forwards; /* failsafe if JS stalls */
+  animation: loader-safety 0s linear 8s forwards; /* failsafe if JS stalls */
 }
 .loader__inner { display: grid; justify-items: center; gap: 18px; }
 .loader__mark img { width: min(320px, 72vw); height: auto; }
@@ -409,7 +434,8 @@ section { position: relative; }
 .ftr__base { text-align: center; padding-block: 26px 0; font-size: .78rem; color: var(--muted); }
 .ftr__base p { margin-bottom: .5em; }
 .ftr__mark { position: relative; overflow: hidden; line-height: .8; text-align: center; margin-top: 12px; pointer-events: none; }
-.ftr__mark span { display: block; font-family: var(--f-display); font-weight: 500; text-transform: uppercase; font-size: clamp(4.2rem, 22vw, 18rem); letter-spacing: -.02em; color: var(--ink-2); -webkit-text-stroke: 1px var(--line-dark); padding-top: .08em; }
+.ftr__mark [data-footer-mark] { display: block; font-family: var(--f-display); font-weight: 500; text-transform: uppercase; font-size: clamp(4.2rem, 22vw, 18rem); letter-spacing: -.02em; color: var(--ink-2); -webkit-text-stroke: 1px var(--line-dark); padding-top: .08em; }
+.ftr__mark .ch { display: inline-block; }
 
 /* back to top */
 .totop {
@@ -464,17 +490,29 @@ section { position: relative; }
   .qgrid, .jgrid { grid-template-columns: 1fr; }
 }
 
-/* 5 · STATIC MODE — reduced motion or libraries failed ------------------- */
-.static .loader { display: none !important; }
+/* 5 · STATIC (no libraries) and REDUCED MOTION
+   Static freezes CSS motion. Reduced motion keeps short fades (see main.js)
+   but uses the same unpinned layout: no loader, no hero video, swipe topics. */
+.static .loader,
+.reduce .loader { display: none !important; }
 .static .hero__cue svg { animation: none; }
-.static .story__stage { height: auto; min-height: 100svh; padding-block: 120px; }
-.static .topics__stage { height: auto; min-height: 0; padding-block: var(--sec-pad); }
-.static .topics__viewport { overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding-bottom: 12px; }
-.static .tcard { scroll-snap-align: start; }
-.static .topics__progress { display: none; }
+.static .story__stage,
+.reduce .story__stage { height: auto; min-height: 100svh; padding-block: 120px; }
+.static .topics__stage,
+.reduce .topics__stage { height: auto; min-height: 0; padding-block: var(--sec-pad); }
+.static .topics__viewport,
+.reduce .topics__viewport { overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding-bottom: 12px; }
+.static .tcard,
+.reduce .tcard { scroll-snap-align: start; }
+.static .topics__progress,
+.reduce .topics__progress { display: none; }
 .static .hdr { transition: none; }
-.static .hero__video, .static .hero__toggle { display: none !important; }
-.static .marquee__row { width: auto; flex-wrap: wrap; justify-content: center; }
-.static .marquee__set + .marquee__set { display: none; }
-.static .marquee__set { flex-wrap: wrap; justify-content: center; }
+.static .hero__video, .static .hero__toggle,
+.reduce .hero__video, .reduce .hero__toggle { display: none !important; }
+.static .marquee__row,
+.reduce .marquee__row { width: auto; flex-wrap: wrap; justify-content: center; }
+.static .marquee__set + .marquee__set,
+.reduce .marquee__set + .marquee__set { display: none; }
+.static .marquee__set,
+.reduce .marquee__set { flex-wrap: wrap; justify-content: center; }
 .static *, .static *::before, .static *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
