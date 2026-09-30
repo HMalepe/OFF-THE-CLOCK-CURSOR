@@ -19,7 +19,22 @@
 
   <script>
     document.documentElement.classList.add('js');
-    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('reduce');
+    try {
+      var nav = performance.getEntriesByType('navigation')[0];
+      var back = !!(nav && nav.type === 'back_forward');
+      window.__otcBack = back;
+      if (back) {
+        if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+        if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+      } else if (location.hash) {
+        window.__otcHash = location.hash;
+        if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+        history.replaceState(null, '', location.pathname + location.search);
+        scrollTo(0, 0);
+      } else if (sessionStorage.getItem('otc-intro') === '1') {
+        document.documentElement.classList.add('skip-loader');
+      }
+    } catch (e) {}
   </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -175,10 +190,10 @@
         <img src="assets/hero-studio.jpg" alt="Peter Mehlape recording Off The Clock with a guest." width="2560" height="1440">
       </div>
       <div class="ph ph--photo story__slide" data-slide>
-        <img src="assets/winning-in-africa.jpg" alt="Cover of Winning in Africa by Peter Mehlape." width="1728" height="2304" style="object-position:center 18%">
+        <img src="assets/winning-in-africa.jpg" alt="Cover of Winning in Africa by Peter Mehlape." width="1728" height="2304" style="object-position:center 18%" loading="lazy" decoding="async">
       </div>
       <div class="ph ph--photo story__slide" data-slide>
-        <img src="assets/hero-studio.jpg" alt="Peter Mehlape recording Off The Clock with a guest." width="2560" height="1440" style="object-position:70% center">
+        <img src="assets/hero-studio.jpg" alt="Peter Mehlape recording Off The Clock with a guest." width="2560" height="1440" style="object-position:70% center" loading="lazy" decoding="async">
       </div>
       <div class="story__veil" aria-hidden="true"><img src="assets/hero-studio.jpg" alt="" width="640" height="360" decoding="async"></div>
     </div>
@@ -250,7 +265,7 @@
 
     <ul class="qgrid" data-batch>
       <li class="qcard" data-tilt>
-        <div class="qcard__media"><div class="zoom"><div class="ph ph--photo"><img src="assets/behind-the-mic.jpg" alt="Peter Mehlape in the Off The Clock studio with a guest." style="object-position:left center"></div></div></div>
+        <div class="qcard__media"><div class="zoom"><div class="ph ph--photo"><img src="assets/behind-the-mic.jpg" alt="Peter Mehlape in the Off The Clock studio with a guest." width="2560" height="1920" style="object-position:left center" loading="lazy" decoding="async"></div></div></div>
         <div class="qcard__body"><span class="tag">Episode</span><h3>Episode 1</h3><p>Where the show starts. Peter and Mahlatse, on YouTube.</p><a class="btn btn--ink" href="https://www.youtube.com/watch?v=ofamGq9n7OQ" target="_blank" rel="noopener">Watch episode 1</a></div>
       </li>
       <li class="qcard" data-tilt>
@@ -262,7 +277,7 @@
         <div class="qcard__body"><span class="tag">Episode</span><h3>Bruce Strong</h3><p>Group CEO of Mpact, on failure, family, resilience and staying curious.</p><a class="btn btn--ink" href="https://www.youtube.com/results?search_query=Off+The+Clock+Bruce+Strong+Mpact" target="_blank" rel="noopener">Find on YouTube</a></div>
       </li>
       <li class="qcard" data-tilt>
-        <div class="qcard__media"><div class="zoom"><div class="ph ph--photo"><img src="assets/winning-in-africa.jpg" alt="Cover of Winning in Africa by Peter Mehlape." style="object-position:center 15%"></div></div></div>
+        <div class="qcard__media"><div class="zoom"><div class="ph ph--photo"><img src="assets/winning-in-africa.jpg" alt="Cover of Winning in Africa by Peter Mehlape." width="1728" height="2304" style="object-position:center 15%" loading="lazy" decoding="async"></div></div></div>
         <div class="qcard__body"><span class="tag tag--members">Book</span><h3>Winning in Africa</h3><p>Your next 8 moves. Foreword by Shameel Joosub.</p><a class="btn btn--line" href="#story">Read about it</a></div>
       </li>
     </ul>
@@ -277,7 +292,7 @@
 <section class="mission" id="mission">
   <div class="mission__media media-drift">
     <div class="ph ph--photo" data-drift>
-      <img src="assets/hero-studio.jpg" alt="Peter Mehlape recording Off The Clock with a guest." width="2560" height="1440" style="object-position:center 40%">
+      <img src="assets/hero-studio.jpg" alt="Peter Mehlape recording Off The Clock with a guest." width="2560" height="1440" style="object-position:center 40%" loading="lazy" decoding="async">
     </div>
   </div>
   <div class="mission__shade"></div>

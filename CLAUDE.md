@@ -27,23 +27,19 @@ Static creator site. **No build step, no framework.** Keep it that way unless th
 - Images are `.ph` blocks. Swap them with `--img:url(../assets/x.jpg)` (path relative to css/styles.css) or an inner `<img>`/`<picture>` (path relative to the page). Keep the wrapper and its `data-*` hooks.
 
 ## Hero video rules
-- Sources live in `data-src-webm|mp4[-mobile]` and are injected by `main.js`. Never hard-code `<source>` tags or `autoplay` (that would download in reduced motion).
+- Sources live in `data-src-webm|mp4[-mobile]` and are injected by `main.js`. Never hard-code `<source>` tags or `autoplay`. Save-Data stays on the poster.
 - The poster `<picture>` must always exist under the video. The video fades in only on `playing`, the one allowed CSS opacity start state, because the poster is the content.
 - Keep the Pause/Play toggle, the off-screen/hidden-tab pausing and the Save-Data check.
 
 ## Static mode
 `html.static` is added only when GSAP is missing. Then there is no loader, no pins, no Lenis, everything is visible, and the topics track is a native swipe row.
 
-## Reduced motion
-`html.reduce` is added when `prefers-reduced-motion: reduce`. Short fade-ups still play (hero, headings, cards, menu, quiz). No loader, pins, Lenis, parallax, marquee loop, or hero video. The story and topics use the same unpinned layout as static mode. Every new feature must stay readable in both modes.
-
 ## Testing (before calling anything done)
 - Widths: **390×844** and **1280×800** (also check 1440+).
 - `document.documentElement.scrollWidth - innerWidth === 0` (no horizontal scroll).
 - No console errors (blocked Google Fonts in sandboxes are fine).
-- Hero video: plays (`.is-ready`), pauses when scrolled away, toggle works, and no .webm/.mp4 request happens with reduced motion.
+- Hero video: plays (`.is-ready`), pauses when scrolled away, toggle works. Save-Data stays on the poster and never requests `.webm` or `.mp4`.
 - Pinned focus elements are centred (story card centre ≈ `innerHeight/2` from 50% progress on) and text isn't clipped.
-- Run once with reduced motion emulated and confirm all content shows.
 
 ## Content rules
 - Health content is general education. Keep the disclaimer in the footer and never write personalised medical advice.

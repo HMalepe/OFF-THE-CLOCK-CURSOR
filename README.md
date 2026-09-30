@@ -33,7 +33,7 @@ The hero plays the Winning in Africa film. Sources are injected by `js/main.js` 
 |---|---|
 | `hero.webm` + `hero.mp4` | Desktop, 16:9, 1280×720, silent, under 3 MB |
 | `hero-mobile.webm` + `hero-mobile.mp4` | Phone (≤760px), 9:16 centre crop, 720×1280, under 1.5 MB |
-| `hero-poster.jpg` / `hero-mobile-poster.jpg` | First clear frame of each. Shown instantly, in reduced motion, and if the video fails |
+| `hero-poster.jpg` / `hero-mobile-poster.jpg` | First clear frame of each. Shown instantly, and if the video fails |
 
 Export commands (ffmpeg):
 ```bash
@@ -42,7 +42,7 @@ ffmpeg -i source.mov -an -vf "scale=1920:-2" -c:v libx264 -crf 24 -preset slow -
 ffmpeg -i hero.mp4 -frames:v 1 -q:v 3 hero-poster.jpg
 ```
 How it behaves:
-- Loads only when motion is allowed and the visitor isn't on Save-Data. Phones get the mobile pair.
+- Loads unless the visitor is on Save-Data. Phones get the mobile pair.
 - Fades in over the poster once it's actually playing.
 - Pauses off screen and in background tabs.
 - Has a pause/play button for accessibility.
@@ -80,10 +80,9 @@ Every image is a `.ph` placeholder block (gradient + film grain). Look for `<!--
 
 ## Accessibility and fallbacks
 
-- `prefers-reduced-motion: reduce` → `html.reduce`: short fade-ups still play. No loader, pins, smooth-scroll library, parallax or hero video. Topics become a native swipe row.
 - If GSAP fails to load, `html.static` freezes motion and shows everything. Content is never hidden by CSS. Start states are only set by JS (`gsap.set` / `fromTo`).
 - The loader has a CSS safety timeout and hides itself after 5 s even if JS stalls.
-- Hero video: never downloads in reduced-motion or Save-Data mode, is `aria-hidden`, has a visible Pause/Play control, and pauses off screen.
+- Hero video: never downloads in Save-Data mode, is `aria-hidden`, has a visible Pause/Play control, and pauses off screen.
 - Decorative marquee is `aria-hidden` (its words already appear in the topics section).
 - Split headings keep an `aria-label` with the full text, and the word spans are `aria-hidden`.
 - The drawer is `inert` when closed, Escape closes it and focus returns to the burger. Menu groups and FAQ use native `<details>`.

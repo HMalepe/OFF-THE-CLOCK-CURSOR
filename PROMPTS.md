@@ -11,7 +11,7 @@ Swap every .ph placeholder for the matching photo using an inner <img> (not --im
 width/height attributes, loading="lazy" on everything below the hero, and fetchpriority="high" on the hero.
 Keep each .ph wrapper and its data-* hooks. Convert to WebP if they're JPG/PNG larger than 400 KB.
 If I've added hero footage, re-encode it with the ffmpeg commands in README ("Hero video") into desktop + mobile WebM/MP4 + posters,
-replace hero.webm, hero.mp4, the mobile pair, and both posters (or update the data-src-* attributes), and verify it still plays, pauses off-screen and is skipped in reduced motion.
+replace hero.webm, hero.mp4, the mobile pair, and both posters (or update the data-src-* attributes), and verify it still plays and pauses off-screen.
 For the story slideshow, use my 3 best landscape shots as data-slide backgrounds (--img:url(../assets/...)).
 Remove the film-grain overlay only on real photos. Then run the 390 and 1280 checks from CLAUDE.md.
 ```
@@ -24,7 +24,7 @@ Port this site to Next.js 15 App Router + TypeScript, keeping it visually and be
 - Create a <LenisProvider> (lenis/react) that drives gsap.ticker and calls ScrollTrigger.update on scroll.
 - Keep DOM-order trigger creation: sections mount in order, and a final effect in page.tsx calls ScrollTrigger.sort() + refresh() after fonts load.
 - Tokens become CSS variables in globals.css (same names). Use next/font for Oswald and Manrope. The wordmark is the logo image, not a webfont.
-- Keep reduced motion: short fade-ups still run. Skip pins, Lenis, parallax and the hero video. `html.static` is only the no-library fallback.
+- `html.static` is only the no-library fallback. The full motion always runs when GSAP is present.
 - Port the hero <HeroVideo> exactly per MOTION_SPEC "Hero video" (injected sources, poster <picture>, Save-Data check, IntersectionObserver + visibility pause, accessible toggle).
 - Port the story slideshow, velocity marquee, back-to-top progress ring and drawer stagger as their own components.
 - Split headings with my own splitter (port split() from main.js) — don't add SplitText.

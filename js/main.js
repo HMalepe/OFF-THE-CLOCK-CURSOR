@@ -15,19 +15,37 @@
   const $$ = (s, c = document) => [...c.querySelectorAll(s)];
   let lenis = null; // set in motion mode, desktop only
   let lockY = 0; // page position while the menu locks a phone's native scroll
+  let playIntro = false;
+  const pendingHash = window.__otcHash || '';
+  const fromHistory = !!window.__otcBack;
+  const scrollKey = 'otc-y:' + location.pathname;
+  let userScrolled = false;
+  let armUser = false;
+  window.addEventListener('pagehide', () => {
+    try { sessionStorage.setItem(scrollKey, String(Math.round(window.scrollY))); } catch (e) {}
+  });
+  // Ignore the scroll events the browser fires while the page is settling.
+  window.addEventListener('wheel', () => { if (armUser) userScrolled = true; }, { passive: true });
+  window.addEventListener('touchmove', () => { if (armUser) userScrolled = true; }, { passive: true });
+  window.addEventListener('keydown', (e) => {
+    if (armUser && ['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '].includes(e.key)) userScrolled = true;
+  });
+  setTimeout(() => { armUser = true; }, 700);
 
-  // Libraries missing → fully static. Reduced motion still animates, just quietly (see gentleMotion).
-  const reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  // Libraries missing → fully static. Otherwise the full motion always runs.
   const motionOK = !!window.gsap && !!window.ScrollTrigger;
   if (!motionOK) root.classList.add('static');
+  // A small machine cannot composite pins, a video decoder and a second scroll loop at once.
+  const lowPower = (navigator.deviceMemory && navigator.deviceMemory <= 4)
+    || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2);
 
   // Small entrance used by UI that re-renders (menu, quiz). No-op only when GSAP is missing.
   const enter = (els, opts = {}) => {
     if (!motionOK || !els || (Array.isArray(els) && !els.length)) return;
     const dist = opts.y ?? 18;
-    gsap.fromTo(els, { y: reduce ? Math.sign(dist || 1) * Math.min(Math.abs(dist), 8) : dist, opacity: 0 }, {
+    gsap.fromTo(els, { y: dist, opacity: 0 }, {
       y: 0, opacity: 1,
-      duration: reduce ? Math.min(opts.duration ?? 1.05, 0.75) : (opts.duration ?? 1.05),
+      duration: opts.duration ?? 1.05,
       ease: 'expo.out', stagger: opts.stagger ?? 0.06, delay: opts.delay ?? 0,
     });
   };
@@ -47,6 +65,16 @@
 
   // Footer year
   $$('[data-year]').forEach((el) => (el.textContent = new Date().getFullYear()));
+
+  const warmNext = () => {
+    const next = /faq\.html$/i.test(location.pathname) ? 'index.html' : 'faq.html';
+    const link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.href = next;
+    document.head.appendChild(link);
+  };
+  if (window.requestIdleCallback) requestIdleCallback(warmNext, { timeout: 2500 });
+  else setTimeout(warmNext, 1500);
 
   // Header (solid after hero, hides on scroll down, returns on scroll up)
   // + back-to-top button (appears after 1 viewport, ring = page progress)
@@ -260,7 +288,7 @@
     refresh();
   }));
 
-  // HERO VIDEO — only loads when motion is allowed and the visitor isn't on Save-Data.
+  // HERO VIDEO — loads unless the visitor is on Save-Data.
   // Poster (.ph) stays underneath; video fades in on 'playing'. Pauses off-screen / hidden tab.
   (() => {
     const video = $('[data-hero-video]');
@@ -276,7 +304,7 @@
       : [[d.srcWebm, 'video/webm'], [d.srcMp4, 'video/mp4']]
     ).filter(([src, type]) => src && video.canPlayType(type));
     const drop = () => { video.remove(); toggle && toggle.remove(); };
-    if (!motionOK || reduce || conn.saveData || !candidates.length) { drop(); return; }
+    if (!motionOK || conn.saveData || lowPower || !candidates.length) { drop(); return; }
 
     candidates.forEach(([src, type]) => {
       const s = document.createElement('source');
@@ -308,7 +336,7 @@
     }
     document.addEventListener('visibilitychange', () => { tabVisible = !document.hidden; sync(); });
     video.muted = true; // required for autoplay
-    video.preload = 'auto';
+    video.preload = 'metadata';
     video.load();
     sync();
   })();
@@ -316,13 +344,65 @@
   /* ------------------------------------------------------------------------
      2 · NO LIBRARIES — everything stays visible, no tweens
      ------------------------------------------------------------------------ */
+  // After pins exist, open on the section that was requested or the spot
+  // the back button was meant to restore. A late image load can shift that
+  // spot, so it runs once more — unless the person has already scrolled.
+  function settlePlace() {
+    if (window.ScrollTrigger) {
+      if (!settlePlace.cleared) {
+        ScrollTrigger.clearScrollMemory();
+        settlePlace.cleared = true;
+      }
+      ScrollTrigger.refresh();
+    }
+    const go = (y) => {
+      if (lenis) lenis.resize();
+      const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+      const dest = Math.max(0, Math.min(y, max));
+      if (lenis) lenis.scrollTo(dest, { immediate: true, force: true });
+      else window.scrollTo(0, dest);
+      if (window.ScrollTrigger) ScrollTrigger.update();
+      onScroll();
+    };
+    if (!userScrolled) {
+      if (fromHistory) {
+        let y = 0;
+        try { y = +(sessionStorage.getItem(scrollKey) || 0); } catch (e) {}
+        go(y);
+      } else if (pendingHash && pendingHash !== '#top') {
+        const target = document.querySelector(pendingHash);
+        history.replaceState(null, '', pendingHash);
+        if (target) {
+          const offset = target.tagName === 'SECTION' ? 0 : -96;
+          go(Math.max(0, target.getBoundingClientRect().top + window.scrollY + offset));
+        }
+      }
+    }
+    if (!playIntro) root.classList.add('is-loaded');
+    if (settlePlace.bound) return;
+    settlePlace.bound = true;
+    const again = () => {
+      if (userScrolled || settlePlace.queued) return;
+      settlePlace.queued = true;
+      requestAnimationFrame(() => { settlePlace.queued = false; if (!userScrolled) settlePlace(); });
+    };
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => requestAnimationFrame(again));
+    window.addEventListener('load', () => requestAnimationFrame(again));
+    window.addEventListener('pageshow', (e) => {
+      if (!e.persisted) return;
+      userScrolled = false;
+      requestAnimationFrame(again);
+    });
+  }
+
   if (!motionOK) {
     root.classList.add('is-loaded');
+    settlePlace();
     return;
   }
 
   // Dark pie starts empty, then sweeps 12 → 3 → 6 → 9 → 12 until the O is full.
-  function startClocks(once) {
+  function startClocks() {
     const pies = $$('[data-pie]');
     if (!pies.length) return;
     const cx = 50, cy = 50, r = 25;
@@ -345,17 +425,11 @@
       const d = wedge(start, end);
       pies.forEach((p) => p.setAttribute('d', d));
     };
-    const cycle = once ? 2800 : 12000;
+    const cycle = 12000;
     const t0 = performance.now();
     let drawn = -1;
     const tick = (now) => {
       const elapsed = now - t0;
-      if (once) {
-        const u = Math.min(1, elapsed / cycle);
-        apply(0, u * 360);
-        if (u < 1) requestAnimationFrame(tick);
-        return;
-      }
       const u = (elapsed % cycle) / cycle;
       const step = Math.round(u * 240);
       if (step !== drawn) {
@@ -367,69 +441,34 @@
     };
     requestAnimationFrame(tick);
   }
-  startClocks(reduce);
-
-  /* ------------------------------------------------------------------------
-     2b · REDUCED MOTION — short fades only. No loader, pins, parallax,
-         Lenis, marquee loop, or hero video. Anchor jumps still ease.
-         The wordmark clock still fills once, then stays full.
-     ------------------------------------------------------------------------ */
-  if (reduce) {
-    root.classList.add('is-loaded');
-    gsap.registerPlugin(ScrollTrigger);
-    ScrollTrigger.config({ ignoreMobileResize: true });
-    const ease = 'power2.out';
-    const fade = (el, start = 'top 88%') =>
-      gsap.fromTo(el, { y: 14, opacity: 0 }, {
-        y: 0, opacity: 1, duration: 1, ease,
-        scrollTrigger: { trigger: el, start, once: true },
-      });
-
-    if ($('[data-hero-content]')) {
-      gsap.fromTo('[data-hero-content] > *, .hero__cue', { y: 16, opacity: 0 }, {
-        y: 0, opacity: 1, duration: 1.05, ease: 'expo.out', stagger: 0.12, delay: 0.12,
-      });
-    }
-
-    $$('[data-split], [data-fade], [data-reveal], [data-stagger], [data-principle], .qcard, .jcard')
-      .filter((el) => !el.closest('.hero'))
-      .filter((el) => !el.parentElement.closest('[data-split], [data-fade], [data-reveal], [data-stagger]'))
-      .forEach((el) => {
-        if (el.hasAttribute('data-stagger')) {
-          gsap.fromTo([...el.children], { y: 10, opacity: 0 }, {
-            y: 0, opacity: 1, duration: 0.9, ease, stagger: 0.09,
-            scrollTrigger: { trigger: el, start: 'top 90%', once: true },
-          });
-        } else fade(el);
-      });
-
-    ScrollTrigger.sort();
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => ScrollTrigger.refresh());
-    window.addEventListener('load', () => ScrollTrigger.refresh());
-    return;
-  }
+  startClocks();
 
   /* ------------------------------------------------------------------------
      3 · MOTION SETUP
      ------------------------------------------------------------------------ */
   gsap.registerPlugin(ScrollTrigger);
   ScrollTrigger.config({ ignoreMobileResize: true });
+  document.addEventListener('visibilitychange', () => {
+    if (!gsap.ticker.sleep) return;
+    if (document.hidden) gsap.ticker.sleep();
+    else gsap.ticker.wake();
+  });
 
   const EASE = 'expo.out';
   const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
   const mm = gsap.matchMedia();
   const DESKTOP = '(min-width: 761px)';
 
-  // Native scrolling on phones. Lenis fights the iOS rubber-band and makes a thumb feel late.
+  // Native scrolling on phones, and on a desktop that is short of memory.
+  // Lenis fights the iOS rubber-band, and on a weak CPU it lags a frame behind the pins.
   mm.add(DESKTOP, () => {
-    if (!window.Lenis) return;
+    if (!window.Lenis || lowPower) return;
     const instance = new Lenis({ lerp: 0.1, smoothWheel: true, wheelMultiplier: 0.95 });
     lenis = instance;
     window.__lenis = instance;
     instance.on('scroll', ScrollTrigger.update);
     const tick = (t) => instance.raf(t * 1000);
     gsap.ticker.add(tick);
-    gsap.ticker.lagSmoothing(0);
     return () => {
       gsap.ticker.remove(tick);
       instance.destroy();
@@ -511,9 +550,8 @@
 
   // Words sharpen as they arrive. Filter is cleared so it doesn't linger on the layer.
   const blurIn = (el, start = 'top 84%') =>
-    gsap.fromTo(split(el), { y: 14, opacity: 0, filter: 'blur(12px)' }, {
-      y: 0, opacity: 1, filter: 'blur(0px)', duration: 1.6, ease: EASE, stagger: 0.14,
-      clearProps: 'filter',
+    gsap.fromTo(split(el), { y: 14, opacity: 0 }, {
+      y: 0, opacity: 1, duration: 1.6, ease: EASE, stagger: 0.14,
       scrollTrigger: once(el, start),
     });
 
@@ -561,7 +599,7 @@
     el.append(dim, fill);
     return gsap.fromTo(fill, { clipPath: 'inset(0% 100% 0% 0%)' }, {
       clipPath: 'inset(0% 0% 0% 0%)', ease: 'none',
-      scrollTrigger: { trigger: el, start: 'top 85%', end: 'top 30%', scrub: 1 },
+      scrollTrigger: { trigger: el, start: 'top 85%', end: 'top 30%', scrub: true },
     });
   };
 
@@ -569,7 +607,7 @@
   const scrubWords = (el) =>
     gsap.fromTo(split(el), { yPercent: 118 }, {
       yPercent: 0, ease: 'none', stagger: 0.28,
-      scrollTrigger: { trigger: el, start: 'top 92%', end: 'top 38%', scrub: 1 },
+      scrollTrigger: { trigger: el, start: 'top 92%', end: 'top 38%', scrub: true },
     });
 
   // Letters cycle through capitals, then settle. Question marks and spaces stay still.
@@ -633,27 +671,27 @@
   };
 
   // Primitive: soft fade-out as a block leaves the top
-  const leave = (el) => el &&
+  const leave = (el) => el && !lowPower &&
     gsap.fromTo(el, { opacity: 1, y: 0 }, {
       opacity: 0, y: -60, ease: 'none',
-      scrollTrigger: { trigger: el, start: 'bottom 35%', end: 'bottom top', scrub: 1 },
+      scrollTrigger: { trigger: el, start: 'bottom 35%', end: 'bottom top', scrub: true },
     });
 
   // Primitive: image drift while visible (inner .ph has 10% headroom top/bottom)
-  const drift = (ph, amount = 6) =>
+  const drift = (ph, amount = 6) => ph && !lowPower &&
     gsap.fromTo(ph, { yPercent: -amount }, {
       yPercent: amount, ease: 'none',
-      scrollTrigger: { trigger: ph.parentElement, start: 'top bottom', end: 'bottom top', scrub: 1 },
+      scrollTrigger: { trigger: ph.parentElement, start: 'top bottom', end: 'bottom top', scrub: true },
     });
 
   // Primitive: [data-speed] parallax float (desktop only; <1 = slower than scroll)
-  const speed = (el) =>
+  const speed = (el) => !lowPower &&
     mm.add(DESKTOP, () => {
       const sp = parseFloat(el.dataset.speed) || 1;
       const range = () => (1 - sp) * (window.innerHeight + el.offsetHeight) * 0.5;
       gsap.fromTo(el, { y: () => -range() }, {
         y: () => range(), ease: 'none',
-        scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: 1, invalidateOnRefresh: true },
+        scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: true, invalidateOnRefresh: true },
       });
     });
 
@@ -690,36 +728,42 @@
 
   /* ------------------------------------------------------------------------
      00 · LOADER → 02 · HERO INTRO
+     The curtain plays once, on a first look at the top of the home page.
+     A section link, the back button, or a return from the questions page
+     opens on the right spot instead of replaying it.
      ------------------------------------------------------------------------ */
+  const seenIntro = (() => { try { return sessionStorage.getItem('otc-intro') === '1'; } catch (e) { return false; } })();
+  playIntro = !!$('.hero') && !fromHistory && !pendingHash && !seenIntro;
   if ($('.hero')) {
-  if (!location.hash) {
-    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-    window.scrollTo(0, 0);
-  }
-  lenis && lenis.stop();
-  const loader = $('.loader');
-  const heroChars = splitChars($('[data-split="hero"]'));
-  const heroFades = $$('[data-hero-fade], .hero__toggle:not([hidden])');
+    try { sessionStorage.setItem('otc-intro', '1'); } catch (e) {}
+    if (playIntro) {
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+      window.scrollTo(0, 0);
+      lenis && lenis.stop();
+      const loader = $('.loader');
+      const heroChars = splitChars($('[data-split="hero"]'));
+      const heroFades = $$('[data-hero-fade], .hero__toggle:not([hidden])');
 
-  const intro = gsap.timeline({
-    delay: 0.15,
-    onComplete: () => { root.classList.add('is-loaded'); lenis && lenis.start(); },
-  });
-  intro
-    .fromTo('.loader__mark', { yPercent: 40, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.9, ease: EASE })
-    .fromTo('.loader__rule', { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: 'expo.inOut' }, '-=0.5')
-    .fromTo('.loader__word', { opacity: 0, y: 12 }, { opacity: 0.85, y: 0, duration: 0.7, ease: 'power2.out' }, '-=0.4')
-    .to('.loader__inner', { opacity: 0, y: -20, duration: 0.6, ease: 'power2.in' }, '+=0.6')
-    .to(loader, { yPercent: -100, duration: 1.35, ease: 'expo.inOut' }, '-=0.15')
-    .fromTo('[data-hero-zoom]', { scale: 1.25 }, { scale: 1, duration: 2.6, ease: EASE }, '-=0.9')
-    .fromTo(hdr, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 1.25, ease: EASE, clearProps: 'transform' }, '<0.25')
-    .fromTo(heroChars, { rotationX: -88, yPercent: 50, opacity: 0 }, {
-      rotationX: 0, yPercent: 0, opacity: 1, duration: 1.5, ease: EASE, stagger: 0.07,
-    }, '<')
-    .fromTo(heroFades, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 1.3, ease: EASE, stagger: 0.14 }, '<0.55');
+      const intro = gsap.timeline({
+        delay: 0.15,
+        onComplete: () => { root.classList.add('is-loaded'); lenis && lenis.start(); },
+      });
+      intro
+        .fromTo('.loader__mark', { yPercent: 40, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.9, ease: EASE })
+        .fromTo('.loader__rule', { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: 'expo.inOut' }, '-=0.5')
+        .fromTo('.loader__word', { opacity: 0, y: 12 }, { opacity: 0.85, y: 0, duration: 0.7, ease: 'power2.out' }, '-=0.4')
+        .to('.loader__inner', { opacity: 0, y: -20, duration: 0.6, ease: 'power2.in' }, '+=0.6')
+        .to(loader, { yPercent: -100, duration: 1.35, ease: 'expo.inOut' }, '-=0.15')
+        .fromTo('[data-hero-zoom]', { scale: 1.25 }, { scale: 1, duration: 2.6, ease: EASE }, '-=0.9')
+        .fromTo(hdr, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 1.25, ease: EASE, clearProps: 'transform' }, '<0.25')
+        .fromTo(heroChars, { rotationX: -88, yPercent: 50, opacity: 0 }, {
+          rotationX: 0, yPercent: 0, opacity: 1, duration: 1.5, ease: EASE, stagger: 0.07,
+        }, '<')
+        .fromTo(heroFades, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 1.3, ease: EASE, stagger: 0.14 }, '<0.55');
+    }
 
   /* 02 · HERO scroll-out (scrub) */
-  const heroST = { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 1 };
+  const heroST = { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true };
   gsap.fromTo('[data-hero-content]', { yPercent: 0, opacity: 1 }, { yPercent: -30, opacity: 0, ease: 'none', scrollTrigger: heroST });
   gsap.fromTo('.hero__media', { yPercent: 0 }, { yPercent: 20, ease: 'none', scrollTrigger: heroST });
   gsap.fromTo('.hero__shade', { opacity: 1 }, { opacity: 0.6, ease: 'none', scrollTrigger: heroST });
@@ -763,7 +807,7 @@
       defaults: { ease: 'none' },
       scrollTrigger: {
         trigger: story, start: 'top top', end: () => '+=' + window.innerHeight * 3.2,
-        pin: true, scrub: 1, anticipatePin: 1, invalidateOnRefresh: true,
+        pin: true, scrub: true, invalidateOnRefresh: true,
       },
     });
     storyTl
@@ -781,7 +825,7 @@
     fadeUp(storyCard, 'top 92%');
   });
 
-  // Background slideshow (crossfade 2s, hold 6s, loop, slow Ken Burns) — runs only while the story is on screen
+  // Background slideshow (crossfade 2s, hold 6s, loop). No extra scale: the pin already moves this image.
   const slides = $$('[data-slide]', story);
   if (slides.length > 1) {
     let cur = 0;
@@ -794,7 +838,6 @@
       if (veilImg.getAttribute('src') !== img.getAttribute('src')) veilImg.setAttribute('src', img.getAttribute('src'));
       veilImg.style.objectPosition = img.style.objectPosition || 'center';
     };
-    const kenBurns = (el) => gsap.fromTo(el, { scale: 1.03 }, { scale: 1, duration: 8, ease: 'none', overwrite: 'auto' });
     const next = () => {
       const prev = slides[cur];
       cur = (cur + 1) % slides.length;
@@ -802,13 +845,12 @@
       gsap.set(slides, { zIndex: 1 });
       gsap.set(nx, { zIndex: 2, opacity: 0 });
       syncVeil(nx);
-      kenBurns(nx);
       gsap.to(nx, { opacity: 1, duration: 2, ease: 'power1.inOut', onComplete: () => gsap.set(prev, { opacity: 0 }) });
       timer = gsap.delayedCall(8, next);
     };
     syncVeil(slides[0]);
-    kenBurns(slides[0]);
     timer = gsap.delayedCall(6, next);
+    timer.pause();
     ScrollTrigger.create({
       trigger: story, start: 'top bottom', end: 'bottom top',
       onToggle: (self) => timer && timer.paused(!self.isActive),
@@ -828,20 +870,19 @@
   if (mRow) {
     const loop = gsap.to(mRow, { xPercent: -50, duration: 46, ease: 'none', repeat: -1 });
     const skew = gsap.quickTo(mRow, 'skewX', { duration: 0.5, ease: 'power3.out' });
-    let skewReset = null;
+    const rate = { v: 1 };
+    const setRate = gsap.quickTo(rate, 'v', {
+      duration: 0.6, ease: 'power2.out', onUpdate: () => loop.timeScale(rate.v),
+    });
     ScrollTrigger.create({
       trigger: '.marquee', start: 'top bottom', end: 'bottom top',
       onToggle: (self) => loop.paused(!self.isActive),
       onUpdate: (self) => {
         const v = self.getVelocity();
+        const moving = Math.abs(v) > 40;
         const boost = gsap.utils.clamp(1, 6, 1 + Math.abs(v) / 350);
-        gsap.to(loop, {
-          timeScale: self.direction * boost, duration: 0.25, overwrite: true,
-          onComplete: () => gsap.to(loop, { timeScale: self.direction, duration: 1.2, ease: 'power2.out', overwrite: true }),
-        });
-        skew(gsap.utils.clamp(-8, 8, v / -300));
-        if (skewReset) skewReset.kill();
-        skewReset = gsap.delayedCall(0.15, () => skew(0));
+        setRate(self.direction * (moving ? boost : 1));
+        skew(moving ? gsap.utils.clamp(-8, 8, v / -300) : 0);
       },
     });
     fadeUp($('.marquee'), 'top 95%');
@@ -861,7 +902,7 @@
       x: () => -dist(), ease: 'none',
       scrollTrigger: {
         trigger: topics, start: 'top top', end: () => '+=' + dist() * 1.15,
-        pin: true, scrub: 1, anticipatePin: 1, invalidateOnRefresh: true,
+        pin: true, scrub: true, invalidateOnRefresh: true,
         onUpdate: (self) => gsap.set('[data-track-bar]', { scaleX: 0.02 + self.progress * 0.98 }),
       },
     });
@@ -905,15 +946,15 @@
      ------------------------------------------------------------------------ */
   const mission = $('.mission');
   if (mission) {
-  gsap.fromTo($('[data-drift]', mission), { yPercent: -8 }, {
+  if (!lowPower) gsap.fromTo($('[data-drift]', mission), { yPercent: -8 }, {
     yPercent: 8, ease: 'none',
-    scrollTrigger: { trigger: mission, start: 'top bottom', end: 'bottom top', scrub: 1 },
+    scrollTrigger: { trigger: mission, start: 'top bottom', end: 'bottom top', scrub: true },
   });
   reveal(mission);
   leave($('.mission__content'));
   gsap.fromTo('.mission__media', { opacity: 1 }, {
     opacity: 0.25, ease: 'none',
-    scrollTrigger: { trigger: mission, start: 'bottom 70%', end: 'bottom top', scrub: 1 },
+    scrollTrigger: { trigger: mission, start: 'bottom 70%', end: 'bottom top', scrub: true },
   });
   }
 
@@ -949,6 +990,5 @@
      4 · FINALISE
      ------------------------------------------------------------------------ */
   ScrollTrigger.sort();
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => ScrollTrigger.refresh());
-  window.addEventListener('load', () => ScrollTrigger.refresh());
+  settlePlace();
 })();
