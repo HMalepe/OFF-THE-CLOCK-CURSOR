@@ -424,8 +424,17 @@ section { position: relative; }
 .jcard p { padding: 18px 20px 22px; margin: 0; color: var(--charcoal); font-weight: 400; line-height: 1.5; }
 .jcard p span { color: var(--slate); }
 
+/* Second page: questions, quiz, and the conversation notes. */
+.page-lead {
+  padding-top: calc(var(--hdr-h) + env(safe-area-inset-top, 0px) + clamp(56px, 10vw, 120px));
+  padding-bottom: clamp(8px, 2vw, 24px);
+}
+.page-lead .h-display { max-width: 14em; }
+.page-lead p:not(.eyebrow) { max-width: 36em; color: var(--mist); }
+
 /* 09 faq */
 .faq { padding-block: var(--sec-pad); }
+.faq .tryquiz { margin-top: clamp(56px, 8vw, 104px); }
 .faq__grid { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 6fr); gap: clamp(28px, 6vw, 96px); }
 .faq__list details { border-top: 1px solid var(--line-light); }
 .faq__list details:last-child { border-bottom: 1px solid var(--line-light); }

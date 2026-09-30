@@ -165,6 +165,7 @@ Below 761px the pin is not created. The track is a native `overflow-x: auto` swi
 Static mode: the track becomes a native `overflow-x: auto` swipe row with scroll-snap.
 
 ### 06 Quizzes
+The episode cards stay on the home page. The myth-or-fact panel lives on `faq.html`, and its tweens run only when `.tryquiz` is on the page.
 - `.sec-head`: `reveal` (eyebrow `fadeUp`, heading `dropIn`, lead `wordFade`), then `leave()`.
 - `.tryquiz__title`: `decodeIn` at `top 72%`, after the block has started its `fadeUp`.
 - `.qgrid`: `batchReveal` (clip + un-zoom + drift), and each card gets `tilt` (desktop).
@@ -177,10 +178,12 @@ Static mode: the track becomes a native `overflow-x: auto` swipe row with scroll
 - Image fades as it exits: `.mission__media` opacity 1 → 0.25, trigger `bottom 70%` → `bottom top`, scrub 1.
 
 ### 08 Journal
+Lives on `faq.html`, after the questions. Tweens run only when `.journal` is on the page.
 - Heading `waveIn`. `.jgrid` → `batchReveal` (clip + un-zoom + drift), and the "All episodes" link `fadeUp` at `top 95%`.
 
 ### 09 FAQ
-- Eyebrow `fadeUp`. Heading is two authored lines (`Before you` / `press play`) and uses `maskLines`. Each `<details>` has its own `fadeUp`, so they cascade naturally as they enter.
+Lives on `faq.html`. The page opens with `.page-lead` (a short ink block under the header). The header starts solid, because this page has no hero. Tweens run only when `.faq` is on the page.
+- Eyebrow `fadeUp`. The page title uses `wordRise`. Each `<details>` has its own `fadeUp`, so they cascade naturally as they enter.
 - `.sec-head` gets `[data-speed="0.85"]` (desktop).
 - Opening a question: the answer `enter()`s (y −8, 0.6s) and `ScrollTrigger.refresh()` runs.
 

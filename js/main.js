@@ -58,7 +58,7 @@
   const onScroll = () => {
     const y = window.scrollY;
     const vh = window.innerHeight;
-    const past = y > vh * 0.6;
+    const past = !$('.hero') || y > vh * 0.6;
     hdr.classList.toggle('is-solid', past);
     const max = Math.max(1, document.documentElement.scrollHeight - vh);
     toTopBar.style.strokeDashoffset = String(1 - Math.min(1, y / max));
@@ -199,6 +199,7 @@
     },
   ];
   const panel = $('[data-quiz]');
+  const newsHref = $('#newsletter') ? '#newsletter' : 'index.html#newsletter';
   let qi = 0;
   let score = 0;
   const refresh = () => window.ScrollTrigger && motionOK && requestAnimationFrame(() => ScrollTrigger.refresh());
@@ -219,13 +220,13 @@
       <p class="q__score">${score}/${QUIZ.length}</p>
       <p>${score === QUIZ.length ? 'That is the show. ' : ''}The full conversations are on YouTube — new ones land in the newsletter first.</p>
       <div class="q__opts">
-        <a class="btn btn--light" href="#newsletter">Get the next quiz</a>
+        <a class="btn btn--light" href="${newsHref}">Get the next quiz</a>
         <button class="q__opt" type="button" data-restart>Play again</button>
       </div>`;
     enter([...panel.children]);
     refresh();
   };
-  panel.addEventListener('click', (e) => {
+  if (panel) panel.addEventListener('click', (e) => {
     const opt = e.target.closest('[data-ans]');
     if (opt) {
       const item = QUIZ[qi];
@@ -251,7 +252,7 @@
     }
     if (e.target.closest('[data-restart]')) { qi = 0; score = 0; renderQ(); refresh(); }
   });
-  renderQ(false);
+  if (panel) renderQ(false);
 
   // FAQ open/close changes page height → keep triggers accurate; answer eases in
   $$('.faq__list details').forEach((d) => d.addEventListener('toggle', () => {
@@ -384,9 +385,11 @@
         scrollTrigger: { trigger: el, start, once: true },
       });
 
-    gsap.fromTo('[data-hero-content] > *, .hero__cue', { y: 16, opacity: 0 }, {
-      y: 0, opacity: 1, duration: 1.05, ease: 'expo.out', stagger: 0.12, delay: 0.12,
-    });
+    if ($('[data-hero-content]')) {
+      gsap.fromTo('[data-hero-content] > *, .hero__cue', { y: 16, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 1.05, ease: 'expo.out', stagger: 0.12, delay: 0.12,
+      });
+    }
 
     $$('[data-split], [data-fade], [data-reveal], [data-stagger], [data-principle], .qcard, .jcard')
       .filter((el) => !el.closest('.hero'))
@@ -493,7 +496,7 @@
     });
 
   // Primitive: fade-up, once
-  const fadeUp = (el, start = 'top 88%') =>
+  const fadeUp = (el, start = 'top 88%') => el &&
     gsap.fromTo(el, { y: 40, opacity: 0 }, {
       y: 0, opacity: 1, duration: 1.35, ease: EASE,
       scrollTrigger: once(el, start),
@@ -621,6 +624,7 @@
   };
 
   const reveal = (scope, skip) => {
+    if (!scope) return;
     $$('[data-split], [data-fade], [data-stagger], [data-reveal]', scope).forEach((el) => {
       if (skip && skip(el)) return;
       if (el.dataset.reveal === 'flip' || el.dataset.reveal === 'type') return;
@@ -629,7 +633,7 @@
   };
 
   // Primitive: soft fade-out as a block leaves the top
-  const leave = (el) =>
+  const leave = (el) => el &&
     gsap.fromTo(el, { opacity: 1, y: 0 }, {
       opacity: 0, y: -60, ease: 'none',
       scrollTrigger: { trigger: el, start: 'bottom 35%', end: 'bottom top', scrub: 1 },
@@ -687,6 +691,7 @@
   /* ------------------------------------------------------------------------
      00 · LOADER → 02 · HERO INTRO
      ------------------------------------------------------------------------ */
+  if ($('.hero')) {
   if (!location.hash) {
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     window.scrollTo(0, 0);
@@ -723,6 +728,9 @@
     opacity: 0, ease: 'none', immediateRender: false,
     scrollTrigger: { trigger: '.hero', start: 'top top', end: '30% top', scrub: true },
   });
+  } else {
+    root.classList.add('is-loaded');
+  }
 
   /* ------------------------------------------------------------------------
      03 · HELLO
@@ -747,6 +755,7 @@
      ------------------------------------------------------------------------ */
   const story = $('.story');
   const storyCard = $('[data-story-card]');
+  if (story && storyCard) {
   // Pinned letter sequence is desktop-only. On a phone the card is already in view.
   mm.add(DESKTOP, () => {
     const storyChars = splitChars($('[data-split]', storyCard));
@@ -805,6 +814,7 @@
       onToggle: (self) => timer && timer.paused(!self.isActive),
     });
   }
+  }
 
   /* ------------------------------------------------------------------------
      04c · MASTERCLASS
@@ -843,6 +853,7 @@
   const topics = $('.topics');
   const track = $('[data-track]');
   const vp = $('.topics__viewport');
+  if (topics && track && vp) {
   const dist = () => Math.max(0, track.scrollWidth - vp.clientWidth);
   reveal($('.topics__head'));
   mm.add(DESKTOP, () => {
@@ -868,23 +879,32 @@
       });
     });
   });
+  }
 
   /* ------------------------------------------------------------------------
-     06 · QUIZZES
+     06 · QUIZZES — episode cards stay on the home page; the myth/fact block can live on faq.html
      ------------------------------------------------------------------------ */
   const quizzes = $('.quizzes');
-  reveal($('.sec-head', quizzes));
-  batchReveal($('.qgrid'));
-  $$('[data-tilt]').forEach(tilt);
-  fadeUp($('.tryquiz'));
-  decodeIn($('.tryquiz__title'));
-  $$('.quizzes [data-speed]').forEach(speed);
-  leave($('.sec-head', quizzes));
+  if (quizzes) {
+    reveal($('.sec-head', quizzes));
+    batchReveal($('.qgrid'));
+    $$('[data-tilt]').forEach(tilt);
+    $$('.quizzes [data-speed]').forEach(speed);
+    leave($('.sec-head', quizzes));
+  }
+  const tryquiz = $('.tryquiz');
+  if (tryquiz) {
+    fadeUp(tryquiz);
+    const quizTitle = $('.tryquiz__title');
+    if (quizTitle) decodeIn(quizTitle);
+    $$('[data-speed]', tryquiz).forEach(speed);
+  }
 
   /* ------------------------------------------------------------------------
      07 · MISSION — image drift + reveal + leave + image fades as it exits
      ------------------------------------------------------------------------ */
   const mission = $('.mission');
+  if (mission) {
   gsap.fromTo($('[data-drift]', mission), { yPercent: -8 }, {
     yPercent: 8, ease: 'none',
     scrollTrigger: { trigger: mission, start: 'top bottom', end: 'bottom top', scrub: 1 },
@@ -895,20 +915,24 @@
     opacity: 0.25, ease: 'none',
     scrollTrigger: { trigger: mission, start: 'bottom 70%', end: 'bottom top', scrub: 1 },
   });
+  }
 
   /* ------------------------------------------------------------------------
-     08 · JOURNAL
+     09 · FAQ — faq.html, ahead of the journal on that page
      ------------------------------------------------------------------------ */
-  const journal = $('.journal');
-  reveal($('.sec-head', journal));
-  batchReveal($('.jgrid'));
-  fadeUp($('.center', journal), 'top 95%');
-
-  /* ------------------------------------------------------------------------
-     09 · FAQ
-     ------------------------------------------------------------------------ */
+  reveal($('.page-lead'));
   reveal($('.faq'));
   $$('.faq [data-speed]').forEach(speed);
+
+  /* ------------------------------------------------------------------------
+     08 · JOURNAL — faq.html, after the questions
+     ------------------------------------------------------------------------ */
+  const journal = $('.journal');
+  if (journal) {
+    reveal($('.sec-head', journal));
+    batchReveal($('.jgrid'));
+    fadeUp($('.center', journal), 'top 95%');
+  }
 
   /* ------------------------------------------------------------------------
      10 · NEWSLETTER
