@@ -357,7 +357,7 @@ html.skip-loader .loader { display: none !important; }
 .masterclass .btn--light:focus-visible::after { animation: none; opacity: 0; }
 
 /* 04b marquee */
-.marquee { overflow: hidden; padding-block: clamp(36px, 6vw, 72px); border-block: 1px solid var(--line-dark); }
+.marquee { overflow: hidden; contain: paint; padding-block: clamp(36px, 6vw, 72px); border-block: 1px solid var(--line-dark); }
 .marquee__row { display: flex; width: max-content; }
 .marquee__set { display: flex; align-items: center; flex: none; }
 .marquee__set span {

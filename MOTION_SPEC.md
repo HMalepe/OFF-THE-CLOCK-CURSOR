@@ -9,13 +9,13 @@ Source of truth for every animation. If the site is ported (Next.js, Astro, Webf
 | Setting | Value |
 |---|---|
 | Libraries | GSAP 3.15, ScrollTrigger, Lenis 1.3 (vendored) |
-| Smooth scroll | Desktop only (`min-width: 761px`): `new Lenis({ lerp: 0.1, smoothWheel: true, wheelMultiplier: 0.95 })`, driven by `gsap.ticker`, `lenis.on('scroll', ScrollTrigger.update)`. Phones use native scrolling. A machine with `deviceMemory` ≤ 4 or 2 cores or fewer also uses native scrolling, and stays on the hero poster, so a video decoder is not competing with the pins |
+| Smooth scroll | Desktop only (`min-width: 761px`): `new Lenis({ lerp: 0.22, smoothWheel: true, wheelMultiplier: 1 })`, driven by `gsap.ticker` with `lagSmoothing(0)`, `lenis.on('scroll', ScrollTrigger.update)`. A lower lerp was lagging a frame behind the pins. Phones, and a machine with `deviceMemory` ≤ 4 or ≤ 2 cores, use native scrolling and stay on the hero poster |
 | ScrollTrigger config | `ignoreMobileResize: true` |
 | Default ease | `expo.out` (CSS mirror: `--ease-out: cubic-bezier(.16,1,.3,1)`) |
 | Creation order | DOM order, then `ScrollTrigger.sort()`; `refresh()` after `document.fonts.ready` and `load` |
 | Static mode | `html.static` only when GSAP or ScrollTrigger is missing. No loader, pins, Lenis or tweens. Everything is visible |
 | Anchors | `lenis.scrollTo` duration is `clamp(0.9, 1.6, distance / 1500)` so a short jump doesn’t crawl and a long one doesn’t snap. Offset is 0 for a section, −96 otherwise |
-| Desktop-only motion | `gsap.matchMedia()` with `(min-width: 761px)` for `[data-speed]` floats; tilt only on `(hover:hover) and (pointer:fine)` |
+| Desktop-only motion | `gsap.matchMedia()` with `(min-width: 761px)` for the story and topics pins; tilt only on `(hover:hover) and (pointer:fine)` |
 
 ## Reusable primitives
 
@@ -34,11 +34,11 @@ Source of truth for every animation. If the site is ported (Next.js, Astro, Webf
 | `scrubWords(el)` | `[data-reveal="scrub"]`. Masked word rise tied to scroll | `top 92%` → `top 38%`, scrub true | `.wi` yPercent 118 → 0 | linear, stagger 0.28 |
 | `decodeIn(el)` | `[data-reveal="decode"]`. Letters cycle A–Z, then settle. `?` stays | `top 72%`, once | text only | 0.8s each, delay 0.07, linear |
 | `reveal(scope)` | Runs the matching reveal on every `[data-split]` / `[data-fade]` / `[data-stagger]` / `[data-reveal]` in DOM order. Skips `flip` and `type` (those belong to the hero timeline and the story pin) | none | none | none |
-| `leave(el)` | Soft exit as a block leaves the top. Skipped when the machine is low-power | `bottom 35%` → `bottom top`, scrub true | opacity 1, y 0 → opacity 0, y −60 | linear |
-| `batchReveal(list)` | Card clip reveal + image un-zoom (`ScrollTrigger.batch`), plus `drift()` on each card image | `top 90%`, once | li `clipPath inset(100% 0 0 0)` → `inset(0)`; `.ph` scale 1.08 → 1 | 1.55s clip / 2.0s scale, expo.out, 0.16; clipPath cleared after (scale kept so drift survives) |
+| `leave(el)` | Unused. A scrubbed fade-out was repainting whole sections on every frame | — | — | — |
+| `batchReveal(list)` | Cards rise in together. No clip-path and no image scale | `top 92%`, once | y 24, opacity 0 → 0/1 | 1.05s, expo.out, 0.1; transform and opacity cleared |
 | `staggerUp(el)` | Children of `[data-stagger]` fade up in sequence | `top 90%`, once | y 24, opacity 0 → 0/1 | 1.2s, expo.out, 0.12 |
-| `drift(ph)` | Image drifts inside its frame while visible (`.ph` has 10% headroom). Skipped when the machine is low-power | parent `top bottom` → `bottom top`, scrub true | yPercent −6 → 6 | linear |
-| `speed(el)` | `[data-speed]` parallax float (desktop only). `<1` = slower than scroll. Skipped when the machine is low-power | `top bottom` → `bottom top`, scrub true, invalidateOnRefresh | y `−(1−s)·(vh+h)/2` → `+(1−s)·(vh+h)/2` | linear |
+| `drift(ph)` | Unused. Moving photos for their whole time on screen was the stutter between sections | — | — | — |
+| `speed(el)` | Unused. The same per-frame float as drift | — | — | — |
 | `enter(els)` | Entrance for UI that re-renders (menu items, quiz steps, form message, FAQ answer). No-op only when GSAP is missing | on event | y 18, opacity 0 → 0/1 | 1.05s, expo.out, 0.06 |
 | `tilt(el)` | Pointer tilt, fine pointers only | pointermove | rotationX/Y ±4° (`quickTo`, perspective 900) | 0.6s, power3.out; resets on leave |
 | CSS hovers | `.tlink` underline wipes out right, accent line draws in left; cards lift −4px; the `.zoom` layer around card images scales 1.05–1.06 (GSAP owns the inner `.ph`, CSS owns `.zoom`, so they never fight); buttons lift −2px; marquee words fill on hover | hover | none | 0.3–1.2s, `--ease-out` |
@@ -103,28 +103,25 @@ Reference behaviour: a floating circular button with a scroll-progress ring.
 ### 02 Hero scroll-out
 | Target | Trigger | From → To |
 |---|---|---|
-| `[data-hero-content]` | `.hero` top top → bottom top, scrub true | yPercent 0, opacity 1 → −30, 0 |
-| `.hero__media` | same | yPercent 0 → 20 (parallax) |
-| `.hero__shade` | same | opacity 1 → 0.6 |
+| `[data-hero-content]` | `.hero` top top → bottom top, scrub true | yPercent 0, opacity 1 → −18, 0 |
+| `.hero__shade` | same | opacity 1 → 0.72 |
 | `.hero__cue`, `.hero__toggle` | top top → 30% top, scrub true | opacity 1 → 0 |
 | Scroll cue | CSS loop | 2.4s bob |
 
 ### 03 Hello
-- Heading `wordRise` + `[data-speed="0.8"]` float (desktop). Both paragraphs and the link `fadeUp`; the stats list uses `staggerUp` (three items).
+- Heading `wordRise`. Both paragraphs and the link `fadeUp`; the stats list uses `staggerUp` (three items).
 - Stats `[data-count]` keep the printed number until the trigger starts, then count 0 → value with the suffix (2.4s power2.out, `top 92%`, once).
-- `.hello__grid` → `leave()`.
 
 ### 04 Story: PINNED
 Desktop only (`min-width: 761px`). Trigger `.story`, start `top top`, end `+= 3.2 × innerHeight`, `pin: true`, `scrub: true`, `invalidateOnRefresh: true`. The pin tracks the scroll directly. Lenis already eases the wheel, and a second one-second catch-up was making the next section arrive late and then snap. The timeline is about 4.8 units long. Below 761px there is no pin: the stage grows with the card, the photo stays at `blur(18px)`, the veil is hidden, and the card uses a single `fadeUp`.
 
 | Step | Timeline pos | Scroll % (approx) | Target | From → To | Ease |
 |---|---|---|---|---|---|
-| 1 | 0 → 1 | 0 → 21% | `[data-story-img]` | scale 1.06 → 1 (un-zoom) | none |
-| 1 | 0 → 1 | 0 → 21% | `.story__veil` | opacity 0 → 1. The veil blur is a small bitmap scaled up, so the scroll never re-filters a full-size photo | none |
+| 1 | 0 → 1 | 0 → 21% | `.story__veil` | opacity 0 → 1. The photo itself does not scale | none |
 | 1 | 0 → 1 | 0 → 21% | `[data-story-shade]` | opacity 0.1 → 0.55 | none |
 | 1 | 0 → 1 | 0 → 21% | `[data-story-card]` | y `0.8 × innerHeight` → 0 (lands centred) | power2.out |
 | 2 | 0.75 → ~1.94 | 16 → 41% | card heading letters | opacity 0 → 1, stagger 0.045 (type-on, tied to the pin) | none |
-| 3 | 1.9 → 2.45 | 40 → 52% | principle 01 | clipPath `inset(0 100% 0 0)` → `inset(0)` | power2.out |
+| 3 | 1.9 → 2.45 | 40 → 52% | principle 01 | opacity 0, y 10 → 1, 0 | power2.out |
 | 4 | 2.7 → 3.25 | 57 → 68% | principle 02 | same | power2.out |
 | 5 | 3.5 → 4.05 | 74 → 85% | principle 03 | same | power2.out |
 | 6 | 4.05 → 4.75 | 85 → 100% | none | hold | none |
@@ -136,7 +133,7 @@ Desktop only (`min-width: 761px`). Trigger `.story`, start `top top`, end `+= 3.
 | Slides | `[data-slide]` inside `.story__media` (1–5). Slide 1 is the static-mode image |
 | Cycle | Hold 6s → next slide gets `zIndex++`, fades opacity 0 → 1 over 2s `power1.inOut` → previous is set to 0. Repeats every 8s. The timer stays paused until the story is on screen |
 | Play/pause | `ScrollTrigger` `top bottom` → `bottom top` on `.story`: the timer is paused while the section is off screen |
-| Interaction with pin | The pinned un-zoom scales the `.story__media` wrapper. The photos start sharp. The veil is a small bitmap blurred 2px and scaled up, so it still reads as a soft 16px veil without filtering a full-size photo every frame. It fades in as the card rises, and its source follows the active slide. Static mode and phones hide the veil and soften the photo the same cheap way |
+| Interaction with pin | The photo stays still. The veil is a small bitmap blurred 2px and scaled up, so it still reads as a soft veil without filtering a full-size photo. It fades in as the card rises, and its source follows the active slide. Static mode and phones hide the veil and soften the photo the same cheap way |
 
 Verified: from 50% progress onward the card centre = `innerHeight / 2` at 1280×800 and 390×844. The card has `max-height: calc(100svh − 120px)` and verified 0px overflow.
 
@@ -146,8 +143,7 @@ Verified: from 50% progress onward the card centre = `innerHeight / 2` at 1280×
 
 ### 04b Marquee (reference: continuous carousel ticker)
 - `[data-marquee]` holds two identical sets. `gsap.to(row, { xPercent: −50, duration: 46, ease: 'none', repeat: −1 })` gives a seamless loop.
-- ScrollTrigger on `.marquee` (`top bottom` → `bottom top`): the loop is paused off screen. On update, one `quickTo` eases `timeScale` to `direction × clamp(1, 6, 1 + |velocity|/350)`, and back to `±1` when the wheel is still. It does not create a new tween per frame.
-- Skew: `quickTo(skewX)` = `clamp(−8°, 8°, −velocity/300)`, back to 0 when the wheel is still.
+- ScrollTrigger on `.marquee` (`top bottom` → `bottom top`) pauses the loop off screen. The row does not skew or change speed with the wheel. Outlined type cannot be moved and restyled on the same frame without a hitch.
 - The section fades up at `top 95%`. Static mode: a single wrapped set with no animation.
 
 ### 05 Topics: PINNED horizontal
@@ -155,10 +151,9 @@ Trigger `.topics`, start `top top`, end `+= dist() × 1.15`, where `dist = track
 
 | Step | Scroll % | Target | From → To |
 |---|---|---|---|
-| 1 | 0 → 100% | `[data-track]` | x 0 → −dist() (linear) |
-| 1 | 0 → 100% | `[data-track-bar]` | scaleX 0.02 → 1 (via onUpdate) |
-| per card | while the card crosses the viewport | card `.ph` | xPercent −7 → 7 (`containerAnimation: hTween`, `left right` → `right left`, scrub true) |
-| per card | card left edge 90% → 50% of the viewport | `.tcard__label`, `.tcard__meta` | x 60, opacity 0 → 0/1, stagger 0.15, power2.out (`containerAnimation`, scrub true) |
+| 1 | 0 → 100% | `[data-track]` | x 0 → −dist() (linear, same timeline as the pin) |
+| 1 | 0 → 100% | `[data-track-bar]` | scaleX 0.02 → 1 (same timeline, no per-frame callback) |
+| once | section `top 75%` | `.tcard__label`, `.tcard__meta` | y 12, opacity 0 → 0/1, 0.8s, stagger 0.05 |
 
 The heading uses `blurIn` and the hint uses `fadeUp`. At 100% the last card's right edge sits one gutter from the viewport edge (verified).
 Below 761px the pin is not created. The track is a native `overflow-x: auto` swipe row with scroll-snap, same as static mode, because a pinned horizontal gallery fights a phone.
@@ -166,25 +161,21 @@ Static mode: the track becomes a native `overflow-x: auto` swipe row with scroll
 
 ### 06 Quizzes
 The episode cards stay on the home page. The myth-or-fact panel lives on `faq.html`, and its tweens run only when `.tryquiz` is on the page.
-- `.sec-head`: `reveal` (eyebrow `fadeUp`, heading `dropIn`, lead `wordFade`), then `leave()`.
-- `.tryquiz__title`: `decodeIn` at `top 72%`, after the block has started its `fadeUp`.
-- `.qgrid`: `batchReveal` (clip + un-zoom + drift), and each card gets `tilt` (desktop).
-- `.tryquiz`: `fadeUp`. `.tryquiz__intro` gets `[data-speed="0.92"]` (desktop).
+- `.sec-head`: `reveal` (eyebrow `fadeUp`, heading `dropIn`, lead `wordFade`).
+- `.tryquiz__title`: `wordRise` (the decode scramble was a visible hitch). The block itself `fadeUp`s with the FAQ reveals.
+- `.qgrid`: `batchReveal` (a rise, no clip and no image scale), and each card gets `tilt` (desktop).
 - Quiz steps: each new question or score screen staggers in with `enter()`. After an answer, the explanation + Next button stagger in (0.1). `ScrollTrigger.refresh()` runs after each render.
 
 ### 07 Mission
-- `[data-drift]` image (inset −12% top/bottom for headroom): yPercent −8 → 8, trigger `top bottom` → `bottom top`, scrub true. The photo is a small bitmap, blurred and scaled up. Skipped on a low-power machine.
-- Heading `colorWipe` (muted line, white copy wipes on as you scroll). Paragraph + link `fadeUp`. `.mission__content` → `leave()`.
-- Image fades as it exits: `.mission__media` opacity 1 → 0.25, trigger `bottom 70%` → `bottom top`, scrub true.
+- Heading `colorWipe` (muted line, white copy wipes on as you scroll). Paragraph + link `fadeUp`. The photo stays still.
 
 ### 08 Journal
 Lives on `faq.html`, after the questions. Tweens run only when `.journal` is on the page.
-- Heading `waveIn`. `.jgrid` → `batchReveal` (clip + un-zoom + drift), and the "All episodes" link `fadeUp` at `top 95%`.
+- Heading `waveIn`. `.jgrid` → `batchReveal` (a rise), and the "All episodes" link `fadeUp` at `top 95%`.
 
 ### 09 FAQ
 Lives on `faq.html`. The page opens with `.page-lead` (a short ink block under the header). The header starts solid, because this page has no hero. Tweens run only when `.faq` is on the page.
 - Eyebrow `fadeUp`. The page title uses `wordRise`. Each `<details>` has its own `fadeUp`, so they cascade naturally as they enter.
-- `.sec-head` gets `[data-speed="0.85"]` (desktop).
 - Opening a question: the answer `enter()`s (y −8, 0.6s) and `ScrollTrigger.refresh()` runs.
 
 ### 10 Newsletter
@@ -197,17 +188,14 @@ Lives on `faq.html`. The page opens with `.page-lead` (a short ink block under t
 
 | Knob | Where | Effect |
 |---|---|---|
-| Lenis `lerp` (0.1) and `wheelMultiplier` (0.95) | setup | Lower lerp = floatier scroll, higher = snappier. Wheel stays just under 1:1 |
-| `scrub: true` on every scroll-linked tween | pins, wipe, words, parallax, drift, leave | The tween tracks the scroll. Lenis is already the ease, so a second one-second catch-up is not added |
+| Lenis `lerp` (0.22) and `wheelMultiplier` (1) | setup | Lower lerp = floatier scroll. 0.22 stays close to the wheel so the pins don't lag |
+| `scrub: true` on the pins, the colour wipe, and the scrubbed newsletter words | those triggers | The tween tracks the scroll. Lenis is already the ease |
 | Story length `3.2 × innerHeight` | 04 | Longer = slower principle steps |
 | Topics end `+= dist() × 1.15` | 05 | Multiply further for slower travel |
 | `wordRise` stagger 0.12 / 1.55s | primitives | Faster headings = 0.06 / 1.0s |
 | `yPercent 118` | wordRise | Must stay > 100 so words start fully masked |
-| batch `start: 'top 90%'` | primitives | Earlier/later card reveals |
-| `leave` start `bottom 35%` | primitives | When blocks start fading out |
+| batch `start: 'top 92%'` | primitives | Earlier/later card reveals |
 | Tilt ±4° | primitives | Increase the multiplier (8) for more drama |
-| Drift ±6% | `drift()` | Keep ≤ the `.ph` headroom (10%) |
-| `data-speed` | HTML attribute | 0.8 = noticeable float, 0.95 = subtle |
+| Marquee `duration: 46` | 04b | Base speed of the loop. It does not react to scroll velocity |
 | Slideshow 6s + 2s | 04 slideshow | Hold / crossfade lengths (reference uses 6s / 2s) |
-| Marquee `duration: 46`, boost cap 6 | 04b | Base speed / max velocity boost |
 | Video fade 1.2s | CSS `.hero__video` | How the video appears over the poster |

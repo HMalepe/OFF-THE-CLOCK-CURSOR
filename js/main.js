@@ -463,12 +463,13 @@
   // Lenis fights the iOS rubber-band, and on a weak CPU it lags a frame behind the pins.
   mm.add(DESKTOP, () => {
     if (!window.Lenis || lowPower) return;
-    const instance = new Lenis({ lerp: 0.1, smoothWheel: true, wheelMultiplier: 0.95 });
+    const instance = new Lenis({ lerp: 0.22, smoothWheel: true, wheelMultiplier: 1 });
     lenis = instance;
     window.__lenis = instance;
     instance.on('scroll', ScrollTrigger.update);
     const tick = (t) => instance.raf(t * 1000);
     gsap.ticker.add(tick);
+    gsap.ticker.lagSmoothing(0);
     return () => {
       gsap.ticker.remove(tick);
       instance.destroy();
@@ -653,7 +654,7 @@
       case 'mask': return maskLines(el);
       case 'wipe': return colorWipe(el);
       case 'scrub': return scrubWords(el);
-      case 'decode': return decodeIn(el);
+      case 'decode': return wordRise(el);
       default:
         if (el.hasAttribute('data-split')) return wordRise(el);
         if (el.hasAttribute('data-stagger')) return staggerUp(el);
@@ -670,46 +671,28 @@
     });
   };
 
-  // Primitive: soft fade-out as a block leaves the top
-  const leave = (el) => el && !lowPower &&
-    gsap.fromTo(el, { opacity: 1, y: 0 }, {
-      opacity: 0, y: -60, ease: 'none',
-      scrollTrigger: { trigger: el, start: 'bottom 35%', end: 'bottom top', scrub: true },
-    });
+  // Continuous scroll effects repainted on every frame and stuttered both pages.
+  // One-shot entrances and the two pins stay.
+  const leave = () => {};
+  const drift = () => {};
+  const speed = () => {};
 
-  // Primitive: image drift while visible (inner .ph has 10% headroom top/bottom)
-  const drift = (ph, amount = 6) => ph && !lowPower &&
-    gsap.fromTo(ph, { yPercent: -amount }, {
-      yPercent: amount, ease: 'none',
-      scrollTrigger: { trigger: ph.parentElement, start: 'top bottom', end: 'bottom top', scrub: true },
-    });
-
-  // Primitive: [data-speed] parallax float (desktop only; <1 = slower than scroll)
-  const speed = (el) => !lowPower &&
-    mm.add(DESKTOP, () => {
-      const sp = parseFloat(el.dataset.speed) || 1;
-      const range = () => (1 - sp) * (window.innerHeight + el.offsetHeight) * 0.5;
-      gsap.fromTo(el, { y: () => -range() }, {
-        y: () => range(), ease: 'none',
-        scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: true, invalidateOnRefresh: true },
-      });
-    });
-
-  // Primitive: card batch reveal — clip from bottom + image un-zoom (+ drift on the same image)
+  // Primitive: cards rise in together. No clip or image scale — those repaint the photos.
   const batchReveal = (list) => {
+    if (!list) return;
     const items = $$(':scope > li', list);
-    const imgs = items.map((i) => $('.ph', i));
-    gsap.set(items, { clipPath: 'inset(100% 0% 0% 0%)' });
-    gsap.set(imgs, { scale: 1.08 });
+    if (!items.length) return;
+    gsap.set(items, { y: 24, opacity: 0 });
     ScrollTrigger.batch(items, {
-      start: 'top 90%',
+      start: 'top 92%',
       once: true,
       onEnter: (batch) => {
-        gsap.to(batch, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.55, ease: EASE, stagger: 0.16, clearProps: 'clipPath' });
-        gsap.to(batch.map((b) => $('.ph', b)), { scale: 1, duration: 2, ease: EASE, stagger: 0.16 });
+        gsap.to(batch, {
+          y: 0, opacity: 1, duration: 1.05, ease: EASE, stagger: 0.1,
+          clearProps: 'transform,opacity',
+        });
       },
     });
-    imgs.forEach((ph) => drift(ph));
   };
 
   // Primitive: pointer tilt (desktop only)
@@ -764,9 +747,8 @@
 
   /* 02 · HERO scroll-out (scrub) */
   const heroST = { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true };
-  gsap.fromTo('[data-hero-content]', { yPercent: 0, opacity: 1 }, { yPercent: -30, opacity: 0, ease: 'none', scrollTrigger: heroST });
-  gsap.fromTo('.hero__media', { yPercent: 0 }, { yPercent: 20, ease: 'none', scrollTrigger: heroST });
-  gsap.fromTo('.hero__shade', { opacity: 1 }, { opacity: 0.6, ease: 'none', scrollTrigger: heroST });
+  gsap.fromTo('[data-hero-content]', { yPercent: 0, opacity: 1 }, { yPercent: -18, opacity: 0, ease: 'none', scrollTrigger: { ...heroST } });
+  gsap.fromTo('.hero__shade', { opacity: 1 }, { opacity: 0.72, ease: 'none', scrollTrigger: { ...heroST } });
   // cue + video toggle: recorded lazily (immediateRender:false) so they don't fight the intro fade
   gsap.fromTo('.hero__cue, .hero__toggle', { opacity: 1 }, {
     opacity: 0, ease: 'none', immediateRender: false,
@@ -811,13 +793,12 @@
       },
     });
     storyTl
-      .fromTo('[data-story-img]', { scale: 1.06 }, { scale: 1, duration: 1 }, 0)
       .fromTo('.story__veil', { opacity: 0 }, { opacity: 1, duration: 1 }, 0)
       .fromTo('[data-story-shade]', { opacity: 0.1 }, { opacity: 0.55, duration: 1 }, 0)
       .fromTo(storyCard, { y: () => window.innerHeight * 0.8 }, { y: 0, duration: 1, ease: 'power2.out' }, 0)
       .fromTo(storyChars, { opacity: 0 }, { opacity: 1, duration: 0.6, stagger: 0.045, ease: 'none' }, 0.75)
-      .fromTo('[data-principle]', { clipPath: 'inset(0% 100% 0% 0%)' }, {
-        clipPath: 'inset(0% 0% 0% 0%)', duration: 0.55, stagger: 0.8, ease: 'power2.out',
+      .fromTo('[data-principle]', { opacity: 0, y: 10 }, {
+        opacity: 1, y: 0, duration: 0.55, stagger: 0.8, ease: 'power2.out',
       }, 1.9)
       .to({}, { duration: 0.7 }); // hold
   });
@@ -864,26 +845,15 @@
   reveal($('.masterclass'));
 
   /* ------------------------------------------------------------------------
-     04b · MARQUEE — continuous loop; scroll velocity boosts speed, direction flips it, adds skew
+     04b · MARQUEE — one steady loop. No scroll skew: stroking giant type on
+     every frame was the hitch through the middle of the home page.
      ------------------------------------------------------------------------ */
   const mRow = $('[data-marquee]');
   if (mRow) {
     const loop = gsap.to(mRow, { xPercent: -50, duration: 46, ease: 'none', repeat: -1 });
-    const skew = gsap.quickTo(mRow, 'skewX', { duration: 0.5, ease: 'power3.out' });
-    const rate = { v: 1 };
-    const setRate = gsap.quickTo(rate, 'v', {
-      duration: 0.6, ease: 'power2.out', onUpdate: () => loop.timeScale(rate.v),
-    });
     ScrollTrigger.create({
       trigger: '.marquee', start: 'top bottom', end: 'bottom top',
       onToggle: (self) => loop.paused(!self.isActive),
-      onUpdate: (self) => {
-        const v = self.getVelocity();
-        const moving = Math.abs(v) > 40;
-        const boost = gsap.utils.clamp(1, 6, 1 + Math.abs(v) / 350);
-        setRate(self.direction * (moving ? boost : 1));
-        skew(moving ? gsap.utils.clamp(-8, 8, v / -300) : 0);
-      },
     });
     fadeUp($('.marquee'), 'top 95%');
   }
@@ -898,26 +868,16 @@
   const dist = () => Math.max(0, track.scrollWidth - vp.clientWidth);
   reveal($('.topics__head'));
   mm.add(DESKTOP, () => {
-    const hTween = gsap.fromTo(track, { x: 0 }, {
-      x: () => -dist(), ease: 'none',
-      scrollTrigger: {
-        trigger: topics, start: 'top top', end: () => '+=' + dist() * 1.15,
-        pin: true, scrub: true, invalidateOnRefresh: true,
-        onUpdate: (self) => gsap.set('[data-track-bar]', { scaleX: 0.02 + self.progress * 0.98 }),
-      },
-    });
-    $$('.tcard', track).forEach((card) => {
-      const ph = $('.ph', card);
-      if (ph) {
-        gsap.fromTo(ph, { xPercent: -7 }, {
-          xPercent: 7, ease: 'none',
-          scrollTrigger: { trigger: card, containerAnimation: hTween, start: 'left right', end: 'right left', scrub: true },
-        });
-      }
-      gsap.fromTo([$('.tcard__label', card), $('.tcard__meta', card)], { x: 60, opacity: 0 }, {
-        x: 0, opacity: 1, ease: 'power2.out', stagger: 0.15,
-        scrollTrigger: { trigger: card, containerAnimation: hTween, start: 'left 90%', end: 'left 50%', scrub: true },
-      });
+    const pin = {
+      trigger: topics, start: 'top top', end: () => '+=' + dist() * 1.15,
+      pin: true, scrub: true, invalidateOnRefresh: true,
+    };
+    gsap.timeline({ scrollTrigger: pin })
+      .fromTo(track, { x: 0 }, { x: () => -dist(), ease: 'none' }, 0)
+      .fromTo('[data-track-bar]', { scaleX: 0.02 }, { scaleX: 1, ease: 'none' }, 0);
+    gsap.fromTo($$('.tcard__label, .tcard__meta', track), { y: 12, opacity: 0 }, {
+      y: 0, opacity: 1, duration: 0.8, ease: EASE, stagger: 0.05,
+      scrollTrigger: { trigger: topics, start: 'top 75%', once: true },
     });
   });
   }
@@ -934,28 +894,14 @@
     leave($('.sec-head', quizzes));
   }
   const tryquiz = $('.tryquiz');
-  if (tryquiz) {
-    fadeUp(tryquiz);
-    const quizTitle = $('.tryquiz__title');
-    if (quizTitle) decodeIn(quizTitle);
-    $$('[data-speed]', tryquiz).forEach(speed);
-  }
+  if (tryquiz) $$('[data-speed]', tryquiz).forEach(speed);
 
   /* ------------------------------------------------------------------------
      07 · MISSION — image drift + reveal + leave + image fades as it exits
      ------------------------------------------------------------------------ */
   const mission = $('.mission');
   if (mission) {
-  if (!lowPower) gsap.fromTo($('[data-drift]', mission), { yPercent: -8 }, {
-    yPercent: 8, ease: 'none',
-    scrollTrigger: { trigger: mission, start: 'top bottom', end: 'bottom top', scrub: true },
-  });
   reveal(mission);
-  leave($('.mission__content'));
-  gsap.fromTo('.mission__media', { opacity: 1 }, {
-    opacity: 0.25, ease: 'none',
-    scrollTrigger: { trigger: mission, start: 'bottom 70%', end: 'bottom top', scrub: true },
-  });
   }
 
   /* ------------------------------------------------------------------------
