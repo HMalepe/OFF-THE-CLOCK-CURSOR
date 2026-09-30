@@ -13,7 +13,8 @@
   const root = document.documentElement;
   const $ = (s, c = document) => c.querySelector(s);
   const $$ = (s, c = document) => [...c.querySelectorAll(s)];
-  let lenis = null; // set in motion mode
+  let lenis = null; // set in motion mode, desktop only
+  let lockY = 0; // page position while the menu locks a phone's native scroll
 
   // Libraries missing → fully static. Reduced motion still animates, just quietly (see gentleMotion).
   const reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -53,6 +54,7 @@
   const toTop = $('[data-totop]');
   const toTopBar = $('[data-totop-bar]');
   let lastY = window.scrollY;
+  let travel = 0;
   const onScroll = () => {
     const y = window.scrollY;
     const vh = window.innerHeight;
@@ -61,10 +63,18 @@
     const max = Math.max(1, document.documentElement.scrollHeight - vh);
     toTopBar.style.strokeDashoffset = String(1 - Math.min(1, y / max));
     toTop.classList.toggle('is-visible', y > vh);
-    if (root.classList.contains('menu-open')) return;
-    if (past && y > lastY + 2) hdr.classList.add('is-hidden');
-    else if (y < lastY - 2 || !past) hdr.classList.remove('is-hidden');
+    const dy = y - lastY;
     lastY = y;
+    if (root.classList.contains('menu-open')) return;
+    if (!past || y < 8) {
+      hdr.classList.remove('is-hidden');
+      travel = 0;
+      return;
+    }
+    if ((dy > 0 && travel < 0) || (dy < 0 && travel > 0)) travel = 0;
+    travel += dy;
+    if (travel > 72) hdr.classList.add('is-hidden');
+    else if (travel < -32) hdr.classList.remove('is-hidden');
   };
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onScroll);
@@ -77,7 +87,14 @@
     root.classList.add('menu-open');
     drawer.inert = false;
     burger.setAttribute('aria-expanded', 'true');
-    lenis && lenis.stop();
+    if (lenis) lenis.stop();
+    else {
+      lockY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = '-' + lockY + 'px';
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+    }
     enter($$('.drawer__title, .drawer details, .drawer__social a', drawer), { y: 28, stagger: 0.09, delay: 0.2, duration: 1.25 });
     setTimeout(() => $('.drawer__close').focus(), 50);
   };
@@ -86,7 +103,14 @@
     root.classList.remove('menu-open');
     drawer.inert = true;
     burger.setAttribute('aria-expanded', 'false');
-    lenis && lenis.start();
+    if (lenis) lenis.start();
+    else {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      window.scrollTo(0, lockY);
+    }
     burger.focus({ preventScroll: true });
   };
   burger.addEventListener('click', openMenu);
@@ -117,7 +141,12 @@
     const wasOpen = root.classList.contains('menu-open');
     closeMenu();
     const go = () => {
-      if (lenis) lenis.scrollTo(target, { duration: 1.9, offset: target.tagName === 'SECTION' ? 0 : -96 });
+      if (lenis) {
+        const offset = target.tagName === 'SECTION' ? 0 : -96;
+        const dist = Math.abs(target.getBoundingClientRect().top - offset);
+        const duration = gsap.utils.clamp(0.9, 1.6, dist / 1500);
+        lenis.scrollTo(target, { duration, offset });
+      }
       else target.scrollIntoView({ behavior: motionOK ? 'smooth' : 'auto' });
     };
     wasOpen ? setTimeout(go, 120) : go();
@@ -291,10 +320,58 @@
     return;
   }
 
+  // Dark pie starts empty, then sweeps 12 → 3 → 6 → 9 → 12 until the O is full.
+  function startClocks(once) {
+    const pies = $$('[data-pie]');
+    if (!pies.length) return;
+    const cx = 50, cy = 50, r = 25;
+    const pt = (deg) => {
+      const rad = (deg - 90) * Math.PI / 180;
+      return [(cx + r * Math.cos(rad)).toFixed(2), (cy + r * Math.sin(rad)).toFixed(2)];
+    };
+    const wedge = (start, end) => {
+      const span = end - start;
+      if (span <= 0.4) return `M${cx} ${cy} Z`;
+      if (span >= 359.6) {
+        return `M${cx} ${cy - r} A${r} ${r} 0 1 1 ${cx} ${cy + r} A${r} ${r} 0 1 1 ${cx} ${cy - r} Z`;
+      }
+      const [x0, y0] = pt(start);
+      const [x1, y1] = pt(end);
+      const large = span > 180 ? 1 : 0;
+      return `M${cx} ${cy} L${x0} ${y0} A${r} ${r} 0 ${large} 1 ${x1} ${y1} Z`;
+    };
+    const apply = (start, end) => {
+      const d = wedge(start, end);
+      pies.forEach((p) => p.setAttribute('d', d));
+    };
+    const cycle = once ? 2800 : 12000;
+    const t0 = performance.now();
+    let drawn = -1;
+    const tick = (now) => {
+      const elapsed = now - t0;
+      if (once) {
+        const u = Math.min(1, elapsed / cycle);
+        apply(0, u * 360);
+        if (u < 1) requestAnimationFrame(tick);
+        return;
+      }
+      const u = (elapsed % cycle) / cycle;
+      const step = Math.round(u * 240);
+      if (step !== drawn) {
+        drawn = step;
+        const fill = 0.84;
+        apply(0, u < fill ? (u / fill) * 360 : 360);
+      }
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+  startClocks(reduce);
+
   /* ------------------------------------------------------------------------
      2b · REDUCED MOTION — short fades only. No loader, pins, parallax,
          Lenis, marquee loop, or hero video. Anchor jumps still ease.
-         The wordmark clock still sweeps once, then rests.
+         The wordmark clock still fills once, then stays full.
      ------------------------------------------------------------------------ */
   if (reduce) {
     root.classList.add('is-loaded');
@@ -335,18 +412,28 @@
   gsap.registerPlugin(ScrollTrigger);
   ScrollTrigger.config({ ignoreMobileResize: true });
 
-  if (window.Lenis) {
-    lenis = new Lenis({ lerp: 0.075, smoothWheel: true });
-    window.__lenis = lenis; // handy for debugging / tests
-    lenis.on('scroll', ScrollTrigger.update);
-    gsap.ticker.add((t) => lenis.raf(t * 1000));
-    gsap.ticker.lagSmoothing(0);
-  }
-
   const EASE = 'expo.out';
   const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
   const mm = gsap.matchMedia();
   const DESKTOP = '(min-width: 761px)';
+
+  // Native scrolling on phones. Lenis fights the iOS rubber-band and makes a thumb feel late.
+  mm.add(DESKTOP, () => {
+    if (!window.Lenis) return;
+    const instance = new Lenis({ lerp: 0.1, smoothWheel: true, wheelMultiplier: 0.95 });
+    lenis = instance;
+    window.__lenis = instance;
+    instance.on('scroll', ScrollTrigger.update);
+    const tick = (t) => instance.raf(t * 1000);
+    gsap.ticker.add(tick);
+    gsap.ticker.lagSmoothing(0);
+    return () => {
+      gsap.ticker.remove(tick);
+      instance.destroy();
+      if (lenis === instance) lenis = null;
+      if (window.__lenis === instance) window.__lenis = null;
+    };
+  });
 
   // Split [data-split] headings into masked words: span.w > span.wi
   const split = (el) => {
@@ -471,7 +558,7 @@
     el.append(dim, fill);
     return gsap.fromTo(fill, { clipPath: 'inset(0% 100% 0% 0%)' }, {
       clipPath: 'inset(0% 0% 0% 0%)', ease: 'none',
-      scrollTrigger: { trigger: el, start: 'top 85%', end: 'top 30%', scrub: 1.4 },
+      scrollTrigger: { trigger: el, start: 'top 85%', end: 'top 30%', scrub: 1 },
     });
   };
 
@@ -479,7 +566,7 @@
   const scrubWords = (el) =>
     gsap.fromTo(split(el), { yPercent: 118 }, {
       yPercent: 0, ease: 'none', stagger: 0.28,
-      scrollTrigger: { trigger: el, start: 'top 92%', end: 'top 38%', scrub: 1.4 },
+      scrollTrigger: { trigger: el, start: 'top 92%', end: 'top 38%', scrub: 1 },
     });
 
   // Letters cycle through capitals, then settle. Question marks and spaces stay still.
@@ -660,42 +747,57 @@
      ------------------------------------------------------------------------ */
   const story = $('.story');
   const storyCard = $('[data-story-card]');
-  const storyChars = splitChars($('[data-split]', storyCard));
-  const storyTl = gsap.timeline({
-    defaults: { ease: 'none' },
-    scrollTrigger: {
-      trigger: story, start: 'top top', end: () => '+=' + window.innerHeight * 3.2,
-      pin: true, scrub: 1.4, anticipatePin: 1, invalidateOnRefresh: true,
-    },
+  // Pinned letter sequence is desktop-only. On a phone the card is already in view.
+  mm.add(DESKTOP, () => {
+    const storyChars = splitChars($('[data-split]', storyCard));
+    const storyTl = gsap.timeline({
+      defaults: { ease: 'none' },
+      scrollTrigger: {
+        trigger: story, start: 'top top', end: () => '+=' + window.innerHeight * 3.2,
+        pin: true, scrub: 1, anticipatePin: 1, invalidateOnRefresh: true,
+      },
+    });
+    storyTl
+      .fromTo('[data-story-img]', { scale: 1.06 }, { scale: 1, duration: 1 }, 0)
+      .fromTo('.story__veil', { opacity: 0 }, { opacity: 1, duration: 1 }, 0)
+      .fromTo('[data-story-shade]', { opacity: 0.1 }, { opacity: 0.55, duration: 1 }, 0)
+      .fromTo(storyCard, { y: () => window.innerHeight * 0.8 }, { y: 0, duration: 1, ease: 'power2.out' }, 0)
+      .fromTo(storyChars, { opacity: 0 }, { opacity: 1, duration: 0.6, stagger: 0.045, ease: 'none' }, 0.75)
+      .fromTo('[data-principle]', { clipPath: 'inset(0% 100% 0% 0%)' }, {
+        clipPath: 'inset(0% 0% 0% 0%)', duration: 0.55, stagger: 0.8, ease: 'power2.out',
+      }, 1.9)
+      .to({}, { duration: 0.7 }); // hold
   });
-  storyTl
-    .fromTo('[data-story-img]', { scale: 1.06 }, { scale: 1, duration: 1 }, 0)
-    .fromTo('.story__slide > img', { filter: 'blur(0px)' }, { filter: 'blur(24px)', duration: 1 }, 0)
-    .fromTo('[data-story-shade]', { opacity: 0.1 }, { opacity: 0.55, duration: 1 }, 0)
-    .fromTo(storyCard, { y: () => window.innerHeight * 0.8 }, { y: 0, duration: 1, ease: 'power2.out' }, 0)
-    .fromTo(storyChars, { opacity: 0 }, { opacity: 1, duration: 0.6, stagger: 0.045, ease: 'none' }, 0.75)
-    .fromTo('[data-principle]', { clipPath: 'inset(0% 100% 0% 0%)' }, {
-      clipPath: 'inset(0% 0% 0% 0%)', duration: 0.55, stagger: 0.8, ease: 'power2.out',
-    }, 1.9)
-    .to({}, { duration: 0.7 }); // hold
+  mm.add('(max-width: 760px)', () => {
+    fadeUp(storyCard, 'top 92%');
+  });
 
   // Background slideshow (crossfade 2s, hold 6s, loop, slow Ken Burns) — runs only while the story is on screen
   const slides = $$('[data-slide]', story);
   if (slides.length > 1) {
     let cur = 0;
-    let z = slides.length;
     let timer = null;
-    gsap.set(slides, { opacity: (i) => (i === 0 ? 1 : 0), zIndex: (i) => (i === 0 ? z : 0) });
+    gsap.set(slides, { opacity: (i) => (i === 0 ? 1 : 0), zIndex: (i) => (i === 0 ? 2 : 1) });
+    const veilImg = $('img', $('.story__veil', story));
+    const syncVeil = (slide) => {
+      const img = $('img', slide);
+      if (!veilImg || !img) return;
+      if (veilImg.getAttribute('src') !== img.getAttribute('src')) veilImg.setAttribute('src', img.getAttribute('src'));
+      veilImg.style.objectPosition = img.style.objectPosition || 'center';
+    };
     const kenBurns = (el) => gsap.fromTo(el, { scale: 1.03 }, { scale: 1, duration: 8, ease: 'none', overwrite: 'auto' });
     const next = () => {
       const prev = slides[cur];
       cur = (cur + 1) % slides.length;
       const nx = slides[cur];
-      gsap.set(nx, { zIndex: ++z, opacity: 0 });
+      gsap.set(slides, { zIndex: 1 });
+      gsap.set(nx, { zIndex: 2, opacity: 0 });
+      syncVeil(nx);
       kenBurns(nx);
       gsap.to(nx, { opacity: 1, duration: 2, ease: 'power1.inOut', onComplete: () => gsap.set(prev, { opacity: 0 }) });
       timer = gsap.delayedCall(8, next);
     };
+    syncVeil(slides[0]);
     kenBurns(slides[0]);
     timer = gsap.delayedCall(6, next);
     ScrollTrigger.create({
@@ -703,6 +805,11 @@
       onToggle: (self) => timer && timer.paused(!self.isActive),
     });
   }
+
+  /* ------------------------------------------------------------------------
+     04c · MASTERCLASS
+     ------------------------------------------------------------------------ */
+  reveal($('.masterclass'));
 
   /* ------------------------------------------------------------------------
      04b · MARQUEE — continuous loop; scroll velocity boosts speed, direction flips it, adds skew
@@ -742,8 +849,8 @@
     const hTween = gsap.fromTo(track, { x: 0 }, {
       x: () => -dist(), ease: 'none',
       scrollTrigger: {
-        trigger: topics, start: 'top top', end: () => '+=' + dist() * 1.4,
-        pin: true, scrub: 1.4, anticipatePin: 1, invalidateOnRefresh: true,
+        trigger: topics, start: 'top top', end: () => '+=' + dist() * 1.15,
+        pin: true, scrub: 1, anticipatePin: 1, invalidateOnRefresh: true,
         onUpdate: (self) => gsap.set('[data-track-bar]', { scaleX: 0.02 + self.progress * 0.98 }),
       },
     });
