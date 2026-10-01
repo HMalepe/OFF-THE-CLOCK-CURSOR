@@ -91,7 +91,7 @@ Reference behaviour: a looping muted background video (~18s) under a 65% dark gr
 
 ### 01 Header (plain scroll listener, all modes)
 - Transparent over the hero. It gets `.is-solid` (ink background, 96 → 80px height) after 60% of the viewport has scrolled.
-- It hides with `.is-hidden` (translateY −100%) only after about 72px of continuous downward travel, and returns after about 32px upward (0.45s `--ease-out`). Tiny Lenis steps do not flicker it. It stays visible over the hero and while the menu is open.
+- It hides with `.is-hidden` (translateY −100%) after about 48px of downward travel, and stays hidden through the little upward kick at the end of a flick. It returns only after about 140px of upward travel that starts more than 0.7s after the last downward move (0.45s `--ease-out`). It stays visible over the hero and while the menu is open.
 - The drawer slides in from the right (0.7s) over a scrim. Lenis stops while it's open. Menu titles, groups and social links stagger in with `enter()` (y 28, 0.05 stagger, 0.15s delay, 0.9s).
 
 ### Back to top (plain scroll listener, all modes)

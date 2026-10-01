@@ -83,6 +83,7 @@
   const toTopBar = $('[data-totop-bar]');
   let lastY = window.scrollY;
   let travel = 0;
+  let downAt = 0;
   const onScroll = () => {
     const y = window.scrollY;
     const vh = window.innerHeight;
@@ -99,10 +100,17 @@
       travel = 0;
       return;
     }
-    if ((dy > 0 && travel < 0) || (dy < 0 && travel > 0)) travel = 0;
-    travel += dy;
-    if (travel > 72) hdr.classList.add('is-hidden');
-    else if (travel < -32) hdr.classList.remove('is-hidden');
+    if (Math.abs(dy) < 0.5) return;
+    if (dy > 0) {
+      travel = Math.max(0, travel) + dy;
+      if (travel > 48) {
+        hdr.classList.add('is-hidden');
+        downAt = performance.now();
+      }
+    } else if (performance.now() - downAt > 700) {
+      travel = Math.min(0, travel) + dy;
+      if (travel < -140) hdr.classList.remove('is-hidden');
+    }
   };
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', onScroll);

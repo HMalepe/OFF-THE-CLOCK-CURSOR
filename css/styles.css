@@ -53,6 +53,7 @@ html {
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
   scroll-padding-top: calc(var(--hdr-h) + env(safe-area-inset-top, 0px));
+  overflow-x: clip;
 }
 a, button, summary, input { touch-action: manipulation; }
 html.lenis, html.lenis body { height: auto; }
