@@ -458,12 +458,18 @@
   const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
   const mm = gsap.matchMedia();
   const DESKTOP = '(min-width: 761px)';
+  // The story pin sets this. One wheel gesture should move one step, so the
+  // raw flick distance is ignored while that section is on screen.
+  let consumeStoryScroll = null;
 
   // Native scrolling on phones, and on a desktop that is short of memory.
   // Lenis fights the iOS rubber-band, and on a weak CPU it lags a frame behind the pins.
   mm.add(DESKTOP, () => {
     if (!window.Lenis || lowPower) return;
-    const instance = new Lenis({ lerp: 0.22, smoothWheel: true, wheelMultiplier: 1 });
+    const instance = new Lenis({
+      lerp: 0.22, smoothWheel: true, wheelMultiplier: 1,
+      virtualScroll: (data) => (consumeStoryScroll && consumeStoryScroll(data) ? false : undefined),
+    });
     lenis = instance;
     window.__lenis = instance;
     instance.on('scroll', ScrollTrigger.update);
@@ -471,6 +477,7 @@
     gsap.ticker.add(tick);
     gsap.ticker.lagSmoothing(0);
     return () => {
+      consumeStoryScroll = null;
       gsap.ticker.remove(tick);
       instance.destroy();
       if (lenis === instance) lenis = null;
@@ -787,7 +794,9 @@
     const storyChars = splitChars($('[data-split]', storyCard));
     const principles = $$('[data-principle]', storyCard);
     const shown = principles.map(() => false);
-    const marks = [0.4, 0.57, 0.74];
+    // Resting points. One wheel gesture moves to the next one only.
+    const stops = [0.17, 0.34, 0.51, 0.68, 0.85];
+    const marks = [0.45, 0.62, 0.79];
     let veilOn = false;
     let lettersOn = false;
     gsap.set(principles, { clipPath: 'inset(0% 100% 0% 0%)' });
@@ -802,7 +811,7 @@
         gsap.to('.story__veil', { opacity: veilOn ? 1 : 0, duration: 0.6, ease: 'power2.out', overwrite: true });
         gsap.to('[data-story-shade]', { opacity: veilOn ? 0.55 : 0.1, duration: 0.6, ease: 'power2.out', overwrite: true });
       }
-      if ((progress >= 0.16) !== lettersOn) {
+      if ((progress >= 0.28) !== lettersOn) {
         lettersOn = !lettersOn;
         gsap.to(storyChars, {
           opacity: lettersOn ? 1 : 0, duration: lettersOn ? 0.7 : 0.3,
@@ -822,15 +831,58 @@
     const storyTl = gsap.timeline({
       defaults: { ease: 'none' },
       scrollTrigger: {
-        trigger: story, start: 'top top', end: () => '+=' + window.innerHeight * 3.2,
+        trigger: story, start: 'top top', end: () => '+=' + window.innerHeight * 5.2,
         pin: true, scrub: true, invalidateOnRefresh: true,
         onUpdate: (self) => step(self.progress),
         onRefresh: (self) => step(self.progress),
       },
     });
     storyTl
-      .fromTo(storyCard, { y: () => window.innerHeight * 0.8 }, { y: 0, duration: 1, ease: 'power2.out' }, 0)
-      .to({}, { duration: 3.75 }, 1);
+      .fromTo(storyCard, { y: () => window.innerHeight * 0.8 }, { y: 0, duration: 0.85, ease: 'power2.out' }, 0)
+      .to({}, { duration: 4.15 }, 0.85);
+    const storyST = storyTl.scrollTrigger;
+    let lock = false;
+    let readyAt = 0;
+    const go = (dest) => {
+      if (!lenis) return false;
+      lock = true;
+      readyAt = performance.now() + 1000;
+      lenis.scrollTo(dest, {
+        duration: 0.65, force: true, lock: true,
+        onComplete: () => { lock = false; readyAt = performance.now() + 180; },
+      });
+      return true;
+    };
+    consumeStoryScroll = (data) => {
+      if (!storyST) return false;
+      const dy = data.deltaY || 0;
+      if (!dy) return false;
+      const y = storyST.scroll();
+      const dir = dy > 0 ? 1 : -1;
+      const revisit = storyST.end + window.innerHeight * 0.7;
+      if (y > storyST.end + 4) {
+        if (dir < 0 && y < revisit) {
+          if (lock || performance.now() < readyAt) return true;
+          const last = stops[stops.length - 1];
+          return go(storyST.start + (storyST.end - storyST.start) * last);
+        }
+        return false;
+      }
+      if (y < storyST.start - 120) return false;
+      if (lock || performance.now() < readyAt) return true;
+      const p = storyST.progress;
+      const target = dir > 0
+        ? stops.find((s) => s > p + 0.04)
+        : [...stops].reverse().find((s) => s < p - 0.04);
+      if (target == null) {
+        const dest = dir > 0
+          ? storyST.end + window.innerHeight * 0.55
+          : Math.max(0, storyST.start - 80);
+        return go(dest);
+      }
+      return go(storyST.start + (storyST.end - storyST.start) * target);
+    };
+    return () => { consumeStoryScroll = null; };
   });
   mm.add('(max-width: 760px)', () => {
     fadeUp(storyCard, 'top 92%');

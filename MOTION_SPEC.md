@@ -113,17 +113,20 @@ Reference behaviour: a floating circular button with a scroll-progress ring.
 - Stats `[data-count]` keep the printed number until the trigger starts, then count 0 → value with the suffix (2.4s power2.out, `top 92%`, once).
 
 ### 04 Story: PINNED
-Desktop only (`min-width: 761px`). Trigger `.story`, start `top top`, end `+= 3.2 × innerHeight`, `pin: true`, `scrub: true`, `invalidateOnRefresh: true`. The pin tracks the scroll directly. Lenis already eases the wheel, and a second one-second catch-up was making the next section arrive late and then snap. The timeline is about 4.8 units long. Below 761px there is no pin: the stage grows with the card, the photo stays at `blur(18px)`, the veil is hidden, and the card uses a single `fadeUp`.
+Desktop only (`min-width: 761px`). Trigger `.story`, start `top top`, end `+= 5.2 × innerHeight`, `pin: true`, `scrub: true`, `invalidateOnRefresh: true`. Below 761px there is no pin: the stage grows with the card, the veil is hidden, and the card uses a single `fadeUp`.
 
-| Step | Timeline pos | Scroll % (approx) | Target | From → To | Ease |
-|---|---|---|---|---|---|
-| 1 | — | 2% | `.story__veil`, `[data-story-shade]` | fade in over 0.6s when the pin starts. Not scrubbed. The photo does not scale | power2.out |
-| 1 | 0 → 1 | 0 → 21% | `[data-story-card]` | y `0.8 × innerHeight` → 0 (lands centred). This is the only value tied to the wheel | power2.out |
-| 2 | — | 16% | card heading letters | type on over 0.7s, stagger 0.04, when the pin crosses the mark. Not scrubbed | none |
-| 3 | — | 40% | principle 01 | left-to-right clip wipe, 0.5s, when scroll crosses the mark. Scrolling back closes it the same way | power2.out |
-| 4 | — | 57% | principle 02 | same | power2.out |
-| 5 | — | 74% | principle 03 | same | power2.out |
-| 6 | 1 → 4.75 | 21 → 100% | none | pin holds after the card has landed | none |
+One wheel gesture moves to the next resting point and no further. The raw flick distance is ignored while the pin is on screen, so one scroll cannot open two lines or skip into a later section. Scrolling back steps one point at a time and closes what that point had opened. The last scroll down leaves the pin at the masterclass. The first scroll up leaves it back to the hosts.
+
+| Step | Scroll % | What one scroll does | Ease |
+|---|---|---|---|
+| 1 | 0 → 17% | Card rises from `0.8 × innerHeight` to centre. Veil and shade fade in with it. The photo does not scale | power2.out |
+| 2 | 17 → 34% | Heading types on, 0.7s, stagger 0.04 | none |
+| 3 | 34 → 51% | Principle 01 wipes left to right, 0.5s | power2.out |
+| 4 | 51 → 68% | Principle 02, same | power2.out |
+| 5 | 68 → 85% | Principle 03, same | power2.out |
+| 6 | 85 → 100% | Pin releases onto the masterclass | — |
+
+The card’s position is the only value tied to the scrub. The veil, the heading and the three lines each play once when their step is crossed.
 
 **Background slideshow (reference: 3-slide fade, 6s hold, 2s fade, loop).** It runs outside the scrub, on a timer:
 
@@ -132,9 +135,9 @@ Desktop only (`min-width: 761px`). Trigger `.story`, start `top top`, end `+= 3.
 | Slides | `[data-slide]` inside `.story__media` (1–5). Slide 1 is the static-mode image |
 | Cycle | Hold 6s → next slide gets `zIndex++`, fades opacity 0 → 1 over 2s `power1.inOut` → previous is set to 0. Repeats every 8s. The timer stays paused until the story is on screen |
 | Play/pause | `ScrollTrigger` `top bottom` → `bottom top` on `.story`: the timer is paused while the section is off screen |
-| Interaction with pin | The card’s position is the only value tied to the wheel. The photo does not scale. `.story__media` stays at `z-index: 0` so the veil, which is inside it, cannot paint over the card. The veil, the heading and the three lines each play once when their step is reached, and reverse if you scroll back, so the pin does not repaint them on every tick. The veil is a small bitmap blurred 2px and scaled up. It fades in as the pin starts, and its source follows the active slide. Static mode and phones hide the veil and soften the photo the same cheap way |
+| Interaction with pin | The card’s position is the only value tied to the wheel, and only on the first step. The photo does not scale. `.story__media` stays at `z-index: 0` so the veil stays behind the card. Each later step plays one thing: the heading, then principle 01, 02 and 03. The veil is a small bitmap blurred 2px and scaled up, and its source follows the active slide. Static mode and phones hide the veil and soften the photo the same cheap way |
 
-Verified: from 50% progress onward the card centre = `innerHeight / 2` at 1280×800 and 390×844. The card has `max-height: calc(100svh − 120px)` and verified 0px overflow.
+Verified: from the first resting point (17%) onward the card centre = `innerHeight / 2` at 1280×800. At 390×844 there is no pin and the card is in normal flow. The card has `max-height: calc(100svh − 120px)` and verified 0px overflow.
 
 ### 04c Masterclass
 - Heading `wordRise`. The booking link `fadeUp` at the default start. No pin.
