@@ -9,7 +9,7 @@ Source of truth for every animation. If the site is ported (Next.js, Astro, Webf
 | Setting | Value |
 |---|---|
 | Libraries | GSAP 3.15, ScrollTrigger, Lenis 1.3 (vendored) |
-| Smooth scroll | Desktop only (`min-width: 761px`): `new Lenis({ lerp: 0.22, smoothWheel: true, wheelMultiplier: 1 })`, driven by `gsap.ticker` with `lagSmoothing(0)`, `lenis.on('scroll', ScrollTrigger.update)`. A lower lerp was lagging a frame behind the pins. Phones, and a machine with `deviceMemory` ≤ 4 or ≤ 2 cores, use native scrolling and stay on the hero poster |
+| Smooth scroll | Desktop only (`min-width: 761px`): `new Lenis({ lerp: 0.08, smoothWheel: true, wheelMultiplier: 0.7, respectReducedMotion: false })`, driven by `gsap.ticker` with `lagSmoothing(0)`, `lenis.on('scroll', ScrollTrigger.update)`. The wheel eases toward where you scrolled, so a screen takes a moment to arrive instead of popping there. `respectReducedMotion` stays off: that flag was turning the wheel into an instant jump. Pins use `scrub: true`, so they follow this travel directly and do not add a second delay. Phones, and a machine with `deviceMemory` ≤ 4 or ≤ 2 cores, use native scrolling and stay on the hero poster |
 | ScrollTrigger config | `ignoreMobileResize: true` |
 | Default ease | `expo.out` (CSS mirror: `--ease-out: cubic-bezier(.16,1,.3,1)`) |
 | Creation order | DOM order, then `ScrollTrigger.sort()`; `refresh()` after `document.fonts.ready` and `load` |
@@ -190,9 +190,9 @@ Lives on `faq.html`. The page opens with `.page-lead` (a short ink block under t
 
 | Knob | Where | Effect |
 |---|---|---|
-| Lenis `lerp` (0.22) and `wheelMultiplier` (1) | setup | Lower lerp = floatier scroll. 0.22 stays close to the wheel so the pins don't lag |
+| Lenis `lerp` (0.08) and `wheelMultiplier` (0.7) | setup | Lower lerp = slower travel between screens. Pins still use `scrub: true`, so they follow the eased scroll instead of lagging behind it |
 | `scrub: true` on the pins, the colour wipe, and the scrubbed newsletter words | those triggers | The tween tracks the scroll. Lenis is already the ease |
-| Story length `3.2 × innerHeight` | 04 | Longer = slower principle steps |
+| Story length `5.2 × innerHeight`, story step `scrollTo` 1.25s ease-in-out | 04 | One gesture, one step. The step eases out of one screen and into the next |
 | Topics end `+= dist() × 1.15` | 05 | Multiply further for slower travel |
 | `wordRise` stagger 0.12 / 1.55s | primitives | Faster headings = 0.06 / 1.0s |
 | `yPercent 118` | wordRise | Must stay > 100 so words start fully masked |

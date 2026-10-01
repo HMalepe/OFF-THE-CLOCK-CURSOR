@@ -461,13 +461,19 @@
   // The story pin sets this. One wheel gesture should move one step, so the
   // raw flick distance is ignored while that section is on screen.
   let consumeStoryScroll = null;
+  // Ease through a step: slow to leave, slow to arrive. A hard ease-out
+  // covers most of the distance at once and feels like a jump.
+  const scrollEase = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 
   // Native scrolling on phones, and on a desktop that is short of memory.
   // Lenis fights the iOS rubber-band, and on a weak CPU it lags a frame behind the pins.
   mm.add(DESKTOP, () => {
     if (!window.Lenis || lowPower) return;
     const instance = new Lenis({
-      lerp: 0.22, smoothWheel: true, wheelMultiplier: 1,
+      lerp: 0.08,
+      smoothWheel: true,
+      wheelMultiplier: 0.7,
+      respectReducedMotion: false,
       virtualScroll: (data) => (consumeStoryScroll && consumeStoryScroll(data) ? false : undefined),
     });
     lenis = instance;
@@ -846,10 +852,10 @@
     const go = (dest) => {
       if (!lenis) return false;
       lock = true;
-      readyAt = performance.now() + 1000;
+      readyAt = performance.now() + 1500;
       lenis.scrollTo(dest, {
-        duration: 0.65, force: true, lock: true,
-        onComplete: () => { lock = false; readyAt = performance.now() + 180; },
+        duration: 1.25, easing: scrollEase, force: true, lock: true,
+        onComplete: () => { lock = false; readyAt = performance.now() + 220; },
       });
       return true;
     };
