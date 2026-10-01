@@ -218,7 +218,7 @@
     {
       q: 'Lack of sleep is a badge of honour.',
       a: false,
-      why: 'Dr Jedd Myers makes the point on the show: lack of sleep should not be worn as a badge of honour. You cannot lead well from an empty cup.',
+      why: 'In a conversation with Dr Jedd Myers, the line was plain: lack of sleep should not be worn as a badge of honour. You cannot lead well from an empty cup.',
     },
     {
       q: 'Off The Clock is hosted by a father and son.',
@@ -793,12 +793,13 @@
       },
     });
     storyTl
+      .fromTo('[data-story-img]', { scale: 1.06 }, { scale: 1, duration: 1 }, 0)
       .fromTo('.story__veil', { opacity: 0 }, { opacity: 1, duration: 1 }, 0)
       .fromTo('[data-story-shade]', { opacity: 0.1 }, { opacity: 0.55, duration: 1 }, 0)
       .fromTo(storyCard, { y: () => window.innerHeight * 0.8 }, { y: 0, duration: 1, ease: 'power2.out' }, 0)
       .fromTo(storyChars, { opacity: 0 }, { opacity: 1, duration: 0.6, stagger: 0.045, ease: 'none' }, 0.75)
-      .fromTo('[data-principle]', { opacity: 0, y: 10 }, {
-        opacity: 1, y: 0, duration: 0.55, stagger: 0.8, ease: 'power2.out',
+      .fromTo('[data-principle]', { clipPath: 'inset(0% 100% 0% 0%)' }, {
+        clipPath: 'inset(0% 0% 0% 0%)', duration: 0.55, stagger: 0.8, ease: 'power2.out',
       }, 1.9)
       .to({}, { duration: 0.7 }); // hold
   });

@@ -72,7 +72,7 @@ Every image is a `.ph` placeholder block (gradient + film grain). Look for `<!--
 - [ ] Newsletter: set `SIGNUP_ENDPOINT` in `js/main.js` (PROMPTS.md #3). Until then the form says sign-ups are not open yet.
 - [x] Hero film in `assets/` (desktop + mobile WebM/MP4 + posters).
 - [x] Host stats: 2 hosts, 8 moves in the book. Do not invent follower counts.
-- [x] YouTube: channel `https://www.youtube.com/@OffTheClock-ds3cf`. Home cards are episodes 88–86. Conversations link Bruce Strong (ep. 71), Sandri Yssel (ep. 73) and Khaled Hamed (ep. 62). Thumbnails live in `assets/yt/`.
+- [x] YouTube: channel `https://www.youtube.com/@OffTheClock-ds3cf`. Home cards are episodes 88–86. The questions page keeps Dr Jedd Myers, Bruce Strong (ep. 71) and Khaleed Hamid (ep. 62). Thumbnails live in `assets/yt/`.
 - [x] Instagram: `https://www.instagram.com/offthe_clock/`. Home clips are the latest four reels. TikTok `@otc737`, Spotify and the Amazon book page come from the profile’s link in bio. No follower counts.
 - [ ] FAQ answers reviewed by Peter and Mahlatse.
 - [ ] Privacy page once the newsletter actually collects addresses (POPIA).

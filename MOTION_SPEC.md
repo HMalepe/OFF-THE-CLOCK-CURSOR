@@ -117,11 +117,12 @@ Desktop only (`min-width: 761px`). Trigger `.story`, start `top top`, end `+= 3.
 
 | Step | Timeline pos | Scroll % (approx) | Target | From → To | Ease |
 |---|---|---|---|---|---|
-| 1 | 0 → 1 | 0 → 21% | `.story__veil` | opacity 0 → 1. The photo itself does not scale | none |
+| 1 | 0 → 1 | 0 → 21% | `[data-story-img]` | scale 1.06 → 1 | none |
+| 1 | 0 → 1 | 0 → 21% | `.story__veil` | opacity 0 → 1 | none |
 | 1 | 0 → 1 | 0 → 21% | `[data-story-shade]` | opacity 0.1 → 0.55 | none |
 | 1 | 0 → 1 | 0 → 21% | `[data-story-card]` | y `0.8 × innerHeight` → 0 (lands centred) | power2.out |
 | 2 | 0.75 → ~1.94 | 16 → 41% | card heading letters | opacity 0 → 1, stagger 0.045 (type-on, tied to the pin) | none |
-| 3 | 1.9 → 2.45 | 40 → 52% | principle 01 | opacity 0, y 10 → 1, 0 | power2.out |
+| 3 | 1.9 → 2.45 | 40 → 52% | principle 01 | clip-path inset(0% 100% 0% 0%) → inset(0% 0% 0% 0%), a left-to-right wipe | power2.out |
 | 4 | 2.7 → 3.25 | 57 → 68% | principle 02 | same | power2.out |
 | 5 | 3.5 → 4.05 | 74 → 85% | principle 03 | same | power2.out |
 | 6 | 4.05 → 4.75 | 85 → 100% | none | hold | none |
@@ -133,7 +134,7 @@ Desktop only (`min-width: 761px`). Trigger `.story`, start `top top`, end `+= 3.
 | Slides | `[data-slide]` inside `.story__media` (1–5). Slide 1 is the static-mode image |
 | Cycle | Hold 6s → next slide gets `zIndex++`, fades opacity 0 → 1 over 2s `power1.inOut` → previous is set to 0. Repeats every 8s. The timer stays paused until the story is on screen |
 | Play/pause | `ScrollTrigger` `top bottom` → `bottom top` on `.story`: the timer is paused while the section is off screen |
-| Interaction with pin | The photo stays still. The veil is a small bitmap blurred 2px and scaled up, so it still reads as a soft veil without filtering a full-size photo. It fades in as the card rises, and its source follows the active slide. Static mode and phones hide the veil and soften the photo the same cheap way |
+| Interaction with pin | The photo eases from 1.06 to 1 while the card rises. The veil is a small bitmap blurred 2px and scaled up, so it still reads as a soft veil without filtering a full-size photo. It fades in as the card rises, and its source follows the active slide. Static mode and phones hide the veil and soften the photo the same cheap way |
 
 Verified: from 50% progress onward the card centre = `innerHeight / 2` at 1280×800 and 390×844. The card has `max-height: calc(100svh − 120px)` and verified 0px overflow.
 
