@@ -391,8 +391,8 @@ html.skip-loader .loader { display: none !important; }
 .qgrid { list-style: none; margin: 0 0 clamp(56px, 8vw, 96px); padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(14px, 2vw, 24px); }
 .qcard { background: var(--white); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; transform-style: preserve-3d; box-shadow: 0 1px 0 var(--line-light); transition: box-shadow .4s; }
 .qcard:hover { box-shadow: 0 24px 50px -24px rgba(15,35,63,.35); }
-.qcard__media { position: relative; aspect-ratio: 16 / 10; overflow: hidden; }
-.qcard__media .ph, .jcard__media .ph { inset: -10% 0; } /* headroom for the scroll drift */
+.qcard__media { position: relative; aspect-ratio: 16 / 9; overflow: hidden; }
+.qcard__media .ph, .jcard__media .ph { inset: 0; }
 .qcard:hover .zoom { transform: scale(1.06); }
 .qcard__body { padding: 20px 20px 24px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; flex: 1; }
 .qcard h3 { margin: 8px 0 0; font-weight: 500; font-size: 1.08rem; letter-spacing: .01em; color: var(--charcoal); }
@@ -434,7 +434,11 @@ html.skip-loader .loader { display: none !important; }
 .jgrid { list-style: none; margin: 0 0 56px; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(14px, 2vw, 24px); }
 .jcard a { display: block; height: 100%; background: var(--white); border-radius: var(--radius); overflow: hidden; box-shadow: 0 1px 0 var(--line-light); transition: box-shadow .4s, transform .5s var(--ease-out); }
 .jcard a:hover { transform: translateY(-4px); box-shadow: 0 24px 50px -28px rgba(15,35,63,.4); }
-.jcard__media { position: relative; aspect-ratio: 16 / 10; overflow: hidden; }
+.jcard__media { position: relative; aspect-ratio: 16 / 9; overflow: hidden; }
+.jcard--reel .jcard__media { aspect-ratio: 4 / 5; }
+.jcard--reel .ph > img { object-position: center 36%; }
+.ig-head { margin: 0 0 clamp(24px, 4vw, 40px); max-width: 40em; }
+.ig-head .eyebrow { margin-bottom: 12px; }
 .jcard a:hover .zoom { transform: scale(1.06); }
 .jcard p { padding: 18px 20px 22px; margin: 0; color: var(--charcoal); font-weight: 400; line-height: 1.5; }
 .jcard p span { color: var(--slate); }
@@ -458,6 +462,7 @@ html.skip-loader .loader { display: none !important; }
 .faq__list summary::after { content: "+"; flex: none; font-weight: 300; font-size: 1.5rem; line-height: 1; color: var(--slate); transition: transform .4s var(--ease-out); }
 .faq__list details[open] summary::after { transform: rotate(45deg); }
 .faq__list details p { color: var(--slate); padding-bottom: 22px; margin: 0; max-width: 40em; }
+.faq__list details p a, .tryquiz a { color: var(--ink); text-decoration: underline; text-underline-offset: .18em; }
 
 /* 10 newsletter */
 .newsletter { padding-block: var(--sec-pad); text-align: center; }

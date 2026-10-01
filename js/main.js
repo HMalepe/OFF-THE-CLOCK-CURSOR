@@ -218,7 +218,7 @@
     {
       q: 'Lack of sleep is a badge of honour.',
       a: false,
-      why: 'In a conversation with Dr Jedd Myers, the line was plain: lack of sleep should not be worn as a badge of honour. You cannot lead well from an empty cup.',
+      why: 'Dr Jedd Myers makes the point on the show: lack of sleep should not be worn as a badge of honour. You cannot lead well from an empty cup.',
     },
     {
       q: 'Off The Clock is hosted by a father and son.',
@@ -246,7 +246,7 @@
     panel.innerHTML = `
       <p class="q__count">Your score</p>
       <p class="q__score">${score}/${QUIZ.length}</p>
-      <p>${score === QUIZ.length ? 'That is the show. ' : ''}The full conversations are on YouTube — new ones land in the newsletter first.</p>
+      <p>${score === QUIZ.length ? 'That is the show. ' : ''}The full conversations are on <a href="https://www.youtube.com/@OffTheClock-ds3cf" target="_blank" rel="noopener">YouTube</a>. New ones land in the newsletter first.</p>
       <div class="q__opts">
         <a class="btn btn--light" href="${newsHref}">Get the next quiz</a>
         <button class="q__opt" type="button" data-restart>Play again</button>
