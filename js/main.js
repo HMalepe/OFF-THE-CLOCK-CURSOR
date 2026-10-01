@@ -785,23 +785,52 @@
   // Pinned letter sequence is desktop-only. On a phone the card is already in view.
   mm.add(DESKTOP, () => {
     const storyChars = splitChars($('[data-split]', storyCard));
+    const principles = $$('[data-principle]', storyCard);
+    const shown = principles.map(() => false);
+    const marks = [0.4, 0.57, 0.74];
+    let veilOn = false;
+    let lettersOn = false;
+    gsap.set(principles, { clipPath: 'inset(0% 100% 0% 0%)' });
+    gsap.set(storyChars, { opacity: 0 });
+    gsap.set('[data-story-shade]', { opacity: 0.1 });
+    // Only the card position is tied to the wheel. The blur, the heading and
+    // the line wipes each play once when their step is reached. Updating them
+    // on every scroll tick was the hitch through this pin.
+    const step = (progress) => {
+      if ((progress > 0.02) !== veilOn) {
+        veilOn = !veilOn;
+        gsap.to('.story__veil', { opacity: veilOn ? 1 : 0, duration: 0.6, ease: 'power2.out', overwrite: true });
+        gsap.to('[data-story-shade]', { opacity: veilOn ? 0.55 : 0.1, duration: 0.6, ease: 'power2.out', overwrite: true });
+      }
+      if ((progress >= 0.16) !== lettersOn) {
+        lettersOn = !lettersOn;
+        gsap.to(storyChars, {
+          opacity: lettersOn ? 1 : 0, duration: lettersOn ? 0.7 : 0.3,
+          stagger: lettersOn ? 0.04 : 0, ease: 'none', overwrite: true,
+        });
+      }
+      principles.forEach((el, i) => {
+        const open = progress >= marks[i];
+        if (open === shown[i]) return;
+        shown[i] = open;
+        gsap.to(el, {
+          clipPath: open ? 'inset(0% 0% 0% 0%)' : 'inset(0% 100% 0% 0%)',
+          duration: 0.5, ease: 'power2.out', overwrite: true,
+        });
+      });
+    };
     const storyTl = gsap.timeline({
       defaults: { ease: 'none' },
       scrollTrigger: {
         trigger: story, start: 'top top', end: () => '+=' + window.innerHeight * 3.2,
         pin: true, scrub: true, invalidateOnRefresh: true,
+        onUpdate: (self) => step(self.progress),
+        onRefresh: (self) => step(self.progress),
       },
     });
     storyTl
-      .fromTo('[data-story-img]', { scale: 1.06 }, { scale: 1, duration: 1 }, 0)
-      .fromTo('.story__veil', { opacity: 0 }, { opacity: 1, duration: 1 }, 0)
-      .fromTo('[data-story-shade]', { opacity: 0.1 }, { opacity: 0.55, duration: 1 }, 0)
       .fromTo(storyCard, { y: () => window.innerHeight * 0.8 }, { y: 0, duration: 1, ease: 'power2.out' }, 0)
-      .fromTo(storyChars, { opacity: 0 }, { opacity: 1, duration: 0.6, stagger: 0.045, ease: 'none' }, 0.75)
-      .fromTo('[data-principle]', { clipPath: 'inset(0% 100% 0% 0%)' }, {
-        clipPath: 'inset(0% 0% 0% 0%)', duration: 0.55, stagger: 0.8, ease: 'power2.out',
-      }, 1.9)
-      .to({}, { duration: 0.7 }); // hold
+      .to({}, { duration: 3.75 }, 1);
   });
   mm.add('(max-width: 760px)', () => {
     fadeUp(storyCard, 'top 92%');

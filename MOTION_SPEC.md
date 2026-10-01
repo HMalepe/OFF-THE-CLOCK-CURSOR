@@ -117,15 +117,13 @@ Desktop only (`min-width: 761px`). Trigger `.story`, start `top top`, end `+= 3.
 
 | Step | Timeline pos | Scroll % (approx) | Target | From → To | Ease |
 |---|---|---|---|---|---|
-| 1 | 0 → 1 | 0 → 21% | `[data-story-img]` | scale 1.06 → 1 | none |
-| 1 | 0 → 1 | 0 → 21% | `.story__veil` | opacity 0 → 1 | none |
-| 1 | 0 → 1 | 0 → 21% | `[data-story-shade]` | opacity 0.1 → 0.55 | none |
-| 1 | 0 → 1 | 0 → 21% | `[data-story-card]` | y `0.8 × innerHeight` → 0 (lands centred) | power2.out |
-| 2 | 0.75 → ~1.94 | 16 → 41% | card heading letters | opacity 0 → 1, stagger 0.045 (type-on, tied to the pin) | none |
-| 3 | 1.9 → 2.45 | 40 → 52% | principle 01 | clip-path inset(0% 100% 0% 0%) → inset(0% 0% 0% 0%), a left-to-right wipe | power2.out |
-| 4 | 2.7 → 3.25 | 57 → 68% | principle 02 | same | power2.out |
-| 5 | 3.5 → 4.05 | 74 → 85% | principle 03 | same | power2.out |
-| 6 | 4.05 → 4.75 | 85 → 100% | none | hold | none |
+| 1 | — | 2% | `.story__veil`, `[data-story-shade]` | fade in over 0.6s when the pin starts. Not scrubbed. The photo does not scale | power2.out |
+| 1 | 0 → 1 | 0 → 21% | `[data-story-card]` | y `0.8 × innerHeight` → 0 (lands centred). This is the only value tied to the wheel | power2.out |
+| 2 | — | 16% | card heading letters | type on over 0.7s, stagger 0.04, when the pin crosses the mark. Not scrubbed | none |
+| 3 | — | 40% | principle 01 | left-to-right clip wipe, 0.5s, when scroll crosses the mark. Scrolling back closes it the same way | power2.out |
+| 4 | — | 57% | principle 02 | same | power2.out |
+| 5 | — | 74% | principle 03 | same | power2.out |
+| 6 | 1 → 4.75 | 21 → 100% | none | pin holds after the card has landed | none |
 
 **Background slideshow (reference: 3-slide fade, 6s hold, 2s fade, loop).** It runs outside the scrub, on a timer:
 
@@ -134,7 +132,7 @@ Desktop only (`min-width: 761px`). Trigger `.story`, start `top top`, end `+= 3.
 | Slides | `[data-slide]` inside `.story__media` (1–5). Slide 1 is the static-mode image |
 | Cycle | Hold 6s → next slide gets `zIndex++`, fades opacity 0 → 1 over 2s `power1.inOut` → previous is set to 0. Repeats every 8s. The timer stays paused until the story is on screen |
 | Play/pause | `ScrollTrigger` `top bottom` → `bottom top` on `.story`: the timer is paused while the section is off screen |
-| Interaction with pin | The photo eases from 1.06 to 1 while the card rises. The veil is a small bitmap blurred 2px and scaled up, so it still reads as a soft veil without filtering a full-size photo. It fades in as the card rises, and its source follows the active slide. Static mode and phones hide the veil and soften the photo the same cheap way |
+| Interaction with pin | The card’s position is the only value tied to the wheel. The photo does not scale. The veil, the heading and the three lines each play once when their step is reached, and reverse if you scroll back, so the pin does not repaint them on every tick. The veil is a small bitmap blurred 2px and scaled up. It fades in as the pin starts, and its source follows the active slide. Static mode and phones hide the veil and soften the photo the same cheap way |
 
 Verified: from 50% progress onward the card centre = `innerHeight / 2` at 1280×800 and 390×844. The card has `max-height: calc(100svh − 120px)` and verified 0px overflow.
 
