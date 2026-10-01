@@ -132,7 +132,7 @@ Desktop only (`min-width: 761px`). Trigger `.story`, start `top top`, end `+= 3.
 | Slides | `[data-slide]` inside `.story__media` (1–5). Slide 1 is the static-mode image |
 | Cycle | Hold 6s → next slide gets `zIndex++`, fades opacity 0 → 1 over 2s `power1.inOut` → previous is set to 0. Repeats every 8s. The timer stays paused until the story is on screen |
 | Play/pause | `ScrollTrigger` `top bottom` → `bottom top` on `.story`: the timer is paused while the section is off screen |
-| Interaction with pin | The card’s position is the only value tied to the wheel. The photo does not scale. The veil, the heading and the three lines each play once when their step is reached, and reverse if you scroll back, so the pin does not repaint them on every tick. The veil is a small bitmap blurred 2px and scaled up. It fades in as the pin starts, and its source follows the active slide. Static mode and phones hide the veil and soften the photo the same cheap way |
+| Interaction with pin | The card’s position is the only value tied to the wheel. The photo does not scale. `.story__media` stays at `z-index: 0` so the veil, which is inside it, cannot paint over the card. The veil, the heading and the three lines each play once when their step is reached, and reverse if you scroll back, so the pin does not repaint them on every tick. The veil is a small bitmap blurred 2px and scaled up. It fades in as the pin starts, and its source follows the active slide. Static mode and phones hide the veil and soften the photo the same cheap way |
 
 Verified: from 50% progress onward the card centre = `innerHeight / 2` at 1280×800 and 390×844. The card has `max-height: calc(100svh − 120px)` and verified 0px overflow.
 
