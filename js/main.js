@@ -15,6 +15,8 @@
   const $$ = (s, c = document) => [...c.querySelectorAll(s)];
   let lenis = null; // set in motion mode, desktop only
   let lockY = 0; // page position while the menu locks a phone's native scroll
+  let bodyLocked = false; // the menu pinned <body> (native scroll) rather than stopping Lenis
+  let lockAnchor = null; // section in view when the menu opened, and its offset from the top
   let playIntro = false;
   const pendingHash = window.__otcHash || '';
   const fromHistory = !!window.__otcBack;
@@ -116,6 +118,13 @@
   window.addEventListener('resize', onScroll);
   onScroll();
 
+  // Set in motion mode: pause / resume the scroll effects. The phone drawer locks the page with
+  // position:fixed, which reads as scrollY 0, so without a pause every reveal would rewind behind it
+  // and replay at once when it closes.
+  let freezeFx = null;
+  let thawFx = null;
+  let navFromMenu = false;
+
   // Off-canvas menu (items stagger in when motion is on)
   const drawer = $('#drawer');
   const burger = $('[data-menu-open]');
@@ -123,8 +132,12 @@
     root.classList.add('menu-open');
     drawer.inert = false;
     burger.setAttribute('aria-expanded', 'true');
+    const sec = $$('#main > section, #main > div').find((el) => el.getBoundingClientRect().bottom > 0);
+    lockAnchor = sec ? { el: sec, top: sec.getBoundingClientRect().top, w: window.innerWidth, h: window.innerHeight } : null;
     if (lenis) lenis.stop();
     else {
+      if (freezeFx) freezeFx();
+      bodyLocked = true; // remembered: rotating can switch Lenis on or off while the drawer is open
       lockY = window.scrollY;
       document.body.style.position = 'fixed';
       document.body.style.top = '-' + lockY + 'px';
@@ -140,12 +153,23 @@
     drawer.inert = true;
     burger.setAttribute('aria-expanded', 'false');
     if (lenis) lenis.start();
-    else {
+    if (bodyLocked) {
+      bodyLocked = false;
       document.body.style.position = '';
       document.body.style.top = '';
       document.body.style.left = '';
       document.body.style.right = '';
-      window.scrollTo(0, lockY);
+      if (lenis) { lenis.resize(); lenis.scrollTo(lockY, { immediate: true, force: true }); }
+      else window.scrollTo(0, lockY);
+      if (thawFx && !navFromMenu) thawFx(); // a menu jump thaws when it lands
+    }
+    // The screen resized or rotated while open: return to the same section, not the same pixel.
+    const an = lockAnchor;
+    lockAnchor = null;
+    if (an && !navFromMenu && (an.w !== window.innerWidth || an.h !== window.innerHeight)) {
+      const ay = Math.max(0, window.scrollY + an.el.getBoundingClientRect().top - an.top);
+      if (lenis) lenis.scrollTo(ay, { immediate: true, force: true }); else window.scrollTo(0, ay);
+      if (window.ScrollTrigger) ScrollTrigger.update();
     }
     burger.focus({ preventScroll: true });
   };
@@ -184,7 +208,9 @@
     e.preventDefault();
     userScrolled = true; // a late load/fonts settle must not pull the page back after a menu jump
     const wasOpen = root.classList.contains('menu-open');
+    navFromMenu = !!navTo;
     closeMenu();
+    navFromMenu = false;
     const go = () => {
       if (navTo) { navTo(target, target.tagName === 'SECTION' ? 0 : -96); return; }
       if (lenis) {
@@ -849,6 +875,33 @@
   const mainEl = $('#main');
   let introTl = null; // set by the loader intro below
   let navRun = 0; // a newer click supersedes an unfinished jump
+  let frozen = null; // triggers paused by freezeFx, resumed by thawFx
+  let staleFx = false; // a resize refresh skipped the paused triggers
+  ScrollTrigger.addEventListener('refreshInit', () => { if (frozen) staleFx = true; });
+  freezeFx = () => {
+    navQuiet = true;
+    if (frozen) return;
+    frozen = ScrollTrigger.getAll().filter((st) => !st.pin);
+    frozen.forEach((st) => st.disable(false));
+  };
+  thawFx = () => {
+    if (!frozen) return;
+    const list = frozen;
+    frozen = null;
+    const now = window.scrollY;
+    // No per-trigger refresh: start/end are unchanged, and refreshing a trigger that sits inside a
+    // pinned section briefly reverts that pin, which shrinks the page and drops you at the bottom.
+    list.forEach((st) => st.enable(false, false));
+    if (Math.abs(window.scrollY - now) > 1) { if (lenis) lenis.scrollTo(now, { immediate: true, force: true }); else window.scrollTo(0, now); }
+    if (staleFx) { staleFx = false; ScrollTrigger.refresh(); } // full refresh keeps the scroll position
+    list.forEach((st) => {
+      const anim = st.animation;
+      // finished if its trigger has been reached or it's anywhere on screen
+      if (anim && !st.vars.scrub) anim.progress(now >= st.start - window.innerHeight * 0.14 ? 1 : 0);
+    });
+    ScrollTrigger.update();
+    setTimeout(() => { navQuiet = false; }, 150);
+  };
   navTo = (target, offset = 0) => {
     const run = ++navRun;
     gsap.killTweensOf(mainEl);
@@ -859,24 +912,14 @@
     const y = Math.max(0, target.getBoundingClientRect().top + window.scrollY + offset);
     const vh = window.innerHeight;
     const dist = Math.abs(y - window.scrollY);
-    const quiet = ScrollTrigger.getAll().filter((st) => !st.pin);
-    navQuiet = true;
-    quiet.forEach((st) => st.disable(false));
+    freezeFx();
     const land = () => {
       if (run !== navRun) return;
-      const now = window.scrollY;
-      // No per-trigger refresh: start/end are unchanged, and refreshing a trigger that sits inside a
-      // pinned section briefly reverts that pin, which shrinks the page and drops you at the bottom.
-      quiet.forEach((st) => st.enable(false, false));
-      if (Math.abs(window.scrollY - now) > 1) { if (lenis) lenis.scrollTo(now, { immediate: true, force: true }); else window.scrollTo(0, now); }
-      quiet.forEach((st) => {
-        const anim = st.animation;
-        // finished if its trigger has been reached or it's anywhere on screen after landing
-        if (anim && !st.vars.scrub) anim.progress(now >= st.start - window.innerHeight * 0.14 ? 1 : 0);
-      });
-      ScrollTrigger.update();
+      thawFx();
+      // a refresh on thaw (the screen resized or rotated mid-way) can move the target a few pixels
+      const off = target.getBoundingClientRect().top + offset;
+      if (Math.abs(off) > 1) { const fy = window.scrollY + off; if (lenis) lenis.scrollTo(fy, { immediate: true, force: true }); else window.scrollTo(0, fy); }
       if (mainEl) gsap.set(mainEl, { clearProps: 'opacity' });
-      setTimeout(() => { navQuiet = false; }, 150);
     };
     const glide = (dur, done) => {
       if (lenis) lenis.scrollTo(y, { duration: dur, force: true, onComplete: done });
