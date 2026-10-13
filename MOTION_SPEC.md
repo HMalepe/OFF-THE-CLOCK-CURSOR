@@ -127,6 +127,13 @@ Block types added to `playReveal`: `left` (x −64), `right` (x 64), `zoom` (sca
 | flipchars | split-flap letters | Book subtitle, Masterclass heading |
 | words | plain word cascade | Book paragraph |
 
+### Menu jumps (navTo)
+Clicking any in-page link (top bar, drawer, footer, scroll cue) does NOT play the scroll effects on the way:
+- Every non-pinned ScrollTrigger is `disable(false)` (frozen where it is); pins stay live because they hold the page height.
+- Trips up to 2 viewports glide (0.7–1.1s). Longer trips: `#main` dips to opacity 0 (0.2s), jumps to 45% of a viewport before the target, fades back (0.45s) and glides the last stretch (0.9s).
+- On landing every reveal is set straight to finished (trigger reached or on screen) or unrevealed (below), then triggers are re-enabled. Card batches and the decode heading skip their animation while `navQuiet` is set.
+- Works with Lenis (desktop) and native scroll (phones). Manual scrolling keeps every effect.
+
 ### Intro stillness
 - Loader marks (`.loader__mark`, `__rule`, `__word`) start at `opacity: 0` in CSS (decorative; the loader removes itself at 5s if JS stalls). Before, they painted, vanished when the timeline set its start state, then rose in.
 - The intro timeline is created paused and plays once `document.fonts.ready` and the logo's `decode()` resolve (capped at 900ms), so no font swap or image pop happens mid-animation. Logo has width/height + preload.

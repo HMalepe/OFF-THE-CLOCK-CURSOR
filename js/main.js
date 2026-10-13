@@ -170,7 +170,10 @@
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   });
 
-  // In-page anchors (smooth via Lenis when available)
+  // In-page anchors (smooth via Lenis when available). In motion mode navTo (set below) takes over:
+  // menu jumps travel quietly, with every scroll effect paused, and land on finished states.
+  let navTo = null;
+  let navQuiet = false;
   document.addEventListener('click', (e) => {
     const a = e.target.closest('a[href^="#"]');
     if (!a) return;
@@ -182,6 +185,7 @@
     const wasOpen = root.classList.contains('menu-open');
     closeMenu();
     const go = () => {
+      if (navTo) { navTo(target, target.tagName === 'SECTION' ? 0 : -96); return; }
       if (lenis) {
         const offset = target.tagName === 'SECTION' ? 0 : -96;
         const dist = Math.abs(target.getBoundingClientRect().top - offset);
@@ -716,6 +720,7 @@
     ScrollTrigger.create({
       ...once(el, start),
       onEnter: () => {
+        if (navQuiet) return; // menu jump: the word is already final, no scramble
         chars.forEach((ch, i) => {
           const real = finals[i];
           if (!/[A-Za-z]/.test(real)) return;
@@ -813,7 +818,9 @@
     gsap.set(items, { y: 24, opacity: 0 });
     ScrollTrigger.batch(items, {
       start: 'top 92%',
-      onEnter: (batch) => gsap.to(batch, { y: 0, opacity: 1, duration: 1.05, ease: EASE, stagger: 0.1, overwrite: true }),
+      onEnter: (batch) => (navQuiet
+        ? gsap.set(batch, { y: 0, opacity: 1, overwrite: true })
+        : gsap.to(batch, { y: 0, opacity: 1, duration: 1.05, ease: EASE, stagger: 0.1, overwrite: true })),
       onLeaveBack: (batch) => gsap.to(batch, { y: 24, opacity: 0, duration: 0.6, ease: 'power2.in', stagger: -0.06, overwrite: true }),
     });
   };
@@ -830,6 +837,60 @@
       rx(-((e.clientY - r.top) / r.height - 0.5) * 8);
     });
     el.addEventListener('pointerleave', () => { rx(0); ry(0); });
+  };
+
+  /* ------------------------------------------------------------------------
+     MENU JUMPS — quiet travel. Every non-pinned ScrollTrigger is paused (frozen where it is),
+     the page travels (long trips dip out and glide the last stretch), then each reveal is set
+     straight to its finished or unrevealed state for where you landed. Pins stay live: they
+     hold the page height. Manual scrolling keeps all the effects.
+     ------------------------------------------------------------------------ */
+  const mainEl = $('#main');
+  navTo = (target, offset = 0) => {
+    const y = Math.max(0, target.getBoundingClientRect().top + window.scrollY + offset);
+    const vh = window.innerHeight;
+    const dist = Math.abs(y - window.scrollY);
+    const quiet = ScrollTrigger.getAll().filter((st) => !st.pin);
+    navQuiet = true;
+    quiet.forEach((st) => st.disable(false));
+    const land = () => {
+      const now = window.scrollY;
+      quiet.forEach((st) => st.enable(false));
+      quiet.forEach((st) => {
+        const anim = st.animation;
+        // finished if its trigger has been reached or it's anywhere on screen after landing
+        if (anim && !st.vars.scrub) anim.progress(now >= st.start - window.innerHeight * 0.14 ? 1 : 0);
+      });
+      ScrollTrigger.update();
+      if (mainEl) gsap.set(mainEl, { clearProps: 'opacity' });
+      setTimeout(() => { navQuiet = false; }, 150);
+    };
+    const glide = (dur, done) => {
+      if (lenis) lenis.scrollTo(y, { duration: dur, force: true, onComplete: done });
+      else {
+        window.scrollTo({ top: y, behavior: 'smooth' });
+        let last = -1, still = 0;
+        const watch = () => {
+          const cur = Math.round(window.scrollY);
+          still = cur === last ? still + 1 : 0;
+          last = cur;
+          if (still > 6 || Math.abs(cur - y) < 2 && still > 2) done(); else requestAnimationFrame(watch);
+        };
+        requestAnimationFrame(watch);
+      }
+    };
+    if (dist <= vh * 2) { glide(gsap.utils.clamp(0.7, 1.1, dist / 1400), land); return; }
+    // Long trip: a short dip, jump to just before the target, glide in.
+    const dir = y > window.scrollY ? 1 : -1;
+    gsap.to(mainEl, {
+      opacity: 0, duration: 0.2, ease: 'power1.in',
+      onComplete: () => {
+        const pre = Math.max(0, y - dir * vh * 0.45);
+        if (lenis) lenis.scrollTo(pre, { immediate: true, force: true }); else window.scrollTo(0, pre);
+        gsap.to(mainEl, { opacity: 1, duration: 0.45, ease: 'power1.out' });
+        glide(0.9, land);
+      },
+    });
   };
 
   /* ------------------------------------------------------------------------
