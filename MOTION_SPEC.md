@@ -104,6 +104,27 @@ Block types added to `playReveal`: `left` (x −64), `right` (x 64), `zoom` (sca
 | Book | cover tilt → eyebrow right → heading drop → subtitle clip → para words → foreword left → buttons zoom |
 | Masterclass | heading blur → button zoom |
 
+### Text effect library (each heading/sentence uses a different one)
+| Type | What you see | Used on |
+|---|---|---|
+| flip | hero letters flip up | Hero title |
+| decode | letters scramble, then settle | Hosts heading |
+| sides | words from alternating sides | Hosts para 1 |
+| skew | words slide in leaning, then straighten | Hosts para 2 |
+| spread | wide letter-spacing pulls together | small labels (story, episodes, book) |
+| wave | letters ride in on a sine wave | Story heading |
+| type | typewriter with a blinking caret | Story intro |
+| scatter | letters fly in from random spots and spins | Topics heading |
+| drop | letters fall with a bounce | Episodes heading |
+| fold | words tip down like cards | Episodes intro |
+| highlight | cyan marker sweeps under the line | Instagram intro, newsletter sentence |
+| wipe | colour wipes across (scrubbed) | Mission heading |
+| blur | words sharpen out of a real blur | Mission paragraph |
+| scrub | words rise with the scroll | Newsletter heading |
+| pop | letters pop from the centre out | Book heading |
+| flipchars | split-flap letters | Book subtitle, Masterclass heading |
+| words | plain word cascade | Book paragraph |
+
 ### Page order
 Podcast: 02 hero → 03 hosts → 04 story → 05 topics (pinned) → 06 episodes → 07 mission → 08 newsletter. Divider: 09 marquee. Book: 10 book (`reveal`: eyebrow, word-drop heading, fade-ups) → 11 masterclass. JS blocks are created in this order.
 

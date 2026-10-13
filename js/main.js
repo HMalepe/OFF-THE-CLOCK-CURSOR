@@ -571,10 +571,78 @@
 
   // Words sharpen as they arrive. Filter is cleared so it doesn't linger on the layer.
   const blurIn = (el, start = 'top 84%') =>
-    gsap.fromTo(split(el), { y: 14, opacity: 0 }, {
-      y: 0, opacity: 1, duration: 1.6, ease: EASE, stagger: 0.14,
+    gsap.fromTo(split(el), { filter: 'blur(14px)', opacity: 0, scale: 1.08 }, {
+      filter: 'blur(0px)', opacity: 1, scale: 1, duration: 1.4, ease: 'power3.out', stagger: 0.1,
       scrollTrigger: once(el, start),
     });
+
+  // ---- More text entrances, each visibly different ----
+  // Typewriter: letters snap on one after another, with a blinking caret riding the end
+  const typeIn = (el, start = 'top 86%') => {
+    const chars = splitChars(el);
+    const caret = (on) => () => el.classList.toggle('has-caret', on);
+    return gsap.fromTo(chars, { opacity: 0 }, {
+      opacity: 1, duration: 0.01, stagger: 0.022, ease: 'none',
+      onStart: caret(true), onComplete: () => setTimeout(caret(false), 1200), onReverseComplete: caret(false),
+      scrollTrigger: once(el, start),
+    });
+  };
+  // Scatter: letters fly in from random spots and spins, then lock into place
+  const scatterIn = (el, start = 'top 84%') =>
+    gsap.fromTo(splitChars(el), {
+      x: () => gsap.utils.random(-160, 160), y: () => gsap.utils.random(-90, 90),
+      rotation: () => gsap.utils.random(-90, 90), opacity: 0,
+    }, {
+      x: 0, y: 0, rotation: 0, opacity: 1, duration: 1.4, ease: 'expo.out', stagger: { each: 0.025, from: 'random' },
+      scrollTrigger: once(el, start),
+    });
+  // Pop: letters scale up from nothing with a little overshoot, from the centre outwards
+  const popIn = (el, start = 'top 84%') =>
+    gsap.fromTo(splitChars(el), { scale: 0, opacity: 0 }, {
+      scale: 1, opacity: 1, duration: 0.9, ease: 'back.out(2.2)', stagger: { each: 0.04, from: 'center' },
+      scrollTrigger: once(el, start),
+    });
+  // Flip: letters rotate up like a split-flap board
+  const flipChars = (el, start = 'top 84%') =>
+    gsap.fromTo(splitChars(el), { rotationX: -100, opacity: 0, transformPerspective: 600, transformOrigin: '50% 50% -20px' }, {
+      rotationX: 0, opacity: 1, duration: 1.1, ease: 'power3.out', stagger: 0.05,
+      scrollTrigger: once(el, start),
+    });
+  // Spread: the line starts tracked very wide and faint, then pulls together
+  const spreadIn = (el, start = 'top 88%') =>
+    gsap.fromTo(el, { letterSpacing: '0.6em', opacity: 0 }, {
+      letterSpacing: () => getComputedStyle(el).letterSpacing === 'normal' ? '0em' : getComputedStyle(el).letterSpacing,
+      opacity: 1, duration: 1.6, ease: 'expo.out', clearProps: 'letterSpacing',
+      scrollTrigger: once(el, start),
+    });
+  // Skew: words slide in from the right leaning forward, then straighten
+  const skewIn = (el, start = 'top 86%') =>
+    gsap.fromTo(split(el), { x: 80, skewX: -24, opacity: 0 }, {
+      x: 0, skewX: 0, opacity: 1, duration: 1.1, ease: 'power4.out', stagger: 0.035,
+      scrollTrigger: once(el, start),
+    });
+  // Alternate: words come from opposite sides, left, right, left…
+  const sidesIn = (el, start = 'top 86%') =>
+    gsap.fromTo(split(el), { x: (i) => (i % 2 ? 46 : -46), opacity: 0 }, {
+      x: 0, opacity: 1, duration: 1.2, ease: EASE, stagger: 0.04,
+      scrollTrigger: once(el, start),
+    });
+  // Fold: whole words tip down from above like cards being laid
+  const foldIn = (el, start = 'top 86%') =>
+    gsap.fromTo(split(el), { rotationX: 90, opacity: 0, transformPerspective: 500, transformOrigin: '50% 0%' }, {
+      rotationX: 0, opacity: 1, duration: 1, ease: 'power3.out', stagger: 0.045,
+      scrollTrigger: once(el, start),
+    });
+  // Highlight: the text is there, a cyan marker sweeps under it line by line
+  const highlightIn = (el, start = 'top 82%') => {
+    const text = el.innerHTML;
+    el.innerHTML = '<span class="hl">' + text + '</span>';
+    const hl = el.firstChild;
+    return gsap.fromTo(hl, { backgroundSize: '0% 100%', opacity: 0.35 }, {
+      backgroundSize: '100% 100%', opacity: 1, duration: 1.8, ease: 'power2.inOut',
+      scrollTrigger: once(el, start),
+    });
+  };
 
   // Letters fall in and settle. back.out is the one ease that isn't expo: a drop needs the overshoot.
   const dropIn = (el, start = 'top 84%') =>
@@ -686,7 +754,16 @@
       case 'mask': return maskLines(el);
       case 'wipe': return colorWipe(el);
       case 'scrub': return scrubWords(el);
-      case 'decode': return wordRise(el);
+      case 'decode': return decodeIn(el);
+      case 'type': return typeIn(el);
+      case 'scatter': return scatterIn(el);
+      case 'pop': return popIn(el);
+      case 'flipchars': return flipChars(el);
+      case 'spread': return spreadIn(el);
+      case 'skew': return skewIn(el);
+      case 'sides': return sidesIn(el);
+      case 'fold': return foldIn(el);
+      case 'highlight': return highlightIn(el);
       case 'left': return slideLeft(el);
       case 'right': return slideRight(el);
       case 'zoom': return zoomIn(el);
@@ -706,7 +783,7 @@
     let order = 0;
     $$('[data-split], [data-fade], [data-stagger], [data-reveal]', scope).forEach((el) => {
       if (skip && skip(el)) return;
-      if (el.dataset.reveal === 'flip' || el.dataset.reveal === 'type') return;
+      if (el.dataset.reveal === 'flip') return;
       const t = playReveal(el);
       const scrubbed = el.dataset.reveal === 'wipe' || el.dataset.reveal === 'scrub';
       if (t && t.delay && !scrubbed) t.delay(Math.min(order * 0.16, 0.96));
