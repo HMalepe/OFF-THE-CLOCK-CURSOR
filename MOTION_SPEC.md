@@ -87,12 +87,13 @@ Reference behaviour: a looping muted background video (~18s) under a 65% dark gr
 | Pausing | Pauses when the hero is < 5% visible (IntersectionObserver), when the tab is hidden, or when the user presses the toggle. Resumes automatically unless the user paused it |
 | Toggle | `button[data-video-toggle]` bottom-right, `aria-pressed`, label swaps Pause/Play (WCAG 2.2.2) |
 | Static mode | No sources are ever requested. Video + toggle are removed and the poster shows |
-| Scroll | Zoom wrapper moves with `.hero__media` parallax. Cue + toggle fade out over the first 30% of the hero (`immediateRender:false` so they don't fight the intro) |
+| Scroll | Zoom wrapper moves with `.hero__media` parallax. Cue, toggle and the desktop social bar (`.hero__social`, ≥1025px, fades in with the other `[data-hero-fade]` items) fade out over the first 30% of the hero (`immediateRender:false` so they don't fight the intro) |
 
 ### 01 Header (plain scroll listener, all modes)
 - Transparent over the hero. It gets `.is-solid` (ink background, 96 → 80px height) after 60% of the viewport has scrolled.
 - It hides with `.is-hidden` (translateY −100%) after about 48px of downward travel, and stays hidden through the little upward kick at the end of a flick. It returns only after about 140px of upward travel that starts more than 0.7s after the last downward move (0.45s `--ease-out`). It stays visible over the hero and while the menu is open.
-- The drawer slides in from the right (0.7s) over a scrim. Lenis stops while it's open. Menu titles, groups and social links stagger in with `enter()` (y 28, 0.05 stagger, 0.15s delay, 0.9s).
+- Layout: at ≥1025px the header is an inline top bar (links either side of the logo + Subscribe pill; links underline in `--accent` on hover, 0.5s `--ease-out`) and there is no drawer. Below 1025px the Subscribe icon + burger show and the links live in the drawer. Widening past 1025px with the drawer open closes it.
+- The drawer (below 1025px) slides in from the right (0.7s) over a scrim. Lenis stops while it's open. Menu titles, groups and social links stagger in with `enter()` (y 28, 0.05 stagger, 0.15s delay, 0.9s).
 
 ### Back to top (plain scroll listener, all modes)
 Reference behaviour: a floating circular button with a scroll-progress ring.

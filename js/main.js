@@ -150,6 +150,11 @@
     burger.focus({ preventScroll: true });
   };
   burger.addEventListener('click', openMenu);
+  // Desktop (≥1025px) has the inline top bar instead of the drawer: close it if the window widens
+  const DESKTOP_NAV = window.matchMedia('(min-width: 1025px)');
+  const onNavChange = (e) => { if (e.matches) closeMenu(); };
+  if (DESKTOP_NAV.addEventListener) DESKTOP_NAV.addEventListener('change', onNavChange);
+  else DESKTOP_NAV.addListener(onNavChange);
   $$('[data-menu-close]').forEach((b) => b.addEventListener('click', closeMenu));
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { closeMenu(); return; }
@@ -770,8 +775,8 @@
   const heroST = { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true };
   gsap.fromTo('[data-hero-content]', { yPercent: 0, opacity: 1 }, { yPercent: -18, opacity: 0, ease: 'none', scrollTrigger: { ...heroST } });
   gsap.fromTo('.hero__shade', { opacity: 1 }, { opacity: 0.72, ease: 'none', scrollTrigger: { ...heroST } });
-  // cue + video toggle: recorded lazily (immediateRender:false) so they don't fight the intro fade
-  gsap.fromTo('.hero__cue, .hero__toggle', { opacity: 1 }, {
+  // cue, video toggle + desktop social bar: recorded lazily (immediateRender:false) so they don't fight the intro fade
+  gsap.fromTo('.hero__cue, .hero__toggle, .hero__social', { opacity: 1 }, {
     opacity: 0, ease: 'none', immediateRender: false,
     scrollTrigger: { trigger: '.hero', start: 'top top', end: '30% top', scrub: true },
   });

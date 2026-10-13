@@ -246,6 +246,26 @@ html.skip-loader .loader { display: none !important; }
 .hdr__burger i:nth-child(3) { width: 18px; }
 .hdr__burger:hover i:nth-child(3) { width: 26px; }
 
+/* Desktop top bar: inline links either side of the logo, no drawer (≥1025px, see RESPONSIVE).
+   Below that the links live in the drawer, so they're hidden here. */
+.hdr__side, .hdr__nav--l { grid-column: 1; grid-row: 1; }
+.hdr__brand { grid-column: 2; grid-row: 1; }
+.hdr__nav--r, .hdr__burger { grid-column: 3; grid-row: 1; }
+.hdr__nav { display: none; align-items: center; gap: clamp(18px, 2.2vw, 36px); }
+.hdr__nav--l { justify-self: start; }
+.hdr__nav--r { justify-self: end; }
+.hdr__nav a {
+  position: relative; display: inline-flex; align-items: center; min-height: 44px;
+  font-weight: 500; font-size: .74rem; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; color: var(--white);
+}
+.hdr__nav a:not(.hdr__cta)::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 10px; height: 1px; background: var(--accent);
+  transform: scaleX(0); transform-origin: right; transition: transform .5s var(--ease-out);
+}
+.hdr__nav a:not(.hdr__cta):hover::after, .hdr__nav a:not(.hdr__cta):focus-visible::after { transform: scaleX(1); transform-origin: left; }
+.hdr__cta { padding: 0 1.3em; border: 1px solid var(--accent); border-radius: 999px; color: var(--accent) !important; min-height: 40px !important; transition: background-color .3s, color .3s; }
+.hdr__cta:hover, .hdr__cta:focus-visible { background: var(--accent); color: var(--ink) !important; }
+
 /* drawer */
 .drawer-scrim { position: fixed; inset: 0; z-index: 60; background: rgba(15, 35, 63, .5); opacity: 0; pointer-events: none; transition: opacity .5s; }
 .drawer {
@@ -297,6 +317,21 @@ html.skip-loader .loader { display: none !important; }
 .hero__title { font-family: var(--f-display); font-weight: 500; font-size: var(--fs-hero); line-height: .92; letter-spacing: var(--track-display); text-transform: uppercase; margin: 0 0 .5em; }
 .hero__title .line { display: block; }
 .hero__sub { max-width: 34em; margin: 0 auto; color: var(--mist); }
+/* Desktop: social links along the bottom of the landing screen (shown at ≥1025px) */
+.hero__social {
+  position: absolute; z-index: 2; display: none; align-items: center; gap: clamp(18px, 2vw, 32px);
+  left: max(var(--gutter), env(safe-area-inset-left, 0px)); right: calc(max(var(--gutter), env(safe-area-inset-right, 0px)) + 64px);
+  bottom: max(28px, env(safe-area-inset-bottom, 0px)); min-height: 44px;
+}
+.hero__social-label { font-weight: 500; font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.hero__social-rule { flex: 1; height: 1px; background: var(--line-dark); min-width: 40px; }
+.hero__social a {
+  display: inline-flex; align-items: center; gap: 9px; min-height: 44px; white-space: nowrap;
+  font-weight: 500; font-size: .74rem; letter-spacing: .14em; text-transform: uppercase; color: var(--white); transition: color .3s;
+}
+.hero__social a:hover, .hero__social a:focus-visible { color: var(--accent); }
+.hero__social svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.4; }
+.hero__social svg .fill { fill: currentColor; stroke: none; }
 .hero__cue { position: absolute; z-index: 2; left: 50%; bottom: max(28px, env(safe-area-inset-bottom, 0px)); translate: -50% 0; width: 44px; height: 44px; display: grid; place-items: center; }
 .hero__cue svg { width: 24px; height: 24px; stroke: var(--white); stroke-width: 1.6; fill: none; animation: cue 2.4s var(--ease-out) infinite; }
 @keyframes cue { 0%, 100% { transform: translateY(-3px); opacity: .6; } 50% { transform: translateY(4px); opacity: 1; } }
@@ -508,6 +543,16 @@ html.skip-loader .loader { display: none !important; }
 .menu-open .totop { opacity: 0; pointer-events: none; }
 
 /* RESPONSIVE ------------------------------------------------------------- */
+@media (min-width: 1025px) {
+  .hdr__side, .hdr__burger { display: none; }
+  .hdr__nav { display: flex; }
+  .hero__social { display: flex; }
+  .hero__cue { bottom: calc(max(28px, env(safe-area-inset-bottom, 0px)) + 64px); }
+}
+@media (min-width: 1025px) and (max-width: 1199px) {
+  .hdr__nav { gap: 16px; }
+  .hdr__nav a { font-size: .68rem; letter-spacing: .1em; }
+}
 @media (max-width: 1024px) {
   .qgrid, .jgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

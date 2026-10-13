@@ -86,6 +86,7 @@ Every image is a `.ph` placeholder block (gradient + film grain). Look for `<!--
 - Hero video: never downloads in Save-Data mode, is `aria-hidden`, has a visible Pause/Play control, and pauses off screen.
 - Decorative marquee is `aria-hidden` (its words already appear in the topics section).
 - Split headings keep an `aria-label` with the full text, and the word spans are `aria-hidden`.
+- Desktop (≥1025px): the menu is an inline top bar either side of the logo, and the social links run along the bottom of the landing screen. Phones and tablets use the drawer.
 - The drawer is `inert` when closed, Escape closes it and focus returns to the burger. Menu groups and FAQ use native `<details>`.
 
 ## Deploy
