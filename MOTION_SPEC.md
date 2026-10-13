@@ -112,7 +112,7 @@ Block types added to `playReveal`: `left` (x −64), `right` (x 64), `zoom` (sca
 |---|---|---|
 | flip | hero letters flip up | Hero title |
 | decode | letters scramble, then settle | Hosts heading |
-| sides | words from alternating sides | Hosts para 1 |
+| sides | words from alternating sides | Hosts para 1, newsletter sentence |
 | skew | words slide in leaning, then straighten | Hosts para 2 |
 | spread | wide letter-spacing pulls together | small labels (story, episodes, book) |
 | wave | letters ride in on a sine wave | Story heading |
@@ -120,9 +120,8 @@ Block types added to `playReveal`: `left` (x −64), `right` (x 64), `zoom` (sca
 | scatter | letters fly in from random spots and spins | Topics heading |
 | drop | letters fall with a bounce | Episodes heading |
 | fold | words tip down like cards | Episodes intro |
-| highlight | cyan marker sweeps under the line | Instagram intro, newsletter sentence |
 | wipe | colour wipes across (scrubbed) | Mission heading |
-| blur | words sharpen out of a real blur | Mission paragraph |
+| blur | words sharpen out of a real blur | Mission paragraph, Instagram intro |
 | scrub | words rise with the scroll | Newsletter heading |
 | pop | letters pop from the centre out | Book heading |
 | flipchars | split-flap letters | Book subtitle, Masterclass heading |

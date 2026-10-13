@@ -652,16 +652,6 @@
       rotationX: 0, opacity: 1, duration: 1, ease: 'power3.out', stagger: 0.045,
       scrollTrigger: once(el, start),
     });
-  // Highlight: the text is there, a cyan marker sweeps under it line by line
-  const highlightIn = (el, start = 'top 82%') => {
-    const text = el.innerHTML;
-    el.innerHTML = '<span class="hl">' + text + '</span>';
-    const hl = el.firstChild;
-    return gsap.fromTo(hl, { backgroundSize: '0% 100%', opacity: 0.35 }, {
-      backgroundSize: '100% 100%', opacity: 1, duration: 1.8, ease: 'power2.inOut',
-      scrollTrigger: once(el, start),
-    });
-  };
 
   // Letters fall in and settle. back.out is the one ease that isn't expo: a drop needs the overshoot.
   const dropIn = (el, start = 'top 84%') =>
@@ -782,7 +772,6 @@
       case 'skew': return skewIn(el);
       case 'sides': return sidesIn(el);
       case 'fold': return foldIn(el);
-      case 'highlight': return highlightIn(el);
       case 'left': return slideLeft(el);
       case 'right': return slideRight(el);
       case 'zoom': return zoomIn(el);

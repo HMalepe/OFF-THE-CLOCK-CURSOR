@@ -496,13 +496,9 @@ html.skip-loader .loader { display: none !important; }
 .jcard__media { position: relative; aspect-ratio: 16 / 9; overflow: hidden; }
 .jcard--reel .jcard__media { aspect-ratio: 4 / 5; }
 .jcard--reel .ph > img { object-position: center 36%; }
-/* Text effects used by data-reveal="type" / "highlight" */
+/* Text effect used by data-reveal="type" */
 .has-caret::after { content: ""; display: inline-block; width: .08em; height: .9em; margin-left: .06em; vertical-align: -.08em; background: var(--accent); animation: caret 1s steps(1) infinite; }
 @keyframes caret { 50% { opacity: 0; } }
-.hl { background-image: linear-gradient(transparent 58%, rgba(9, 248, 245, .28) 58%, rgba(9, 248, 245, .28) 92%, transparent 92%); background-repeat: no-repeat; background-size: 0% 100%; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
-.section--mist .hl, .section--paper .hl { background-image: linear-gradient(transparent 58%, rgba(9, 248, 245, .45) 58%, rgba(9, 248, 245, .45) 92%, transparent 92%); }
-.static .hl { background-size: 100% 100%; }
-.static .has-caret::after { display: none; }
 
 /* Platform bars + marks: YouTube and Instagram are named and branded, not implied */
 .pf { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 24px; padding: 18px 22px; margin: 0 0 clamp(24px, 3vw, 36px); background: var(--white); border-radius: var(--radius); box-shadow: 0 1px 0 var(--line-light); }
