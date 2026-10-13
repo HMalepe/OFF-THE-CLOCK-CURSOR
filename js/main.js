@@ -326,7 +326,18 @@
     });
     // If every source fails, the last <source> fires 'error' → fall back to the poster
     video.lastElementChild.addEventListener('error', drop);
-    video.addEventListener('playing', () => video.classList.add('is-ready'), { once: true });
+    video.addEventListener('playing', () => video.classList.add('is-ready'));
+    // Seamless loop. The clip ends on a black title card, so a native loop hard-cuts back to the
+    // opening shot. Instead: fade the video out over the last FADE seconds onto the poster (which is
+    // the exact first frame), restart underneath, and fade back in — the restart is invisible.
+    const FADE = 1.2; // matches the .hero__video opacity transition
+    video.addEventListener('timeupdate', () => {
+      if (video.duration && video.duration - video.currentTime <= FADE) video.classList.remove('is-ready');
+    });
+    video.addEventListener('ended', () => {
+      video.currentTime = 0;
+      if (!userPaused) video.play().catch(() => {});
+    });
 
     let userPaused = false;
     let inView = true;

@@ -85,6 +85,8 @@ Reference behaviour: a looping muted background video (~18s) under a 65% dark gr
 | Reveal | Video starts at `opacity 0` and gets `.is-ready` on the first `playing` event → CSS fade 1.2s `--ease-out` (the poster is visible underneath the whole time) |
 | Failure | If the last `<source>` errors, the video and toggle are removed and the poster stays |
 | Pausing | Pauses when the hero is < 5% visible (IntersectionObserver), when the tab is hidden, or when the user presses the toggle. Resumes automatically unless the user paused it |
+| Loop | No native `loop`: the clip ends on a black title card, which hard-cut back to the opening shot. Over the last 1.2s the video loses `.is-ready` and fades to the poster; on `ended` it restarts at 0 and fades back in on `playing`. |
+| Poster | `hero-poster.jpg` / `hero-mobile-poster.jpg` are the exact first frame of each clip, so poster → video is invisible. Regenerate them whenever the clips change. |
 | Toggle | `button[data-video-toggle]` bottom-right, `aria-pressed`, label swaps Pause/Play (WCAG 2.2.2) |
 | Static mode | No sources are ever requested. Video + toggle are removed and the poster shows |
 | Scroll | Zoom wrapper moves with `.hero__media` parallax. Cue, toggle and the desktop social bar (`.hero__social`, ≥1025px, fades in with the other `[data-hero-fade]` items) fade out over the first 30% of the hero (`immediateRender:false` so they don't fight the intro) |
