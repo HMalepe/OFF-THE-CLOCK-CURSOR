@@ -267,7 +267,7 @@
     {
       q: 'Off The Clock is hosted by a father, son and daughter.',
       a: true,
-      why: 'Peter Mehlape started the show with his son, Mahlatse, after Mahlatse challenged him to take their conversations further. Today he hosts it with his son and his daughter.',
+      why: 'Peter Mehlape started the show with his son, Mahlatse, after Mahlatse challenged him to take their conversations further. Today he hosts it with his son, Mahlatse, and his daughter, Tshepiso.',
     },
   ];
   const panel = $('[data-quiz]');
