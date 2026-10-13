@@ -234,9 +234,9 @@
       why: 'In a conversation with Dr Jedd Myers, the line was plain: lack of sleep should not be worn as a badge of honour. You cannot lead well from an empty cup.',
     },
     {
-      q: 'Off The Clock is hosted by a father and son.',
+      q: 'Off The Clock is hosted by a father, son and daughter.',
       a: true,
-      why: 'Peter Mehlape started the show with his son, Mahlatse, after Mahlatse challenged him to take their conversations further. They host it together.',
+      why: 'Peter Mehlape started the show with his son, Mahlatse, after Mahlatse challenged him to take their conversations further. Today he hosts it with his son and his daughter.',
     },
   ];
   const panel = $('[data-quiz]');
