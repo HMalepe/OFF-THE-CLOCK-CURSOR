@@ -89,8 +89,9 @@ Reference behaviour: a looping muted background video (~18s) under a 65% dark gr
 | Static mode | No sources are ever requested. Video + toggle are removed and the poster shows |
 | Scroll | Zoom wrapper moves with `.hero__media` parallax. Cue, toggle and the desktop social bar (`.hero__social`, ≥1025px, fades in with the other `[data-hero-fade]` items) fade out over the first 30% of the hero (`immediateRender:false` so they don't fight the intro) |
 
-### Reveal map (one-shot only, nothing scrubbed except the existing wipe/scrub headings)
-Block types added to `playReveal`: `left` (x −64), `right` (x 64), `zoom` (scale 0.86), `clip` (clip-path from bottom + y 24), `tilt` (rotationX 55, perspective 900) — all 1.3s expo.out, once at `top 88%`. Within one `reveal(scope)` call items are delayed by DOM order (0.16s each, max 0.96s) so they arrive one by one.
+### Reveal map (replaying entrances; nothing scrubbed except the existing wipe/scrub headings)
+All entrances use `toggleActions: 'play none none reverse'`: they play forward when the element enters going down, and reverse when it leaves below the screen going up, so the cycle restarts every pass. Card batches (`batchReveal`) fade back out on `onLeaveBack`. Count-ups count back down. The hero intro curtain still plays once per visit.
+Block types added to `playReveal`: `left` (x −64), `right` (x 64), `zoom` (scale 0.86), `clip` (clip-path from bottom + y 24), `tilt` (rotationX 55, perspective 900) — all 1.3s expo.out, at `top 88%`. Within one `reveal(scope)` call items are delayed by DOM order (0.16s each, max 0.96s) so they arrive one by one.
 
 | Section | Order of entrances |
 |---|---|
@@ -131,7 +132,7 @@ Reference behaviour: a floating circular button with a scroll-progress ring.
 - Stats `[data-count]` keep the printed number until the trigger starts, then count 0 → value with the suffix (2.4s power2.out, `top 92%`, once).
 
 ### 04 Story (no pin)
-Plain section. No pin, no background image, no wheel control. `reveal(.story__head)` (eyebrow, word-rise heading, lead fade-up); each `[data-principle]` fades up (y 32 → 0, opacity 0 → 1, 1s expo.out) once at `top 88%`. Rebuilt because the 5.2×vh pin plus one-step-per-wheel-gesture control made scrolling stick.
+Plain section. No pin, no background image, no wheel control. `reveal(.story__head)` (eyebrow, word-rise heading, lead fade-up); each `[data-principle]` fades up (y 32 → 0, opacity 0 → 1, 1s expo.out) at `top 88%`. Rebuilt because the 5.2×vh pin plus one-step-per-wheel-gesture control made scrolling stick.
 
 ### 04c Masterclass
 - Heading `wordRise`. The booking link `fadeUp` at the default start. No pin.

@@ -543,7 +543,10 @@
     return chars;
   };
 
-  const once = (el, start) => ({ trigger: el, start, once: true });
+  // Entrances replay: forward when the element scrolls into view going down, in reverse when it
+  // scrolls back out below the screen going up. (Name kept from when they played once.)
+  const REPLAY = 'play none none reverse';
+  const once = (el, start) => ({ trigger: el, start, toggleActions: REPLAY });
 
   // Primitive: masked word-rise, once
   const wordRise = (el, start = 'top 85%') =>
@@ -658,7 +661,7 @@
   const staggerUp = (el, start = 'top 90%') =>
     gsap.fromTo([...el.children], { y: 24, opacity: 0 }, {
       y: 0, opacity: 1, duration: 1.2, ease: EASE, stagger: 0.12,
-      scrollTrigger: { trigger: el, start, once: true },
+      scrollTrigger: { trigger: el, start, toggleActions: REPLAY },
     });
 
   // Block entrances (whole element, not split): slide in from a side, zoom, clip up, or tilt forward.
@@ -666,7 +669,6 @@
     gsap.fromTo(el, { opacity: 0, ...from }, {
       opacity: 1, x: 0, y: 0, scale: 1, rotationX: 0, clipPath: 'inset(0% 0% 0% 0%)',
       duration: 1.3, ease: EASE, scrollTrigger: once(el, start),
-      onComplete: () => gsap.set(el, { clearProps: 'clipPath,transform' }),
     });
   const slideLeft = blockIn({ x: -64 });
   const slideRight = blockIn({ x: 64 });
@@ -726,13 +728,8 @@
     gsap.set(items, { y: 24, opacity: 0 });
     ScrollTrigger.batch(items, {
       start: 'top 92%',
-      once: true,
-      onEnter: (batch) => {
-        gsap.to(batch, {
-          y: 0, opacity: 1, duration: 1.05, ease: EASE, stagger: 0.1,
-          clearProps: 'transform,opacity',
-        });
-      },
+      onEnter: (batch) => gsap.to(batch, { y: 0, opacity: 1, duration: 1.05, ease: EASE, stagger: 0.1, overwrite: true }),
+      onLeaveBack: (batch) => gsap.to(batch, { y: 24, opacity: 0, duration: 0.6, ease: 'power2.in', stagger: -0.06, overwrite: true }),
     });
   };
 
@@ -809,7 +806,7 @@
     const o = { v: 0 };
     gsap.to(o, {
       v: end, duration: 2.4, ease: 'power2.out',
-      scrollTrigger: { trigger: el, start: 'top 92%', once: true },
+      scrollTrigger: { trigger: el, start: 'top 92%', toggleActions: REPLAY },
       onStart: () => { el.textContent = '0' + suf; },
       onUpdate: () => (el.textContent = Math.round(o.v) + suf),
     });
@@ -844,7 +841,7 @@
       .fromTo('[data-track-bar]', { scaleX: 0.02 }, { scaleX: 1, ease: 'none' }, 0);
     gsap.fromTo($$('.tcard__label, .tcard__meta', track), { y: 12, opacity: 0 }, {
       y: 0, opacity: 1, duration: 0.8, ease: EASE, stagger: 0.05,
-      scrollTrigger: { trigger: topics, start: 'top 75%', once: true },
+      scrollTrigger: { trigger: topics, start: 'top 75%', toggleActions: REPLAY },
     });
   });
   }
