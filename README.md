@@ -1,6 +1,8 @@
 # Off The Clock — leadership & wellbeing podcast
 
-Static one-page site for **Off The Clock**, the leadership and wellbeing podcast from Peter Mehlape and Mahlatse Mehlape: studio hero, hosts, pinned story, marquee, topic gallery, episodes, a short myth-or-fact, mission, conversations, FAQ, newsletter, footer and a back-to-top progress button.
+Static one-page site for **Off The Clock**, the leadership and wellbeing podcast from Peter Mehlape and Mahlatse Mehlape: studio hero, hosts, pinned story, topic gallery, episodes, mission and newsletter (the podcast), then the marquee as a divider, then the book and the masterclass, footer and a back-to-top progress button.
+
+**Page rule:** everything about the podcast lives above the marquee; everything about *Winning in Africa* lives below it.
 
 HTML + CSS + vanilla JS. Motion: **GSAP 3.15 + ScrollTrigger + Lenis 1.3**, vendored locally, so it runs offline with no build step.
 

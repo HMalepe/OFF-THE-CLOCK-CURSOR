@@ -371,7 +371,23 @@ html.skip-loader .loader { display: none !important; }
 .principles strong { display: block; font-weight: 600; color: var(--charcoal); letter-spacing: .02em; }
 .principles em { font-style: normal; font-size: .92rem; color: var(--slate); }
 
-/* 04c masterclass */
+/* 10 book — the chapter below the marquee */
+.book { padding-block: var(--sec-pad); }
+.book__grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(36px, 7vw, 112px); align-items: center; }
+.book__cover { margin: 0; justify-self: center; width: min(100%, 420px); }
+.book__cover img { display: block; width: 100%; height: auto; border-radius: 4px 10px 10px 4px; box-shadow: 0 40px 80px -36px rgba(15, 35, 63, .55), 0 2px 0 rgba(15, 35, 63, .08); }
+.book__copy .h-display { margin-bottom: .25em; }
+.book__sub { font-family: var(--f-display); text-transform: uppercase; letter-spacing: .02em; font-size: clamp(1.1rem, 1.8vw, 1.45rem); line-height: 1.25; color: var(--slate-d); margin-bottom: 1.4em; }
+.book__copy > p { color: var(--slate); }
+.book__fwd { border-left: 2px solid var(--accent); padding-left: 14px; }
+.book__fwd strong { color: var(--slate-d); font-weight: 600; }
+.book__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; margin-top: 28px; }
+@media (max-width: 760px) {
+  .book__grid { grid-template-columns: 1fr; }
+  .book__cover { width: min(72%, 300px); }
+}
+
+/* 11 masterclass */
 .masterclass { padding-block: clamp(64px, 9vw, 112px); text-align: center; }
 .masterclass__inner { max-width: 760px; margin-inline: auto; }
 .masterclass .h-display { margin-bottom: .7em; }
@@ -393,6 +409,7 @@ html.skip-loader .loader { display: none !important; }
 .masterclass .btn--light:focus-visible::after { animation: none; opacity: 0; }
 
 /* 04b marquee */
+/* 09 marquee: the divider between the podcast (above) and the book (below) */
 .marquee { overflow: hidden; contain: paint; padding-block: clamp(36px, 6vw, 72px); border-block: 1px solid var(--line-dark); }
 .marquee__row { display: flex; width: max-content; }
 .marquee__set { display: flex; align-items: center; flex: none; }
@@ -424,7 +441,7 @@ html.skip-loader .loader { display: none !important; }
 
 /* 06 quizzes */
 .quizzes { padding-block: var(--sec-pad); }
-.qgrid { list-style: none; margin: 0 0 clamp(56px, 8vw, 96px); padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(14px, 2vw, 24px); }
+.qgrid { list-style: none; margin: 0 0 clamp(56px, 8vw, 96px); padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(14px, 2vw, 24px); }
 .qcard { background: var(--white); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; transform-style: preserve-3d; box-shadow: 0 1px 0 var(--line-light); transition: box-shadow .4s; }
 .qcard:hover { box-shadow: 0 24px 50px -24px rgba(15,35,63,.35); }
 .qcard__media { position: relative; aspect-ratio: 16 / 9; overflow: hidden; }
@@ -554,7 +571,10 @@ html.skip-loader .loader { display: none !important; }
   .hdr__nav a { font-size: .68rem; letter-spacing: .1em; }
 }
 @media (max-width: 1024px) {
-  .qgrid, .jgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .jgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .qgrid { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
   :root { --hdr-h: 64px; --sec-pad: clamp(64px, 16vw, 96px); }

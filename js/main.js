@@ -941,25 +941,6 @@
   }
 
   /* ------------------------------------------------------------------------
-     04c · MASTERCLASS
-     ------------------------------------------------------------------------ */
-  reveal($('.masterclass'));
-
-  /* ------------------------------------------------------------------------
-     04b · MARQUEE — one steady loop. No scroll skew: stroking giant type on
-     every frame was the hitch through the middle of the home page.
-     ------------------------------------------------------------------------ */
-  const mRow = $('[data-marquee]');
-  if (mRow) {
-    const loop = gsap.to(mRow, { xPercent: -50, duration: 46, ease: 'none', repeat: -1 });
-    ScrollTrigger.create({
-      trigger: '.marquee', start: 'top bottom', end: 'bottom top',
-      onToggle: (self) => loop.paused(!self.isActive),
-    });
-    fadeUp($('.marquee'), 'top 95%');
-  }
-
-  /* ------------------------------------------------------------------------
      05 · TOPICS — pinned horizontal track on desktop; native swipe below 761px
      ------------------------------------------------------------------------ */
   const topics = $('.topics');
@@ -1023,12 +1004,37 @@
   }
 
   /* ------------------------------------------------------------------------
-     10 · NEWSLETTER
+     08 · NEWSLETTER
      ------------------------------------------------------------------------ */
   reveal($('.newsletter'));
 
   /* ------------------------------------------------------------------------
-     11 · FOOTER
+     09 · MARQUEE (podcast/book divider) — one steady loop. No scroll skew: stroking giant type on
+     every frame was the hitch through the middle of the home page.
+     ------------------------------------------------------------------------ */
+  const mRow = $('[data-marquee]');
+  if (mRow) {
+    const loop = gsap.to(mRow, { xPercent: -50, duration: 46, ease: 'none', repeat: -1 });
+    ScrollTrigger.create({
+      trigger: '.marquee', start: 'top bottom', end: 'bottom top',
+      onToggle: (self) => loop.paused(!self.isActive),
+    });
+    fadeUp($('.marquee'), 'top 95%');
+  }
+
+  /* ------------------------------------------------------------------------
+     10 · BOOK
+     ------------------------------------------------------------------------ */
+  const book = $('.book');
+  if (book) reveal(book);
+
+  /* ------------------------------------------------------------------------
+     11 · MASTERCLASS
+     ------------------------------------------------------------------------ */
+  reveal($('.masterclass'));
+
+  /* ------------------------------------------------------------------------
+     12 · FOOTER
      ------------------------------------------------------------------------ */
   fadeUp($('.ftr__top'), 'top 92%');
   reveal($('.ftr'));

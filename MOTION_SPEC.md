@@ -89,6 +89,9 @@ Reference behaviour: a looping muted background video (~18s) under a 65% dark gr
 | Static mode | No sources are ever requested. Video + toggle are removed and the poster shows |
 | Scroll | Zoom wrapper moves with `.hero__media` parallax. Cue, toggle and the desktop social bar (`.hero__social`, ≥1025px, fades in with the other `[data-hero-fade]` items) fade out over the first 30% of the hero (`immediateRender:false` so they don't fight the intro) |
 
+### Page order
+Podcast: 02 hero → 03 hosts → 04 story (pinned) → 05 topics (pinned) → 06 episodes → 07 mission → 08 newsletter. Divider: 09 marquee. Book: 10 book (`reveal`: eyebrow, word-drop heading, fade-ups) → 11 masterclass. JS blocks are created in this order.
+
 ### 01 Header (plain scroll listener, all modes)
 - Transparent over the hero. It gets `.is-solid` (ink background, 96 → 80px height) after 60% of the viewport has scrolled.
 - It hides with `.is-hidden` (translateY −100%) after about 48px of downward travel, and stays hidden through the little upward kick at the end of a flick. It returns only after about 140px of upward travel that starts more than 0.7s after the last downward move (0.45s `--ease-out`). It stays visible over the hero and while the menu is open.
