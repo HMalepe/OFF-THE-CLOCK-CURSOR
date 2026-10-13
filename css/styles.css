@@ -220,6 +220,10 @@ section { position: relative; }
   animation: loader-safety 0s linear 8s forwards; /* failsafe if JS stalls */
 }
 .loader__inner { display: grid; justify-items: center; gap: 18px; }
+/* The loader's own marks start hidden (decorative, aria-hidden; the loader removes itself at 5s if JS stalls).
+   Without this they painted, then vanished when the intro set its start state, then rose in: a visible flash. */
+.js .loader__mark, .js .loader__rule, .js .loader__word { opacity: 0; }
+.js .loader__mark img { aspect-ratio: 720 / 280; }
 .loader__mark img { width: min(320px, 72vw); height: auto; }
 .loader__rule { width: 120px; height: 1px; background: var(--accent); transform-origin: left; }
 .loader__word { font-family: var(--f-body); font-weight: 500; font-size: .74rem; letter-spacing: .2em; text-transform: uppercase; line-height: 1; opacity: .85; }

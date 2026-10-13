@@ -342,9 +342,16 @@
     let userPaused = false;
     let inView = true;
     let tabVisible = !document.hidden;
+    // Stillness: the video must not start while the loader/zoom intro is running (it stalled while
+    // buffering and the picture jerked under the zoom). It starts once the intro is done AND enough
+    // of the clip is buffered to play through, then fades in over the identical poster frame.
+    let introDone = false;
+    let buffered = false;
+    document.addEventListener('otc:intro-done', () => { introDone = true; sync(); }, { once: true });
+    video.addEventListener('canplaythrough', () => { buffered = true; sync(); }, { once: true });
     const sync = () => {
       if (!video.isConnected) return;
-      const shouldPlay = !userPaused && inView && tabVisible;
+      const shouldPlay = introDone && buffered && !userPaused && inView && tabVisible;
       if (shouldPlay && video.paused) video.play().catch(() => {});
       else if (!shouldPlay && !video.paused) video.pause();
     };
@@ -360,7 +367,7 @@
     }
     document.addEventListener('visibilitychange', () => { tabVisible = !document.hidden; sync(); });
     video.muted = true; // required for autoplay
-    video.preload = 'metadata';
+    video.preload = 'auto'; // buffer during the loader so playback can start clean afterwards
     video.load();
     sync();
   })();
@@ -421,6 +428,7 @@
 
   if (!motionOK) {
     root.classList.add('is-loaded');
+    document.dispatchEvent(new Event('otc:intro-done'));
     settlePlace();
     return;
   }
@@ -853,9 +861,16 @@
       const heroChars = splitChars($('[data-split="hero"]'));
       const heroFades = $$('[data-hero-fade], .hero__toggle:not([hidden])');
 
+      // During the intro a main-thread hitch should slow the motion, not make it jump.
+      gsap.ticker.lagSmoothing(500, 33);
       const intro = gsap.timeline({
+        paused: true,
         delay: 0.15,
-        onComplete: () => { root.classList.add('is-loaded'); lenis && lenis.start(); },
+        onComplete: () => {
+          root.classList.add('is-loaded');
+          gsap.ticker.lagSmoothing(0);
+          lenis && lenis.start();
+        },
       });
       intro
         .fromTo('.loader__mark', { yPercent: 40, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.9, ease: EASE })
@@ -864,11 +879,23 @@
         .to('.loader__inner', { opacity: 0, y: -20, duration: 0.6, ease: 'power2.in' }, '+=0.6')
         .to(loader, { yPercent: -100, duration: 1.35, ease: 'expo.inOut' }, '-=0.15')
         .fromTo('[data-hero-zoom]', { scale: 1.25 }, { scale: 1, duration: 2.6, ease: EASE }, '-=0.9')
+        .addLabel('zoomed', '>')
         .fromTo(hdr, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 1.25, ease: EASE, clearProps: 'transform' }, '<0.25')
         .fromTo(heroChars, { rotationX: -88, yPercent: 50, opacity: 0 }, {
           rotationX: 0, yPercent: 0, opacity: 1, duration: 1.5, ease: EASE, stagger: 0.07,
         }, '<')
-        .fromTo(heroFades, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 1.3, ease: EASE, stagger: 0.14 }, '<0.55');
+        .fromTo(heroFades, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 1.3, ease: EASE, stagger: 0.14 }, '<0.55')
+        .call(() => document.dispatchEvent(new Event('otc:intro-done')), null, 'zoomed');
+      // Start only when the logo is decoded and the fonts are in, so nothing swaps or pops
+      // mid-animation (capped so a slow font never holds the page).
+      const logo = $('.loader__mark img');
+      const ready = [
+        document.fonts && document.fonts.ready,
+        logo && logo.decode ? logo.decode().catch(() => {}) : null,
+      ].filter(Boolean);
+      Promise.race([Promise.all(ready), new Promise((r) => setTimeout(r, 900))]).then(() => intro.play());
+    } else {
+      document.dispatchEvent(new Event('otc:intro-done'));
     }
 
   /* 02 · HERO scroll-out (scrub) */
@@ -882,6 +909,7 @@
   });
   } else {
     root.classList.add('is-loaded');
+    document.dispatchEvent(new Event('otc:intro-done'));
   }
 
   /* ------------------------------------------------------------------------

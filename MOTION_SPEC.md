@@ -85,6 +85,7 @@ Reference behaviour: a looping muted background video (~18s) under a 65% dark gr
 | Reveal | Video starts at `opacity 0` and gets `.is-ready` on the first `playing` event → CSS fade 1.2s `--ease-out` (the poster is visible underneath the whole time) |
 | Failure | If the last `<source>` errors, the video and toggle are removed and the poster stays |
 | Pausing | Pauses when the hero is < 5% visible (IntersectionObserver), when the tab is hidden, or when the user presses the toggle. Resumes automatically unless the user paused it |
+| Start | The video does not play during the loader/zoom intro. It plays only after `otc:intro-done` (dispatched when the hero zoom ends; immediately when the intro is skipped) AND `canplaythrough`, so it never stalls under the zoom. `preload='auto'` buffers it during the loader. |
 | Loop | No native `loop`: the clip ends on a black title card, which hard-cut back to the opening shot. Over the last 1.2s the video loses `.is-ready` and fades to the poster; on `ended` it restarts at 0 and fades back in on `playing`. |
 | Poster | `hero-poster.jpg` / `hero-mobile-poster.jpg` are the exact first frame of each clip, so poster → video is invisible. Regenerate them whenever the clips change. |
 | Toggle | `button[data-video-toggle]` bottom-right, `aria-pressed`, label swaps Pause/Play (WCAG 2.2.2) |
@@ -126,6 +127,11 @@ Block types added to `playReveal`: `left` (x −64), `right` (x 64), `zoom` (sca
 | pop | letters pop from the centre out | Book heading |
 | flipchars | split-flap letters | Book subtitle, Masterclass heading |
 | words | plain word cascade | Book paragraph |
+
+### Intro stillness
+- Loader marks (`.loader__mark`, `__rule`, `__word`) start at `opacity: 0` in CSS (decorative; the loader removes itself at 5s if JS stalls). Before, they painted, vanished when the timeline set its start state, then rose in.
+- The intro timeline is created paused and plays once `document.fonts.ready` and the logo's `decode()` resolve (capped at 900ms), so no font swap or image pop happens mid-animation. Logo has width/height + preload.
+- `gsap.ticker.lagSmoothing(500, 33)` during the intro (a hitch slows the motion instead of skipping it), back to `0` for Lenis when the intro completes.
 
 ### Page order
 Podcast: 02 hero → 03 hosts → 04 story → 05 topics (pinned) → 06 episodes → 07 mission → 08 newsletter. Divider: 09 marquee. Book: 10 book (`reveal`: eyebrow, word-drop heading, fade-ups) → 11 masterclass. JS blocks are created in this order.
