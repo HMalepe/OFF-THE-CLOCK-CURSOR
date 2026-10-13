@@ -471,13 +471,6 @@
   const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
   const mm = gsap.matchMedia();
   const DESKTOP = '(min-width: 761px)';
-  // The story pin sets this. One wheel gesture should move one step, so the
-  // raw flick distance is ignored while that section is on screen.
-  let consumeStoryScroll = null;
-  // Ease through a step: slow to leave, slow to arrive. A hard ease-out
-  // covers most of the distance at once and feels like a jump.
-  const scrollEase = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
-
   // Native scrolling on phones, and on a desktop that is short of memory.
   // Lenis fights the iOS rubber-band, and on a weak CPU it lags a frame behind the pins.
   mm.add(DESKTOP, () => {
@@ -487,7 +480,6 @@
       smoothWheel: true,
       wheelMultiplier: 0.7,
       respectReducedMotion: false,
-      virtualScroll: (data) => (consumeStoryScroll && consumeStoryScroll(data) ? false : undefined),
     });
     lenis = instance;
     window.__lenis = instance;
@@ -496,7 +488,6 @@
     gsap.ticker.add(tick);
     gsap.ticker.lagSmoothing(0);
     return () => {
-      consumeStoryScroll = null;
       gsap.ticker.remove(tick);
       instance.destroy();
       if (lenis === instance) lenis = null;
@@ -803,141 +794,19 @@
   leave($('.hello__grid'));
 
   /* ------------------------------------------------------------------------
-     04 · STORY — pinned sequence (step table in MOTION_SPEC.md)
+     04 · STORY — text reveals only (no pin, no scroll hijack)
      ------------------------------------------------------------------------ */
+  // No pin and no wheel control: the section scrolls like any other, and each line
+  // reveals once as it enters. Nothing here is tied to scroll position.
   const story = $('.story');
-  const storyCard = $('[data-story-card]');
-  if (story && storyCard) {
-  // Pinned letter sequence is desktop-only. On a phone the card is already in view.
-  mm.add(DESKTOP, () => {
-    const storyChars = splitChars($('[data-split]', storyCard));
-    const principles = $$('[data-principle]', storyCard);
-    const shown = principles.map(() => false);
-    // Resting points. One wheel gesture moves to the next one only.
-    const stops = [0.17, 0.34, 0.51, 0.68, 0.85];
-    const marks = [0.45, 0.62, 0.79];
-    let veilOn = false;
-    let lettersOn = false;
-    gsap.set(principles, { clipPath: 'inset(0% 100% 0% 0%)' });
-    gsap.set(storyChars, { opacity: 0 });
-    gsap.set('[data-story-shade]', { opacity: 0.1 });
-    // Only the card position is tied to the wheel. The blur, the heading and
-    // the line wipes each play once when their step is reached. Updating them
-    // on every scroll tick was the hitch through this pin.
-    const step = (progress) => {
-      if ((progress > 0.02) !== veilOn) {
-        veilOn = !veilOn;
-        gsap.to('.story__veil', { opacity: veilOn ? 1 : 0, duration: 0.6, ease: 'power2.out', overwrite: true });
-        gsap.to('[data-story-shade]', { opacity: veilOn ? 0.55 : 0.1, duration: 0.6, ease: 'power2.out', overwrite: true });
-      }
-      if ((progress >= 0.28) !== lettersOn) {
-        lettersOn = !lettersOn;
-        gsap.to(storyChars, {
-          opacity: lettersOn ? 1 : 0, duration: lettersOn ? 0.7 : 0.3,
-          stagger: lettersOn ? 0.04 : 0, ease: 'none', overwrite: true,
-        });
-      }
-      principles.forEach((el, i) => {
-        const open = progress >= marks[i];
-        if (open === shown[i]) return;
-        shown[i] = open;
-        gsap.to(el, {
-          clipPath: open ? 'inset(0% 0% 0% 0%)' : 'inset(0% 100% 0% 0%)',
-          duration: 0.5, ease: 'power2.out', overwrite: true,
-        });
+  if (story) {
+    reveal($('.story__head'));
+    $$('[data-principle]', story).forEach((li) => {
+      gsap.fromTo(li, { y: 32, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 1, ease: EASE,
+        scrollTrigger: { trigger: li, start: 'top 88%', once: true },
       });
-    };
-    const storyTl = gsap.timeline({
-      defaults: { ease: 'none' },
-      scrollTrigger: {
-        trigger: story, start: 'top top', end: () => '+=' + window.innerHeight * 5.2,
-        pin: true, scrub: true, invalidateOnRefresh: true,
-        onUpdate: (self) => step(self.progress),
-        onRefresh: (self) => step(self.progress),
-      },
     });
-    storyTl
-      .fromTo(storyCard, { y: () => window.innerHeight * 0.8 }, { y: 0, duration: 0.85, ease: 'power2.out' }, 0)
-      .to({}, { duration: 4.15 }, 0.85);
-    const storyST = storyTl.scrollTrigger;
-    let lock = false;
-    let readyAt = 0;
-    const go = (dest) => {
-      if (!lenis) return false;
-      lock = true;
-      readyAt = performance.now() + 1500;
-      lenis.scrollTo(dest, {
-        duration: 1.25, easing: scrollEase, force: true, lock: true,
-        onComplete: () => { lock = false; readyAt = performance.now() + 220; },
-      });
-      return true;
-    };
-    consumeStoryScroll = (data) => {
-      if (!storyST) return false;
-      const dy = data.deltaY || 0;
-      if (!dy) return false;
-      const y = storyST.scroll();
-      const dir = dy > 0 ? 1 : -1;
-      const revisit = storyST.end + window.innerHeight * 0.7;
-      if (y > storyST.end + 4) {
-        if (dir < 0 && y < revisit) {
-          if (lock || performance.now() < readyAt) return true;
-          const last = stops[stops.length - 1];
-          return go(storyST.start + (storyST.end - storyST.start) * last);
-        }
-        return false;
-      }
-      if (y < storyST.start - 120) return false;
-      if (lock || performance.now() < readyAt) return true;
-      const p = storyST.progress;
-      const target = dir > 0
-        ? stops.find((s) => s > p + 0.04)
-        : [...stops].reverse().find((s) => s < p - 0.04);
-      if (target == null) {
-        const dest = dir > 0
-          ? storyST.end + window.innerHeight * 0.55
-          : Math.max(0, storyST.start - 80);
-        return go(dest);
-      }
-      return go(storyST.start + (storyST.end - storyST.start) * target);
-    };
-    return () => { consumeStoryScroll = null; };
-  });
-  mm.add('(max-width: 760px)', () => {
-    fadeUp(storyCard, 'top 92%');
-  });
-
-  // Background slideshow (crossfade 2s, hold 6s, loop). No extra scale: the pin already moves this image.
-  const slides = $$('[data-slide]', story);
-  if (slides.length > 1) {
-    let cur = 0;
-    let timer = null;
-    gsap.set(slides, { opacity: (i) => (i === 0 ? 1 : 0), zIndex: (i) => (i === 0 ? 2 : 1) });
-    const veilImg = $('img', $('.story__veil', story));
-    const syncVeil = (slide) => {
-      const img = $('img', slide);
-      if (!veilImg || !img) return;
-      if (veilImg.getAttribute('src') !== img.getAttribute('src')) veilImg.setAttribute('src', img.getAttribute('src'));
-      veilImg.style.objectPosition = img.style.objectPosition || 'center';
-    };
-    const next = () => {
-      const prev = slides[cur];
-      cur = (cur + 1) % slides.length;
-      const nx = slides[cur];
-      gsap.set(slides, { zIndex: 1 });
-      gsap.set(nx, { zIndex: 2, opacity: 0 });
-      syncVeil(nx);
-      gsap.to(nx, { opacity: 1, duration: 2, ease: 'power1.inOut', onComplete: () => gsap.set(prev, { opacity: 0 }) });
-      timer = gsap.delayedCall(8, next);
-    };
-    syncVeil(slides[0]);
-    timer = gsap.delayedCall(6, next);
-    timer.pause();
-    ScrollTrigger.create({
-      trigger: story, start: 'top bottom', end: 'bottom top',
-      onToggle: (self) => timer && timer.paused(!self.isActive),
-    });
-  }
   }
 
   /* ------------------------------------------------------------------------

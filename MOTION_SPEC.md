@@ -90,7 +90,7 @@ Reference behaviour: a looping muted background video (~18s) under a 65% dark gr
 | Scroll | Zoom wrapper moves with `.hero__media` parallax. Cue, toggle and the desktop social bar (`.hero__social`, ≥1025px, fades in with the other `[data-hero-fade]` items) fade out over the first 30% of the hero (`immediateRender:false` so they don't fight the intro) |
 
 ### Page order
-Podcast: 02 hero → 03 hosts → 04 story (pinned) → 05 topics (pinned) → 06 episodes → 07 mission → 08 newsletter. Divider: 09 marquee. Book: 10 book (`reveal`: eyebrow, word-drop heading, fade-ups) → 11 masterclass. JS blocks are created in this order.
+Podcast: 02 hero → 03 hosts → 04 story → 05 topics (pinned) → 06 episodes → 07 mission → 08 newsletter. Divider: 09 marquee. Book: 10 book (`reveal`: eyebrow, word-drop heading, fade-ups) → 11 masterclass. JS blocks are created in this order.
 
 ### 01 Header (plain scroll listener, all modes)
 - Transparent over the hero. It gets `.is-solid` (ink background, 96 → 80px height) after 60% of the viewport has scrolled.
@@ -116,32 +116,8 @@ Reference behaviour: a floating circular button with a scroll-progress ring.
 - Heading `wordRise`. Both paragraphs and the link `fadeUp`; the stats list uses `staggerUp` (three items).
 - Stats `[data-count]` keep the printed number until the trigger starts, then count 0 → value with the suffix (2.4s power2.out, `top 92%`, once).
 
-### 04 Story: PINNED
-Desktop only (`min-width: 761px`). Trigger `.story`, start `top top`, end `+= 5.2 × innerHeight`, `pin: true`, `scrub: true`, `invalidateOnRefresh: true`. Below 761px there is no pin: the stage grows with the card, the veil is hidden, and the card uses a single `fadeUp`.
-
-One wheel gesture moves to the next resting point and no further. The raw flick distance is ignored while the pin is on screen, so one scroll cannot open two lines or skip into a later section. Scrolling back steps one point at a time and closes what that point had opened. The last scroll down leaves the pin at the masterclass. The first scroll up leaves it back to the hosts.
-
-| Step | Scroll % | What one scroll does | Ease |
-|---|---|---|---|
-| 1 | 0 → 17% | Card rises from `0.8 × innerHeight` to centre. Veil and shade fade in with it. The photo does not scale | power2.out |
-| 2 | 17 → 34% | Heading types on, 0.7s, stagger 0.04 | none |
-| 3 | 34 → 51% | Principle 01 wipes left to right, 0.5s | power2.out |
-| 4 | 51 → 68% | Principle 02, same | power2.out |
-| 5 | 68 → 85% | Principle 03, same | power2.out |
-| 6 | 85 → 100% | Pin releases onto the masterclass | — |
-
-The card’s position is the only value tied to the scrub. The veil, the heading and the three lines each play once when their step is crossed.
-
-**Background slideshow (reference: 3-slide fade, 6s hold, 2s fade, loop).** It runs outside the scrub, on a timer:
-
-| Setting | Value |
-|---|---|
-| Slides | `[data-slide]` inside `.story__media` (1–5). Slide 1 is the static-mode image |
-| Cycle | Hold 6s → next slide gets `zIndex++`, fades opacity 0 → 1 over 2s `power1.inOut` → previous is set to 0. Repeats every 8s. The timer stays paused until the story is on screen |
-| Play/pause | `ScrollTrigger` `top bottom` → `bottom top` on `.story`: the timer is paused while the section is off screen |
-| Interaction with pin | The card’s position is the only value tied to the wheel, and only on the first step. The photo does not scale. `.story__media` stays at `z-index: 0` so the veil stays behind the card. Each later step plays one thing: the heading, then principle 01, 02 and 03. The veil is a small bitmap blurred 2px and scaled up, and its source follows the active slide. Static mode and phones hide the veil and soften the photo the same cheap way |
-
-Verified: from the first resting point (17%) onward the card centre = `innerHeight / 2` at 1280×800. At 390×844 there is no pin and the card is in normal flow. The card has `max-height: calc(100svh − 120px)` and verified 0px overflow.
+### 04 Story (no pin)
+Plain section. No pin, no background image, no wheel control. `reveal(.story__head)` (eyebrow, word-rise heading, lead fade-up); each `[data-principle]` fades up (y 32 → 0, opacity 0 → 1, 1s expo.out) once at `top 88%`. Rebuilt because the 5.2×vh pin plus one-step-per-wheel-gesture control made scrolling stick.
 
 ### 04c Masterclass
 - Heading `wordRise`. The booking link `fadeUp` at the default start. No pin.
