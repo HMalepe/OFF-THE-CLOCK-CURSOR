@@ -347,7 +347,14 @@ html.skip-loader .loader { display: none !important; }
 .stats__word { font-size: clamp(1.15rem, 2.2vw, 1.65rem); letter-spacing: .06em; padding-top: .4em; }
 
 /* 04 story — plain section, text only */
-.story { padding-block: var(--sec-pad); }
+.story { padding-block: var(--sec-pad); overflow: hidden; }
+.story__bg { position: absolute; inset: 0; overflow: hidden; }
+.story__bg img {
+  position: absolute; left: 50%; top: 50%; width: 18%; height: 18%; max-width: none; margin: 0;
+  object-fit: cover; filter: blur(2px); transform: translate(-50%, -50%) scale(7);
+}
+.story__shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(15,35,63,.55), rgba(15,35,63,.74)); }
+.story__grid { position: relative; z-index: 2; }
 .story__grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(32px, 7vw, 112px); align-items: start; }
 .story .h-display { font-size: clamp(2.2rem, 4.6vw, 4rem); }
 .story__lead { color: var(--muted); font-size: clamp(1.05rem, 1rem + .3vw, 1.25rem); line-height: 1.6; max-width: 30em; }
