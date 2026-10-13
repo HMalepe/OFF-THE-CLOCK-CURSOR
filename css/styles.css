@@ -16,7 +16,10 @@
   --mist: #E7EEF3;         /* light section + text on dark */
   --paper: #F0EDE9;        /* cream, from the brand panels */
   --white: #FFFFFF;
-  --accent: #09F8F5;       /* brand cyan */
+  --accent: #09F8F5;
+  --yt: #FF0033;           /* YouTube red: YouTube marks + buttons only */
+  --ig: #D62976;           /* Instagram pink */
+  --ig-1: #FEDA75; --ig-2: #FA7E1E; --ig-4: #962FBF; --ig-5: #4F5BD5; /* Instagram gradient stops */       /* brand cyan */
   --warm: #78603A;         /* bronze for text on light; the brighter gold fails contrast */
   --muted: #A8B6C4;        /* secondary text on navy */
   --line-dark: rgba(231, 238, 243, .18);
@@ -489,6 +492,29 @@ html.skip-loader .loader { display: none !important; }
 .jcard__media { position: relative; aspect-ratio: 16 / 9; overflow: hidden; }
 .jcard--reel .jcard__media { aspect-ratio: 4 / 5; }
 .jcard--reel .ph > img { object-position: center 36%; }
+/* Platform bars + marks: YouTube and Instagram are named and branded, not implied */
+.pf { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 24px; padding: 18px 22px; margin: 0 0 clamp(24px, 3vw, 36px); background: var(--white); border-radius: var(--radius); box-shadow: 0 1px 0 var(--line-light); }
+.pf--yt { border-left: 4px solid var(--yt); }
+.pf--ig { border-left: 4px solid var(--ig); }
+.pf__id { display: inline-flex; align-items: center; gap: 14px; }
+.pf__id strong { display: block; font-family: var(--f-display); text-transform: uppercase; font-weight: 500; font-size: 1.35rem; line-height: 1.1; color: var(--charcoal); letter-spacing: .01em; }
+.pf__id em { font-style: normal; font-size: .88rem; color: var(--slate); }
+.pf__yt { width: 46px; height: auto; fill: var(--yt); flex: none; }
+.pf__ig { width: 40px; height: 40px; flex: none; }
+.pf__btn { color: var(--white); gap: .6em; }
+.pf__btn svg { width: 14px; height: 14px; fill: currentColor; }
+.pf__btn--yt { background: var(--yt); }
+.pf__btn--yt:hover { background: var(--charcoal); color: var(--white); }
+.pf__btn--ig { background: linear-gradient(45deg, var(--ig-1), var(--ig-2) 30%, var(--ig) 60%, var(--ig-4) 85%, var(--ig-5)); }
+.pf__btn--ig:hover { filter: brightness(1.08); color: var(--white); }
+.pf__play { position: absolute; z-index: 2; left: 50%; top: 50%; translate: -50% -50%; pointer-events: none; filter: drop-shadow(0 6px 14px rgba(0,0,0,.35)); transition: scale .4s var(--ease-out); }
+.pf__play .pf__yt { width: 68px; }
+.qcard:hover .pf__play { scale: 1.1; }
+.pf__reel { position: absolute; z-index: 2; top: 10px; left: 10px; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px; border-radius: 999px; background: rgba(15,35,63,.72); color: var(--white); font-size: .7rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; pointer-events: none; }
+.pf__reel .pf__ig { width: 22px; height: 22px; }
+.ig-head .pf { margin-bottom: 14px; }
+.ig-head { max-width: none !important; }
+.ig-head .sec-head__lead { max-width: 40em; }
 .ig-head { margin: 0 0 clamp(24px, 4vw, 40px); max-width: 40em; }
 .ig-head .eyebrow { margin-bottom: 12px; }
 .jcard a:hover .zoom { transform: scale(1.06); }
