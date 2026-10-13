@@ -576,6 +576,8 @@ html.skip-loader .loader { display: none !important; }
 .ftr__links a:hover { color: var(--white); }
 .ftr__base { text-align: center; padding-top: 26px; padding-bottom: max(32px, env(safe-area-inset-bottom, 0px)); font-size: .78rem; color: var(--muted); }
 .ftr__base p { margin-bottom: .5em; }
+.ftr__credit { color: inherit; font-weight: 600; letter-spacing: .04em; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); transition: color .2s, text-decoration-color .2s; }
+.ftr__credit:hover, .ftr__credit:focus-visible { color: var(--sky); text-decoration-color: currentColor; }
 
 /* back to top */
 .totop {
