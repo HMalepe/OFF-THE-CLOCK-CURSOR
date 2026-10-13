@@ -89,6 +89,20 @@ Reference behaviour: a looping muted background video (~18s) under a 65% dark gr
 | Static mode | No sources are ever requested. Video + toggle are removed and the poster shows |
 | Scroll | Zoom wrapper moves with `.hero__media` parallax. Cue, toggle and the desktop social bar (`.hero__social`, ≥1025px, fades in with the other `[data-hero-fade]` items) fade out over the first 30% of the hero (`immediateRender:false` so they don't fight the intro) |
 
+### Reveal map (one-shot only, nothing scrubbed except the existing wipe/scrub headings)
+Block types added to `playReveal`: `left` (x −64), `right` (x 64), `zoom` (scale 0.86), `clip` (clip-path from bottom + y 24), `tilt` (rotationX 55, perspective 900) — all 1.3s expo.out, once at `top 88%`. Within one `reveal(scope)` call items are delayed by DOM order (0.16s each, max 0.96s) so they arrive one by one.
+
+| Section | Order of entrances |
+|---|---|
+| Hosts | heading decode → para left → para right → stats stagger → link zoom |
+| Story | eyebrow left → heading wave (letters) → lead words → idea 01 right → 02 clip → 03 tilt |
+| Topics | heading blur → hint right |
+| Episodes | eyebrow left → heading drop → lead words · Instagram eyebrow right → lead words · closing links zoom / clip / tilt |
+| Mission | heading wipe → para words → link zoom |
+| Newsletter | heading scrub → para blur → form clip → fine print zoom |
+| Book | cover tilt → eyebrow right → heading drop → subtitle clip → para words → foreword left → buttons zoom |
+| Masterclass | heading blur → button zoom |
+
 ### Page order
 Podcast: 02 hero → 03 hosts → 04 story → 05 topics (pinned) → 06 episodes → 07 mission → 08 newsletter. Divider: 09 marquee. Book: 10 book (`reveal`: eyebrow, word-drop heading, fade-ups) → 11 masterclass. JS blocks are created in this order.
 

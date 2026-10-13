@@ -661,6 +661,19 @@
       scrollTrigger: { trigger: el, start, once: true },
     });
 
+  // Block entrances (whole element, not split): slide in from a side, zoom, clip up, or tilt forward.
+  const blockIn = (from) => (el, start = 'top 88%') =>
+    gsap.fromTo(el, { opacity: 0, ...from }, {
+      opacity: 1, x: 0, y: 0, scale: 1, rotationX: 0, clipPath: 'inset(0% 0% 0% 0%)',
+      duration: 1.3, ease: EASE, scrollTrigger: once(el, start),
+      onComplete: () => gsap.set(el, { clearProps: 'clipPath,transform' }),
+    });
+  const slideLeft = blockIn({ x: -64 });
+  const slideRight = blockIn({ x: 64 });
+  const zoomIn = blockIn({ scale: 0.86 });
+  const clipUp = blockIn({ y: 24, clipPath: 'inset(100% 0% 0% 0%)' });
+  const tiltIn = blockIn({ rotationX: 55, y: 40, transformPerspective: 900, transformOrigin: '50% 100%' });
+
   // Primitive: one reveal per element, in DOM order. data-reveal picks the treatment; data-split alone stays the masked word rise.
   const playReveal = (el) => {
     switch (el.dataset.reveal) {
@@ -672,6 +685,11 @@
       case 'wipe': return colorWipe(el);
       case 'scrub': return scrubWords(el);
       case 'decode': return wordRise(el);
+      case 'left': return slideLeft(el);
+      case 'right': return slideRight(el);
+      case 'zoom': return zoomIn(el);
+      case 'clip': return clipUp(el);
+      case 'tilt': return tiltIn(el);
       default:
         if (el.hasAttribute('data-split')) return wordRise(el);
         if (el.hasAttribute('data-stagger')) return staggerUp(el);
@@ -681,10 +699,16 @@
 
   const reveal = (scope, skip) => {
     if (!scope) return;
+    // One by one: items in the same section are delayed in DOM order, so elements that
+    // enter the screen together still arrive in sequence (0.16s apart, capped at 0.96s).
+    let order = 0;
     $$('[data-split], [data-fade], [data-stagger], [data-reveal]', scope).forEach((el) => {
       if (skip && skip(el)) return;
       if (el.dataset.reveal === 'flip' || el.dataset.reveal === 'type') return;
-      playReveal(el);
+      const t = playReveal(el);
+      const scrubbed = el.dataset.reveal === 'wipe' || el.dataset.reveal === 'scrub';
+      if (t && t.delay && !scrubbed) t.delay(Math.min(order * 0.16, 0.96));
+      order++;
     });
   };
 
@@ -799,15 +823,7 @@
   // No pin and no wheel control: the section scrolls like any other, and each line
   // reveals once as it enters. Nothing here is tied to scroll position.
   const story = $('.story');
-  if (story) {
-    reveal($('.story__head'));
-    $$('[data-principle]', story).forEach((li) => {
-      gsap.fromTo(li, { y: 32, opacity: 0 }, {
-        y: 0, opacity: 1, duration: 1, ease: EASE,
-        scrollTrigger: { trigger: li, start: 'top 88%', once: true },
-      });
-    });
-  }
+  if (story) reveal(story);
 
   /* ------------------------------------------------------------------------
      05 · TOPICS — pinned horizontal track on desktop; native swipe below 761px
@@ -839,6 +855,8 @@
   const quizzes = $('.quizzes');
   if (quizzes) {
     reveal($('.sec-head', quizzes));
+    reveal($('.ig-head', quizzes));
+    $$('.center', quizzes).forEach((p, i) => { const t = playReveal(p); if (t && t.delay) t.delay(i * 0.16); });
     batchReveal($('.qgrid'));
     $$('[data-tilt]').forEach(tilt);
     $$('.quizzes [data-speed]').forEach(speed);
