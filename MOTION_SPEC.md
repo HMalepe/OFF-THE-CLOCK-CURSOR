@@ -131,7 +131,8 @@ Block types added to `playReveal`: `left` (x −64), `right` (x 64), `zoom` (sca
 Clicking any in-page link (top bar, drawer, footer, scroll cue) does NOT play the scroll effects on the way:
 - Every non-pinned ScrollTrigger is `disable(false)` (frozen where it is); pins stay live because they hold the page height.
 - Trips up to 2 viewports glide (0.7–1.1s). Longer trips: `#main` dips to opacity 0 (0.2s), jumps to 45% of a viewport before the target, fades back (0.45s) and glides the last stretch (0.9s).
-- On landing every reveal is set straight to finished (trigger reached or on screen) or unrevealed (below), then triggers are re-enabled. Card batches and the decode heading skip their animation while `navQuiet` is set.
+- On landing triggers are re-enabled with `enable(false, false)` (no per-trigger refresh: refreshing a trigger inside the pinned Topics section reverts that pin for a moment, the page shrinks and the browser clamps to the bottom; that was "The book" landing past the book on shorter screens). If the scroll moved anyway it is put back. Then every reveal is set straight to finished (trigger reached or on screen) or unrevealed (below). Card batches and the decode heading skip their animation while `navQuiet` is set.
+- A newer click supersedes an unfinished jump (`navRun` token: the old dip and landing are dropped). A click mid-intro finishes the intro first. A click also counts as the user scrolling, so the late fonts/load settle can't pull the page back.
 - Works with Lenis (desktop) and native scroll (phones). Manual scrolling keeps every effect.
 
 ### Intro stillness

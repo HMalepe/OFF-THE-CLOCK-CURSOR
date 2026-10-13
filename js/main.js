@@ -182,6 +182,7 @@
     const target = $(id);
     if (!target) return;
     e.preventDefault();
+    userScrolled = true; // a late load/fonts settle must not pull the page back after a menu jump
     const wasOpen = root.classList.contains('menu-open');
     closeMenu();
     const go = () => {
@@ -846,7 +847,15 @@
      hold the page height. Manual scrolling keeps all the effects.
      ------------------------------------------------------------------------ */
   const mainEl = $('#main');
+  let introTl = null; // set by the loader intro below
+  let navRun = 0; // a newer click supersedes an unfinished jump
   navTo = (target, offset = 0) => {
+    const run = ++navRun;
+    gsap.killTweensOf(mainEl);
+    // Clicked while the opening intro is still running: finish it now (curtain up, scroll unlocked,
+    // callbacks fired so the video may start), otherwise the locked scroll ignores the click.
+    if (introTl && introTl.progress() < 1) introTl.progress(1, false);
+    if (lenis) lenis.start();
     const y = Math.max(0, target.getBoundingClientRect().top + window.scrollY + offset);
     const vh = window.innerHeight;
     const dist = Math.abs(y - window.scrollY);
@@ -854,8 +863,12 @@
     navQuiet = true;
     quiet.forEach((st) => st.disable(false));
     const land = () => {
+      if (run !== navRun) return;
       const now = window.scrollY;
-      quiet.forEach((st) => st.enable(false));
+      // No per-trigger refresh: start/end are unchanged, and refreshing a trigger that sits inside a
+      // pinned section briefly reverts that pin, which shrinks the page and drops you at the bottom.
+      quiet.forEach((st) => st.enable(false, false));
+      if (Math.abs(window.scrollY - now) > 1) { if (lenis) lenis.scrollTo(now, { immediate: true, force: true }); else window.scrollTo(0, now); }
       quiet.forEach((st) => {
         const anim = st.animation;
         // finished if its trigger has been reached or it's anywhere on screen after landing
@@ -885,6 +898,7 @@
     gsap.to(mainEl, {
       opacity: 0, duration: 0.2, ease: 'power1.in',
       onComplete: () => {
+        if (run !== navRun) return;
         const pre = Math.max(0, y - dir * vh * 0.45);
         if (lenis) lenis.scrollTo(pre, { immediate: true, force: true }); else window.scrollTo(0, pre);
         gsap.to(mainEl, { opacity: 1, duration: 0.45, ease: 'power1.out' });
@@ -913,7 +927,7 @@
 
       // During the intro a main-thread hitch should slow the motion, not make it jump.
       gsap.ticker.lagSmoothing(500, 33);
-      const intro = gsap.timeline({
+      const intro = introTl = gsap.timeline({
         paused: true,
         delay: 0.15,
         onComplete: () => {
