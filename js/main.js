@@ -343,13 +343,19 @@
     const useMobile = isMobile && (d.srcWebmMobile || d.srcMp4Mobile);
     if (useMobile && d.posterMobile) video.poster = d.posterMobile; // <picture> handles the still layer
     const conn = navigator.connection || {};
-    const candidates = (useMobile
-      ? [[d.srcWebmMobile, 'video/webm'], [d.srcMp4Mobile, 'video/mp4']]
-      : [[d.srcWebm, 'video/webm'], [d.srcMp4, 'video/mp4']]
-    ).filter(([src, type]) => src && video.canPlayType(type));
-    const drop = () => { const he = $('.hero'); he.classList.remove('hero--video', 'is-watching'); video.remove(); toggle && toggle.remove(); $$('[data-video-sound], [data-video-seek], [data-video-follow]').forEach((b) => b.remove()); };
+    // Apple (iPhone, iPad, Safari) gets the H.264 MP4 only: Safari can claim WebM support and then
+    // fail to play VP9/Opus, leaving just the still. Everyone else gets the lighter WebM first.
+    const apple = /iP(hone|ad|od)/.test(navigator.userAgent)
+      || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+      || (/Safari/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|OPR|Android/.test(navigator.userAgent));
+    const webm = useMobile ? [d.srcWebmMobile, 'video/webm'] : [d.srcWebm, 'video/webm'];
+    const mp4 = useMobile ? [d.srcMp4Mobile, 'video/mp4'] : [d.srcMp4, 'video/mp4'];
+    const candidates = (apple ? [mp4] : [webm, mp4]).filter(([src, type]) => src && video.canPlayType(type));
+    // Data Saver: keep the trailer, but don't download it until the viewer asks (Watch / Play)
+    const askFirst = !!conn.saveData;
+    const drop = () => { const he = $('.hero'); he.classList.remove('hero--video', 'is-watching'); video.remove(); toggle && toggle.remove(); $$('[data-video-sound], [data-video-seek], [data-video-follow], [data-video-watch]').forEach((b) => b.remove()); };
     // (lowPower only switches off smooth scrolling; most phones report 4GB and must still get the trailer)
-    if (!motionOK || conn.saveData || !candidates.length) { drop(); return; }
+    if (!motionOK || !candidates.length) { drop(); return; }
 
     candidates.forEach(([src, type]) => {
       const s = document.createElement('source');
@@ -425,15 +431,31 @@
     setTimeout(() => { if (video.paused && !docked) heroEl.classList.remove('is-watching', 'hero--video'); }, 9000); // still + title back
     // Autoplay refused (e.g. iPhone Low Power Mode, data saver): show the still + title and a Play
     // button; a tap is a user gesture, so playback then starts normally.
+    const watch = $('[data-video-watch]');
+    let asked = false;
     const blocked = () => {
       if (userPaused) return;
       heroEl.classList.remove('hero--video', 'is-watching');
       setPaused(true);
+      if (watch) watch.hidden = false;
     };
+    if (watch) watch.addEventListener('click', () => {
+      // the viewer chose to watch: play from here with sound (a tap allows sound)
+      asked = true;
+      watch.hidden = true;
+      video.preload = 'auto';
+      video.muted = false;
+      const snd = $('[data-video-sound]');
+      if (snd) { snd.setAttribute('aria-pressed', 'true'); snd.dataset.tip = 'Sound off'; const l = $('[data-sound-label]', snd); if (l) l.textContent = 'Turn sound off'; }
+      buffered = true; introDone = true; gateOpen = true; staging = true;
+      setPaused(false);
+      video.play().catch(() => { video.muted = true; video.play().catch(() => {}); });
+    });
+    video.addEventListener('playing', () => { if (watch) watch.hidden = true; });
     video.addEventListener('playing', () => heroEl.classList.add('hero--video'));
     const sync = () => {
       if (!video.isConnected) return;
-      const ready = introDone && buffered && !userPaused && (inView || docked) && tabVisible;
+      const ready = introDone && buffered && !userPaused && (inView || docked) && tabVisible && (!askFirst || asked);
       if (!gateOpen) { if (ready) stageStart(); return; }
       const shouldPlay = ready;
       if (shouldPlay && video.paused) video.play().catch(blocked);
@@ -476,7 +498,7 @@
       }
     } else if (sound) { sound.remove(); const c = $('[data-sound-cue]'); if (c) c.remove(); }
     toggle.hidden = false;
-    toggle.addEventListener('click', () => setPaused(!userPaused));
+    toggle.addEventListener('click', () => { asked = true; if (watch) watch.hidden = true; setPaused(!userPaused); });
 
     // Rewind / fast-forward 10s (also ← / → while the hero or the floating player is on screen)
     const seek = (by) => {
@@ -554,7 +576,13 @@
     }
     document.addEventListener('visibilitychange', () => { tabVisible = !document.hidden; sync(); });
     video.muted = true; // required for autoplay
-    video.preload = 'auto'; // buffer during the loader so playback can start clean afterwards
+    if (askFirst) {
+      video.preload = 'none';
+      document.addEventListener('otc:curtain', blocked, { once: true });
+      document.addEventListener('otc:intro-done', blocked, { once: true });
+    } else {
+      video.preload = 'auto'; // buffer during the loader so playback can start clean afterwards
+    }
     video.load();
     sync();
   })();

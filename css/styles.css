@@ -305,6 +305,15 @@ html.skip-loader .loader { display: none !important; }
 /* Video fades in over the poster once it is actually playing (enhancement layer, not content) */
 .hero__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.8s cubic-bezier(.45, 0, .25, 1); pointer-events: none; }
 .hero__video.is-ready { opacity: 1; }
+/* Shown only when the trailer could not autoplay (or Data Saver): one clear tap to watch */
+.hero__watch {
+  display: inline-flex; align-items: center; gap: 10px; margin-top: 26px; padding: 14px 22px 14px 18px; border-radius: 999px;
+  font: 600 .82rem/1 var(--f-body); letter-spacing: .1em; text-transform: uppercase; color: var(--ink); background: var(--accent);
+  box-shadow: 0 10px 30px rgba(15, 35, 63, .35); transition: transform .3s var(--ease-out), box-shadow .3s;
+}
+.hero__watch[hidden] { display: none; }
+.hero__watch svg { width: 16px; height: 16px; fill: currentColor; }
+.hero__watch:hover { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(15, 35, 63, .45); }
 /* Trailer on its way: plain navy under it (no poster) so it fades in from the loader's colour */
 .hero--video { background: var(--ink); }
 .hero--video .ph--hero { opacity: 0; }
@@ -402,6 +411,9 @@ body:has(.hero-dock.is-on) .totop { opacity: 0; pointer-events: none; } /* the p
   .hero > .hero__ctrls .hero__toggle[data-tip]::after { right: 50%; translate: 50% 4px; }
   .hero > .hero__ctrls .hero__toggle.show-tip::after, .hero > .hero__ctrls .hero__toggle:focus-visible::after { translate: 50% 0; }
   .hero-dock { width: min(300px, 72vw); }
+  /* the title block starts just under the controls row (band + 14px + 44px button + gap), never under them */
+  .hero:has(> .hero__ctrls) { place-items: start center; }
+  .hero:has(> .hero__ctrls) .hero__content { padding-top: calc(.14 * (100svh - 45.42vw) + 45.42vw + 14px + 44px + 30px); }
   /* phones: the pill sits under the buttons (above them is the video), arrow pointing up */
   .hero > .hero__ctrls .sound-cue { right: auto; left: 50%; bottom: auto; top: calc(100% + 16px); translate: -50% -8px; transform-origin: var(--cue-x, 50%) 0; }
   .hero > .hero__ctrls .sound-cue.is-on { translate: -50% 0; }
