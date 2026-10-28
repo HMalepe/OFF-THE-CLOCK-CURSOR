@@ -194,6 +194,7 @@ Plain section. No pin, no background image, no wheel control. `reveal(.story__he
 
 ### 05 Topics: native sideways row (no pin)
 No pin at any size: scrolling down always moves the page down. `.topics__viewport` is `overflow-x: auto` with scroll-snap (`scroll-padding-inline: gutter`, `overscroll-behavior-x: contain`), moved only by a sideways swipe, trackpad, shift+wheel or a mouse drag.
+- One card per gesture: a sideways wheel / trackpad swipe (or shift+wheel) moves exactly one card (smooth scrollTo); the momentum tail is ignored until 180ms of quiet, so snap and inertia never fight. Vertical wheel passes through. Cards have `scroll-snap-stop: always` so touch swipes stop at every card.
 - Mouse drag (pointerType mouse): drags `scrollLeft`, snap paused while dragging; a drag over 60px lands on the next / previous card (smooth). A drag swallows the following click so card links don't fire.
 - `[data-track-bar]` follows `scrollLeft / max` (scaleX, min 0.02) on the row's scroll event.
 - Desktop once: section `top 75%` → `.tcard__label`, `.tcard__meta` y 12, opacity 0 → 0/1, 0.8s, stagger 0.05. Heading `blurIn`, hint `fadeUp` ("Drag or swipe" / "Swipe").

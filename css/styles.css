@@ -505,7 +505,7 @@ body:has(.hero-dock.is-on) .totop { opacity: 0; pointer-events: none; } /* the p
 .topics__viewport::-webkit-scrollbar { display: none; }
 .topics__viewport.is-dragging { cursor: grabbing; scroll-snap-type: none; user-select: none; }
 .topics__viewport.is-dragging .tcard { pointer-events: none; }
-.tcard { scroll-snap-align: start; }
+.tcard { scroll-snap-align: start; scroll-snap-stop: always; } /* a swipe never skips past a card */
 .topics__track { display: flex; gap: clamp(14px, 2vw, 28px); padding-inline: var(--gutter); width: max-content; }
 .tcard { position: relative; flex: 0 0 auto; width: min(76vw, 860px, 110svh); height: min(58svh, 540px); overflow: hidden; color: var(--white); border-radius: 2px; }
 .tcard__media { position: absolute; inset: 0; overflow: hidden; }

@@ -1177,6 +1177,33 @@
   vp.addEventListener('scroll', syncBar, { passive: true });
   window.addEventListener('resize', syncBar);
   syncBar();
+  // One card per gesture. A trackpad swipe (or shift+wheel) moves exactly one card, however big,
+  // and its momentum tail is ignored until the fingers have been still for a moment, so snap and
+  // inertia no longer fight (that was the double jerk). Vertical wheel passes through to the page.
+  const pad = () => parseFloat(getComputedStyle(vp).scrollPaddingInlineStart) || 0;
+  const cardLefts = () => [...track.children].map((c) => Math.min(c.offsetLeft - pad(), vp.scrollWidth - vp.clientWidth));
+  const goCard = (dir) => {
+    const lefts = cardLefts();
+    const cur = vp.scrollLeft;
+    let i = lefts.reduce((best, l, k) => (Math.abs(l - cur) < Math.abs(lefts[best] - cur) ? k : best), 0);
+    i = Math.max(0, Math.min(lefts.length - 1, i + dir));
+    vp.scrollTo({ left: lefts[i], behavior: 'smooth' });
+  };
+  let wheelSum = 0;
+  let wheelLock = false;
+  let wheelQuiet = 0;
+  vp.addEventListener('wheel', (e) => {
+    const horiz = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : (e.shiftKey ? e.deltaY : 0);
+    if (!horiz) return; // vertical: let the page scroll
+    e.preventDefault();
+    e.stopPropagation(); // keep Lenis from reading a shift+wheel as page scroll
+    clearTimeout(wheelQuiet);
+    wheelQuiet = setTimeout(() => { wheelLock = false; wheelSum = 0; }, 180); // gesture (and its momentum) over
+    if (wheelLock) return;
+    wheelSum += horiz;
+    if (Math.abs(wheelSum) > 24) { wheelLock = true; goCard(Math.sign(wheelSum)); }
+  }, { passive: false });
+
   // Mouse drag (touch and trackpads scroll natively). Snap is paused while dragging.
   let drag = null;
   vp.addEventListener('pointerdown', (e) => {
