@@ -337,7 +337,7 @@
   (() => {
     const video = $('[data-hero-video]');
     const toggle = $('[data-video-toggle]');
-    if (!video) { toggle && toggle.remove(); const snd = $('[data-video-sound]'); if (snd) snd.remove(); return; }
+    if (!video) { toggle && toggle.remove(); $$('[data-video-sound], [data-video-seek], [data-video-follow]').forEach((b) => b.remove()); return; }
     const d = video.dataset;
     const isMobile = window.matchMedia && matchMedia('(max-width: 760px)').matches;
     const useMobile = isMobile && (d.srcWebmMobile || d.srcMp4Mobile);
@@ -347,7 +347,7 @@
       ? [[d.srcWebmMobile, 'video/webm'], [d.srcMp4Mobile, 'video/mp4']]
       : [[d.srcWebm, 'video/webm'], [d.srcMp4, 'video/mp4']]
     ).filter(([src, type]) => src && video.canPlayType(type));
-    const drop = () => { video.remove(); toggle && toggle.remove(); const snd = $('[data-video-sound]'); if (snd) snd.remove(); };
+    const drop = () => { video.remove(); toggle && toggle.remove(); $$('[data-video-sound], [data-video-seek], [data-video-follow]').forEach((b) => b.remove()); };
     if (!motionOK || conn.saveData || lowPower || !candidates.length) { drop(); return; }
 
     candidates.forEach(([src, type]) => {
@@ -382,6 +382,7 @@
     let userPaused = false;
     let inView = true;
     let tabVisible = !document.hidden;
+    let docked = false;
     // Stillness: the video must not start while the loader/zoom intro is running (it stalled while
     // buffering and the picture jerked under the zoom). It starts once the intro is done AND enough
     // of the clip is buffered to play through, then fades in over the identical poster frame.
@@ -393,6 +394,7 @@
       userPaused = p;
       toggle.setAttribute('aria-pressed', String(p));
       $('[data-video-label]', toggle).textContent = p ? 'Play video' : 'Pause video';
+      toggle.dataset.tip = p ? 'Play' : 'Pause';
       if (!p && video.ended) video.currentTime = 0;
       sync();
     };
@@ -407,12 +409,12 @@
       staging = true;
       setTimeout(() => {
         if (!userPaused) heroEl.classList.add('is-watching');
-        setTimeout(() => { gateOpen = true; sync(); }, HANDOFF);
+        setTimeout(() => { gateOpen = true; sync(); if (typeof placeDock === 'function') placeDock(); }, HANDOFF);
       }, HOLD);
     };
     const sync = () => {
       if (!video.isConnected) return;
-      const ready = introDone && buffered && !userPaused && inView && tabVisible;
+      const ready = introDone && buffered && !userPaused && (inView || docked) && tabVisible;
       if (!gateOpen) { if (ready) stageStart(); return; }
       const shouldPlay = ready;
       if (shouldPlay && video.paused) video.play().catch(() => {});
@@ -428,17 +430,78 @@
         const on = !video.muted;
         sound.setAttribute('aria-pressed', String(on));
         $('[data-sound-label]', sound).textContent = on ? 'Turn sound off' : 'Turn sound on';
+        sound.dataset.tip = on ? 'Sound off' : 'Sound on';
         if (on && userPaused) setPaused(false); // asking for sound means "play it"
       });
     } else if (sound) sound.remove();
     toggle.hidden = false;
     toggle.addEventListener('click', () => setPaused(!userPaused));
+
+    // Rewind / fast-forward 10s (also ← / → while the hero or the floating player is on screen)
+    const seek = (by) => {
+      if (!video.duration) return;
+      video.currentTime = Math.min(Math.max(0, video.currentTime + by), Math.max(0, video.duration - 0.05));
+    };
+    $$('[data-video-seek]').forEach((b) => { b.hidden = false; b.addEventListener('click', () => seek(+b.dataset.videoSeek)); });
+
+    // Keep playing while scrolling: the trailer docks into a small floating player (bottom right)
+    // once the hero is mostly off screen, with its controls; it moves back when the hero returns.
+    // Moving a <video> between parents in one task does not pause it.
+    const follow = $('[data-video-follow]');
+    const ctrls = $('.hero__ctrls');
+    const home = { video: [video.parentNode, video.nextSibling], ctrls: [ctrls.parentNode, ctrls.nextSibling] };
+    const dock = document.createElement('div');
+    dock.className = 'hero-dock';
+    dock.setAttribute('role', 'region');
+    dock.setAttribute('aria-label', 'Trailer, floating player');
+    dock.innerHTML = '<button class="hero-dock__close" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg><span class="sr">Close floating player</span></button><div class="hero-dock__screen"></div>';
+    document.body.appendChild(dock);
+    const screen = $('.hero-dock__screen', dock);
+    let following = false;
+    let heroShown = 1; // visible fraction of the hero
+    const tip = (b) => { b.classList.add('show-tip'); clearTimeout(b._tip); b._tip = setTimeout(() => b.classList.remove('show-tip'), 1800); };
+    const placeDock = () => {
+      const want = following && gateOpen && heroShown < 0.35 && !root.classList.contains('menu-open');
+      if (want === docked) return;
+      docked = want;
+      if (want) {
+        screen.appendChild(video);
+        dock.appendChild(ctrls);
+        requestAnimationFrame(() => dock.classList.add('is-on'));
+      } else {
+        dock.classList.remove('is-on');
+        home.video[0].insertBefore(video, home.video[1]);
+        home.ctrls[0].insertBefore(ctrls, home.ctrls[1]);
+      }
+      sync();
+    };
+    const setFollow = (on) => {
+      following = on;
+      follow.setAttribute('aria-pressed', String(on));
+      follow.dataset.tip = on ? 'Playing while you scroll · tap to stop' : 'Keep playing while scrolling';
+      $('[data-follow-label]', follow).textContent = on ? 'Stop playing while scrolling' : 'Keep playing while scrolling the page';
+      placeDock();
+    };
+    if (follow) {
+      follow.hidden = false;
+      follow.addEventListener('click', () => { setFollow(!following); tip(follow); });
+    }
+    $('.hero-dock__close', dock).addEventListener('click', () => setFollow(false));
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      if (e.ctrlKey || e.metaKey || e.altKey || root.classList.contains('menu-open')) return;
+      if (!docked && $('.hero').getBoundingClientRect().bottom < window.innerHeight * 0.5) return;
+      const t = e.target;
+      if (t && t.closest && t.closest('input, textarea, select, [contenteditable], .topics__viewport')) return;
+      e.preventDefault();
+      seek(e.key === 'ArrowLeft' ? -10 : 10);
+    });
     // Space bar = play / pause while the hero is on screen. Elsewhere it scrolls as usual, and it is
     // left alone in fields, buttons, links and the open menu (they use Space themselves).
     document.addEventListener('keydown', (e) => {
       if (e.code !== 'Space' && e.key !== ' ') return;
       if (e.repeat || e.ctrlKey || e.metaKey || e.altKey || !video.isConnected) return;
-      if ($('.hero').getBoundingClientRect().bottom < window.innerHeight * 0.5) return; // hero mostly scrolled away
+      if (!docked && $('.hero').getBoundingClientRect().bottom < window.innerHeight * 0.5) return; // hero mostly scrolled away
       if (root.classList.contains('menu-open')) return;
       const t = e.target;
       if (t && t.closest && t.closest('input, textarea, select, button, a, summary, [contenteditable], [role="button"]')) return;
@@ -446,7 +509,7 @@
       setPaused(!userPaused);
     });
     if ('IntersectionObserver' in window) {
-      new IntersectionObserver(([e]) => { inView = e.isIntersecting; sync(); }, { threshold: 0.05 }).observe($('.hero'));
+      new IntersectionObserver(([e]) => { inView = e.isIntersecting && e.intersectionRatio >= 0.05; heroShown = e.intersectionRatio; placeDock(); sync(); }, { threshold: [0, 0.05, 0.2, 0.35, 0.5, 1] }).observe($('.hero'));
     }
     document.addEventListener('visibilitychange', () => { tabVisible = !document.hidden; sync(); });
     video.muted = true; // required for autoplay

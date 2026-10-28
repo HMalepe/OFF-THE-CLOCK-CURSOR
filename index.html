@@ -167,12 +167,24 @@
     <p class="hero__sub" data-hero-fade>Titles fall away. The person behind the role takes the chair.</p>
   </div>
   <div class="hero__ctrls">
-    <button class="hero__toggle" type="button" data-video-sound aria-pressed="false" hidden>
+    <button class="hero__toggle hero__toggle--sm" type="button" data-video-seek="-10" data-tip="Back 10s" hidden>
+      <svg class="i-solid" viewBox="0 0 24 24" aria-hidden="true"><path d="M11.5 6.5 5 12l6.5 5.5zM19.5 6.5 13 12l6.5 5.5z"/></svg>
+      <span class="sr">Rewind 10 seconds</span>
+    </button>
+    <button class="hero__toggle hero__toggle--sm" type="button" data-video-seek="10" data-tip="Forward 10s" hidden>
+      <svg class="i-solid" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.5 6.5 19 12l-6.5 5.5zM4.5 6.5 11 12l-6.5 5.5z"/></svg>
+      <span class="sr">Fast-forward 10 seconds</span>
+    </button>
+    <button class="hero__toggle" type="button" data-video-follow aria-pressed="false" data-tip="Keep playing while scrolling" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><rect class="fill" x="12" y="11.5" width="7" height="5.5" rx="1"/></svg>
+      <span class="sr" data-follow-label>Keep playing while scrolling the page</span>
+    </button>
+    <button class="hero__toggle" type="button" data-video-sound aria-pressed="false" data-tip="Sound on" hidden>
       <svg class="i-muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>
       <svg class="i-sound" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/></svg>
       <span class="sr" data-sound-label>Turn sound on</span>
     </button>
-    <button class="hero__toggle" type="button" data-video-toggle aria-pressed="false" hidden>
+    <button class="hero__toggle" type="button" data-video-toggle aria-pressed="false" data-tip="Pause" hidden>
       <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12M15 6v12"/></svg>
       <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>
       <span class="sr" data-video-label>Pause video</span>

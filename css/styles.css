@@ -307,7 +307,7 @@ html.skip-loader .loader { display: none !important; }
 /* Phones: the widescreen trailer is shown whole, as a band under the header, clear of the title (poster matches it) */
 @media (max-width: 760px) {
   .hero__video, .ph--hero > picture > img { object-fit: contain; object-position: 50% 14%; }
-  .ph--hero { background: var(--navy); }
+  .ph--hero { background: var(--ink); }
 }
 .hero__ctrls { position: absolute; z-index: 3; right: max(var(--gutter), env(safe-area-inset-right, 0px)); bottom: max(28px, env(safe-area-inset-bottom, 0px)); display: flex; gap: 10px; }
 .hero__toggle {
@@ -323,6 +323,47 @@ html.skip-loader .loader { display: none !important; }
 .hero__toggle .i-sound { opacity: 0; }
 .hero__toggle[aria-pressed="true"] .i-sound { opacity: 1; }
 .hero__toggle[aria-pressed="true"] .i-muted { opacity: 0; }
+.hero__toggle--sm { width: 36px; height: 36px; align-self: center; }
+.hero__toggle--sm svg { width: 15px; height: 15px; }
+.hero__toggle .i-solid, .hero__toggle svg .fill { fill: currentColor; stroke: none; }
+.hero__toggle[data-video-follow][aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--ink); }
+/* Hover / focus label above each control (anchored right so it never runs off-screen) */
+.hero__toggle[data-tip]::after {
+  content: attr(data-tip); position: absolute; right: 0; bottom: calc(100% + 10px); white-space: nowrap; pointer-events: none;
+  font: 500 .72rem/1 var(--f-body); letter-spacing: .04em; color: var(--white); background: rgba(15, 35, 63, .92);
+  padding: 7px 10px; border-radius: 6px; opacity: 0; translate: 0 4px; transition: opacity .2s, translate .2s;
+}
+.hero__toggle[data-tip]:hover::after, .hero__toggle[data-tip]:focus-visible::after, .hero__toggle.show-tip::after { opacity: 1; translate: 0 0; }
+@media (hover: none) { .hero__toggle[data-tip]:hover::after { opacity: 0; } .hero__toggle.show-tip::after { opacity: 1; } }
+
+/* Floating player: the trailer docks here while "keep playing while scrolling" is on */
+.hero-dock {
+  position: fixed; z-index: 40; right: max(16px, env(safe-area-inset-right, 0px)); bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  width: min(380px, 62vw); border-radius: 12px; overflow: visible; background: var(--ink);
+  box-shadow: 0 18px 50px rgba(15, 35, 63, .45), 0 0 0 1px rgba(241, 238, 233, .08);
+  opacity: 0; translate: 0 16px; transition: opacity .45s var(--ease-out), translate .45s var(--ease-out); pointer-events: none;
+}
+.hero-dock.is-on { opacity: 1; translate: 0 0; pointer-events: auto; }
+body:has(.hero-dock.is-on) .totop { opacity: 0; pointer-events: none; } /* the player takes that corner */
+.hero-dock .hero__toggle:not([aria-pressed="true"]) { background: rgba(231, 238, 243, .08); }
+.hero-dock__screen { position: relative; aspect-ratio: 1920 / 872; border-radius: 12px 12px 0 0; overflow: hidden; background: #000; }
+.hero-dock__screen .hero__video { object-fit: cover !important; object-position: 50% 50% !important; opacity: 1; transition: none; }
+.hero-dock .hero__ctrls { position: static; justify-content: flex-end; padding: 8px 10px; gap: 8px; }
+.hero-dock .hero__toggle { opacity: 1 !important; translate: none !important; width: 36px; height: 36px; }
+.hero-dock .hero__toggle--sm { width: 32px; height: 32px; }
+.hero-dock__close {
+  position: absolute; z-index: 2; top: -12px; left: -12px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--ink); color: var(--white); border: 1px solid var(--line-dark); box-shadow: 0 4px 14px rgba(15, 35, 63, .4);
+}
+.hero-dock__close svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; }
+.hero-dock .hero__toggle[data-tip]::after { bottom: calc(100% + 8px); }
+@media (max-width: 760px) {
+  /* controls sit centred just under the video band (band = 45.42vw tall, 14% down the free space) */
+  .hero > .hero__ctrls { right: 0; left: 0; justify-content: center; bottom: auto; top: calc(.14 * (100svh - 45.42vw) + 45.42vw + 14px); }
+  .hero > .hero__ctrls .hero__toggle[data-tip]::after { right: 50%; translate: 50% 4px; }
+  .hero > .hero__ctrls .hero__toggle.show-tip::after, .hero > .hero__ctrls .hero__toggle:focus-visible::after { translate: 50% 0; }
+  .hero-dock { width: min(300px, 72vw); }
+}
 .hero__shade {
   position: absolute; inset: 0;
   background:
@@ -353,6 +394,7 @@ html.skip-loader .loader { display: none !important; }
 }
 /* two round buttons (sound + pause) need more room than one */
 .hero:has([data-video-sound]:not([hidden])) .hero__social { right: calc(max(var(--gutter), env(safe-area-inset-right, 0px)) + 118px); }
+.hero:has([data-video-seek]:not([hidden])) .hero__social { right: calc(max(var(--gutter), env(safe-area-inset-right, 0px)) + 268px); }
 .hero__social-label { font-weight: 500; font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
 .hero__social-rule { flex: 1; height: 1px; background: var(--line-dark); min-width: 40px; }
 .hero__social a {
@@ -607,7 +649,7 @@ html.skip-loader .loader { display: none !important; }
 .ftr__base { text-align: center; padding-top: 26px; padding-bottom: max(32px, env(safe-area-inset-bottom, 0px)); font-size: .78rem; color: var(--muted); }
 .ftr__base p { margin-bottom: .5em; }
 .ftr__credit { color: inherit; font-weight: 600; letter-spacing: .04em; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); transition: color .2s, text-decoration-color .2s; }
-.ftr__credit:hover, .ftr__credit:focus-visible { color: var(--sky); text-decoration-color: currentColor; }
+.ftr__credit:hover, .ftr__credit:focus-visible { color: var(--accent); text-decoration-color: currentColor; }
 
 /* back to top */
 .totop {
@@ -711,7 +753,7 @@ html.skip-loader .loader { display: none !important; }
 .static .tcard { scroll-snap-align: start; }
 .static .topics__progress { display: none; }
 .static .hdr { transition: none; }
-.static .hero__video, .static .hero__toggle { display: none !important; }
+.static .hero__video, .static .hero__toggle, .static .hero-dock { display: none !important; }
 .static .marquee__row { width: auto; flex-wrap: wrap; justify-content: center; }
 .static .marquee__set + .marquee__set { display: none; }
 .static .marquee__set { flex-wrap: wrap; justify-content: center; }
