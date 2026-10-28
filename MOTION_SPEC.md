@@ -76,6 +76,7 @@ The cyan O is a ring with a cyan face behind it, so the clock starts as nothing:
 | No libraries (`html.static`) | No sweep. The pie stays empty |
 
 ### Hero video (basics, `main.js` §1)
+- `data-play-once` (long trailer): no loop or end fade; plays once, rests on the last frame with the button on Play; pressing Play restarts from 0. Scrolling away and back does not restart it.
 - Controls (bottom right, `.hero__ctrls`): pause/play, plus sound on/off when the `<video>` carries `data-has-audio`. Autoplay is always muted; the sound click is the user gesture that unmutes. Turning sound on while paused also resumes. Desktop social bar reserves room for two buttons via `:has()`. Both hidden in static mode.
 Reference behaviour: a looping muted background video (~18s) under a 65% dark gradient. This build:
 

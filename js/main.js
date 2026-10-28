@@ -361,11 +361,15 @@
     // Seamless loop. The clip ends on a black title card, so a native loop hard-cuts back to the
     // opening shot. Instead: fade the video out over the last FADE seconds onto the poster (which is
     // the exact first frame), restart underneath, and fade back in — the restart is invisible.
+    // data-play-once (a long trailer): no loop. It plays through once, rests on its last frame and
+    // the button shows Play; pressing it starts again from the top.
+    const once = 'playOnce' in d;
     const FADE = 1.2; // matches the .hero__video opacity transition
-    video.addEventListener('timeupdate', () => {
+    if (!once) video.addEventListener('timeupdate', () => {
       if (video.duration && video.duration - video.currentTime <= FADE) video.classList.remove('is-ready');
     });
     video.addEventListener('ended', () => {
+      if (once) { setPaused(true); return; }
       video.currentTime = 0;
       if (!userPaused) video.play().catch(() => {});
     });
@@ -380,6 +384,13 @@
     let buffered = false;
     document.addEventListener('otc:intro-done', () => { introDone = true; sync(); }, { once: true });
     video.addEventListener('canplaythrough', () => { buffered = true; sync(); }, { once: true });
+    const setPaused = (p) => {
+      userPaused = p;
+      toggle.setAttribute('aria-pressed', String(p));
+      $('[data-video-label]', toggle).textContent = p ? 'Play video' : 'Pause video';
+      if (!p && video.ended) video.currentTime = 0;
+      sync();
+    };
     const sync = () => {
       if (!video.isConnected) return;
       const shouldPlay = introDone && buffered && !userPaused && inView && tabVisible;
@@ -396,16 +407,11 @@
         const on = !video.muted;
         sound.setAttribute('aria-pressed', String(on));
         $('[data-sound-label]', sound).textContent = on ? 'Turn sound off' : 'Turn sound on';
-        if (on && userPaused) toggle.click(); // asking for sound means "play it"
+        if (on && userPaused) setPaused(false); // asking for sound means "play it"
       });
     } else if (sound) sound.remove();
     toggle.hidden = false;
-    toggle.addEventListener('click', () => {
-      userPaused = !userPaused;
-      toggle.setAttribute('aria-pressed', String(userPaused));
-      $('[data-video-label]', toggle).textContent = userPaused ? 'Play background video' : 'Pause background video';
-      sync();
-    });
+    toggle.addEventListener('click', () => setPaused(!userPaused));
     if ('IntersectionObserver' in window) {
       new IntersectionObserver(([e]) => { inView = e.isIntersecting; sync(); }, { threshold: 0.05 }).observe($('.hero'));
     }
