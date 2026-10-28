@@ -148,6 +148,7 @@ Clicking any in-page link (top bar, drawer, footer, scroll cue) does NOT play th
 - If the screen resized or rotated while the drawer was open, closing it returns to the section that was in view (same offset), not the same pixel.
 
 ### Intro stillness
+- `html { scrollbar-gutter: stable }` and `.lenis-stopped { overflow-y: hidden }` (not clip): the scrollbar space is always reserved, so when the intro ends and Lenis starts, the classic Windows scrollbar appearing no longer narrows the page by ~15px and shifts the hero sideways (the "jerk" during the title hold). Same for the menu stop/start.
 - Loader marks (`.loader__mark`, `__rule`, `__word`) start at `opacity: 0` in CSS (decorative; the loader removes itself at 5s if JS stalls). Before, they painted, vanished when the timeline set its start state, then rose in.
 - The intro timeline is created paused and plays once `document.fonts.ready` and the logo's `decode()` resolve (capped at 900ms), so no font swap or image pop happens mid-animation. Logo has width/height + preload.
 - `gsap.ticker.lagSmoothing(500, 33)` during the intro (a hitch slows the motion instead of skipping it), back to `0` for Lenis when the intro completes.

@@ -57,11 +57,12 @@ html {
   -webkit-tap-highlight-color: transparent;
   scroll-padding-top: calc(var(--hdr-h) + env(safe-area-inset-top, 0px));
   overflow-x: clip;
+  scrollbar-gutter: stable; /* the scrollbar's space is always reserved, so stopping / starting scroll never shifts the page */
 }
 a, button, summary, input { touch-action: manipulation; }
 html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
-.lenis.lenis-stopped { overflow: clip; }
+.lenis.lenis-stopped { overflow-y: hidden; } /* hidden (not clip) keeps the reserved scrollbar gutter */
 body {
   margin: 0;
   background: var(--ink);
