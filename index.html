@@ -166,11 +166,18 @@
     </h1>
     <p class="hero__sub" data-hero-fade>Titles fall away. The person behind the role takes the chair.</p>
   </div>
-  <button class="hero__toggle" type="button" data-video-toggle aria-pressed="false" hidden>
-    <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12M15 6v12"/></svg>
-    <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>
-    <span class="sr" data-video-label>Pause background video</span>
-  </button>
+  <div class="hero__ctrls">
+    <button class="hero__toggle" type="button" data-video-sound aria-pressed="false" hidden>
+      <svg class="i-muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>
+      <svg class="i-sound" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/></svg>
+      <span class="sr" data-sound-label>Turn sound on</span>
+    </button>
+    <button class="hero__toggle" type="button" data-video-toggle aria-pressed="false" hidden>
+      <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12M15 6v12"/></svg>
+      <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>
+      <span class="sr" data-video-label>Pause background video</span>
+    </button>
+  </div>
   <!-- Desktop only: social links along the bottom of the landing screen (phones get them in the drawer) -->
   <nav class="hero__social" aria-label="Follow Off The Clock" data-hero-fade>
     <span class="hero__social-label">Follow along</span>

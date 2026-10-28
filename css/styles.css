@@ -304,8 +304,9 @@ html.skip-loader .loader { display: none !important; }
 /* Video fades in over the poster once it is actually playing (enhancement layer, not content) */
 .hero__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.2s var(--ease-out); pointer-events: none; }
 .hero__video.is-ready { opacity: 1; }
+.hero__ctrls { position: absolute; z-index: 3; right: max(var(--gutter), env(safe-area-inset-right, 0px)); bottom: max(28px, env(safe-area-inset-bottom, 0px)); display: flex; gap: 10px; }
 .hero__toggle {
-  position: absolute; z-index: 3; right: max(var(--gutter), env(safe-area-inset-right, 0px)); bottom: max(28px, env(safe-area-inset-bottom, 0px)); width: 44px; height: 44px; border-radius: 50%;
+  position: relative; width: 44px; height: 44px; border-radius: 50%;
   display: grid; place-items: center; border: 1px solid var(--line-dark); color: var(--white); background: rgba(15, 35, 63, .45);
   transition: background-color .3s, border-color .3s;
 }
@@ -314,6 +315,9 @@ html.skip-loader .loader { display: none !important; }
 .hero__toggle .i-play { fill: currentColor; stroke: none; opacity: 0; }
 .hero__toggle[aria-pressed="true"] .i-play { opacity: 1; }
 .hero__toggle[aria-pressed="true"] .i-pause { opacity: 0; }
+.hero__toggle .i-sound { opacity: 0; }
+.hero__toggle[aria-pressed="true"] .i-sound { opacity: 1; }
+.hero__toggle[aria-pressed="true"] .i-muted { opacity: 0; }
 .hero__shade {
   position: absolute; inset: 0;
   background:
@@ -330,6 +334,8 @@ html.skip-loader .loader { display: none !important; }
   left: max(var(--gutter), env(safe-area-inset-left, 0px)); right: calc(max(var(--gutter), env(safe-area-inset-right, 0px)) + 64px);
   bottom: max(28px, env(safe-area-inset-bottom, 0px)); min-height: 44px;
 }
+/* two round buttons (sound + pause) need more room than one */
+.hero:has([data-video-sound]:not([hidden])) .hero__social { right: calc(max(var(--gutter), env(safe-area-inset-right, 0px)) + 118px); }
 .hero__social-label { font-weight: 500; font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
 .hero__social-rule { flex: 1; height: 1px; background: var(--line-dark); min-width: 40px; }
 .hero__social a {

@@ -337,7 +337,7 @@
   (() => {
     const video = $('[data-hero-video]');
     const toggle = $('[data-video-toggle]');
-    if (!video) { toggle && toggle.remove(); return; }
+    if (!video) { toggle && toggle.remove(); const snd = $('[data-video-sound]'); if (snd) snd.remove(); return; }
     const d = video.dataset;
     const isMobile = window.matchMedia && matchMedia('(max-width: 760px)').matches;
     const useMobile = isMobile && (d.srcWebmMobile || d.srcMp4Mobile);
@@ -347,7 +347,7 @@
       ? [[d.srcWebmMobile, 'video/webm'], [d.srcMp4Mobile, 'video/mp4']]
       : [[d.srcWebm, 'video/webm'], [d.srcMp4, 'video/mp4']]
     ).filter(([src, type]) => src && video.canPlayType(type));
-    const drop = () => { video.remove(); toggle && toggle.remove(); };
+    const drop = () => { video.remove(); toggle && toggle.remove(); const snd = $('[data-video-sound]'); if (snd) snd.remove(); };
     if (!motionOK || conn.saveData || lowPower || !candidates.length) { drop(); return; }
 
     candidates.forEach(([src, type]) => {
@@ -386,6 +386,19 @@
       if (shouldPlay && video.paused) video.play().catch(() => {});
       else if (!shouldPlay && !video.paused) video.pause();
     };
+    // Sound on/off: only for a clip that has an audio track (data-has-audio). Starts muted (autoplay rule);
+    // the click is the user gesture browsers need before playing sound.
+    const sound = $('[data-video-sound]');
+    if (sound && 'hasAudio' in d) {
+      sound.hidden = false;
+      sound.addEventListener('click', () => {
+        video.muted = !video.muted;
+        const on = !video.muted;
+        sound.setAttribute('aria-pressed', String(on));
+        $('[data-sound-label]', sound).textContent = on ? 'Turn sound off' : 'Turn sound on';
+        if (on && userPaused) toggle.click(); // asking for sound means "play it"
+      });
+    } else if (sound) sound.remove();
     toggle.hidden = false;
     toggle.addEventListener('click', () => {
       userPaused = !userPaused;
