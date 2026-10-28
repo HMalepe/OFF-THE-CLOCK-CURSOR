@@ -80,6 +80,7 @@ The cyan O is a ring with a cyan face behind it, so the clock starts as nothing:
 - `data-play-once` (long trailer): no loop or end fade; plays once, rests on the last frame with the button on Play; pressing Play restarts from 0. Scrolling away and back does not restart it.
 - Shade (`.hero__shade`) is light so the trailer reads: a tight radial behind the copy (.74 → 0) + thin top/bottom bands for header and social bar; the copy has its own text-shadow. Phones: no shade over the band (copy sits on navy below it).
 - While the trailer plays, `.hero.is-watching` fades the centre copy out (and the shade to 35%) over .7s; it returns on pause or at the end. Uses `filter: opacity()` so it stacks with the scroll-scrubbed inline opacity.
+- Space bar toggles play/pause while the hero is at least half on screen; otherwise it scrolls as usual. Ignored in fields, buttons, links, summaries and with the menu open.
 - Controls (bottom right, `.hero__ctrls`): pause/play, plus sound on/off when the `<video>` carries `data-has-audio`. Autoplay is always muted; the sound click is the user gesture that unmutes. Turning sound on while paused also resumes. Desktop social bar reserves room for two buttons via `:has()`. Both hidden in static mode.
 Reference behaviour: a looping muted background video (~18s) under a 65% dark gradient. This build:
 

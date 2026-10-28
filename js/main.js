@@ -417,6 +417,18 @@
     } else if (sound) sound.remove();
     toggle.hidden = false;
     toggle.addEventListener('click', () => setPaused(!userPaused));
+    // Space bar = play / pause while the hero is on screen. Elsewhere it scrolls as usual, and it is
+    // left alone in fields, buttons, links and the open menu (they use Space themselves).
+    document.addEventListener('keydown', (e) => {
+      if (e.code !== 'Space' && e.key !== ' ') return;
+      if (e.repeat || e.ctrlKey || e.metaKey || e.altKey || !video.isConnected) return;
+      if ($('.hero').getBoundingClientRect().bottom < window.innerHeight * 0.5) return; // hero mostly scrolled away
+      if (root.classList.contains('menu-open')) return;
+      const t = e.target;
+      if (t && t.closest && t.closest('input, textarea, select, button, a, summary, [contenteditable], [role="button"]')) return;
+      e.preventDefault();
+      setPaused(!userPaused);
+    });
     if ('IntersectionObserver' in window) {
       new IntersectionObserver(([e]) => { inView = e.isIntersecting; sync(); }, { threshold: 0.05 }).observe($('.hero'));
     }
