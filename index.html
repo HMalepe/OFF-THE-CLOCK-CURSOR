@@ -260,7 +260,11 @@
   <div class="topics__stage">
     <div class="topics__head wrap">
       <h2 class="h-display" data-split data-reveal="scatter">The conversation</h2>
-      <p class="topics__hint" data-fade data-reveal="right"><span class="hint-scroll">Drag or swipe</span><span class="hint-swipe">Swipe</span> <span aria-hidden="true">→</span></p>
+      <div class="topics__nav" data-fade data-reveal="right">
+        <p class="topics__hint"><span class="hint-scroll">Drag or swipe</span><span class="hint-swipe">Swipe</span> <span aria-hidden="true">→</span></p>
+        <button class="topics__arrow" type="button" data-topics-prev aria-label="Previous topic" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <button class="topics__arrow" type="button" data-topics-next aria-label="Next topic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
     </div>
     <div class="topics__viewport">
       <div class="topics__track" data-track>

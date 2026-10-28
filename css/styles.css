@@ -539,6 +539,16 @@ body:has(.hero-dock.is-on) .totop { opacity: 0; pointer-events: none; } /* the p
 .topics__head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
 .topics__head .h-display { margin-bottom: .5em; }
 .topics__hint { color: var(--muted); font-size: .76rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 500; white-space: nowrap; }
+.topics__nav { display: flex; align-items: center; gap: 10px; }
+.topics__nav .topics__hint { margin: 0 8px 0 0; }
+.topics__arrow {
+  width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: var(--white);
+  border: 1px solid var(--line-dark); background: rgba(231, 238, 243, .04); transition: background-color .25s, border-color .25s, color .25s, opacity .25s;
+}
+.topics__arrow svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.topics__arrow:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); color: var(--ink); }
+.topics__arrow:disabled { opacity: .3; cursor: default; }
+@media (hover: none) { .topics__arrow { display: none; } } /* touch screens swipe */
 .hint-swipe { display: none; }
 .topics__viewport {
   overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;

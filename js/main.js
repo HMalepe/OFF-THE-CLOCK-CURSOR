@@ -1204,31 +1204,56 @@
   vp.addEventListener('scroll', syncBar, { passive: true });
   window.addEventListener('resize', syncBar);
   syncBar();
-  // One card per gesture. A trackpad swipe (or shift+wheel) moves exactly one card, however big,
-  // and its momentum tail is ignored until the fingers have been still for a moment, so snap and
-  // inertia no longer fight (that was the double jerk). Vertical wheel passes through to the page.
+  // One card per gesture, from anywhere on the section (heading, gaps, cards, progress line).
+  // A trackpad swipe or shift+wheel moves exactly one card; its momentum tail is ignored, but a
+  // swipe the other way always counts at once (so going back never gets swallowed).
+  // The ← → buttons do the same for mouse users. Vertical wheel passes through to the page.
   const pad = () => parseFloat(getComputedStyle(vp).scrollPaddingInlineStart) || 0;
-  const cardLefts = () => [...track.children].map((c) => Math.min(c.offsetLeft - pad(), vp.scrollWidth - vp.clientWidth));
-  const goCard = (dir) => {
-    const lefts = cardLefts();
-    const cur = vp.scrollLeft;
-    let i = lefts.reduce((best, l, k) => (Math.abs(l - cur) < Math.abs(lefts[best] - cur) ? k : best), 0);
-    i = Math.max(0, Math.min(lefts.length - 1, i + dir));
-    vp.scrollTo({ left: lefts[i], behavior: 'smooth' });
+  const maxLeft = () => vp.scrollWidth - vp.clientWidth;
+  // distinct stops only (the last cards can share the end position on wide screens)
+  const stops = () => [...new Set([...track.children].map((c) => Math.round(Math.min(c.offsetLeft - pad(), maxLeft()))))];
+  const nearest = () => { const st = stops(); const cur = vp.scrollLeft; return st.reduce((b, l, k) => (Math.abs(l - cur) < Math.abs(st[b] - cur) ? k : b), 0); };
+  let idx = 0;
+  let gliding = false;
+  const prevBtn = $('[data-topics-prev]');
+  const nextBtn = $('[data-topics-next]');
+  const syncArrows = () => {
+    const last = stops().length - 1;
+    if (prevBtn) prevBtn.disabled = idx <= 0;
+    if (nextBtn) nextBtn.disabled = idx >= last;
   };
+  const goTo = (i) => {
+    const st = stops();
+    idx = Math.max(0, Math.min(st.length - 1, i));
+    gliding = true;
+    vp.scrollTo({ left: st[idx], behavior: 'smooth' });
+    syncArrows();
+  };
+  const goCard = (dir) => goTo(idx + dir);
+  const nearestFrom = (x) => { const st = stops(); return st.reduce((b, l, k) => (Math.abs(l - x) < Math.abs(st[b] - x) ? k : b), 0); };
+  let settle = 0;
+  vp.addEventListener('scroll', () => {
+    clearTimeout(settle);
+    settle = setTimeout(() => { gliding = false; idx = nearest(); syncArrows(); }, 140); // touch / drag / end of a glide
+  }, { passive: true });
+  if (prevBtn) prevBtn.addEventListener('click', () => goCard(-1));
+  if (nextBtn) nextBtn.addEventListener('click', () => goCard(1));
+  syncArrows();
   let wheelSum = 0;
-  let wheelLock = false;
+  let lockDir = 0;
   let wheelQuiet = 0;
-  vp.addEventListener('wheel', (e) => {
+  topics.addEventListener('wheel', (e) => {
     const horiz = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : (e.shiftKey ? e.deltaY : 0);
     if (!horiz) return; // vertical: let the page scroll
     e.preventDefault();
     e.stopPropagation(); // keep Lenis from reading a shift+wheel as page scroll
+    const dir = Math.sign(horiz);
     clearTimeout(wheelQuiet);
-    wheelQuiet = setTimeout(() => { wheelLock = false; wheelSum = 0; }, 180); // gesture (and its momentum) over
-    if (wheelLock) return;
+    wheelQuiet = setTimeout(() => { lockDir = 0; wheelSum = 0; }, 160); // gesture (and its momentum) over
+    if (lockDir === dir) return; // momentum of the swipe we already acted on
+    if (lockDir && lockDir !== dir) { lockDir = 0; wheelSum = 0; } // reversed: a new swipe
     wheelSum += horiz;
-    if (Math.abs(wheelSum) > 24) { wheelLock = true; goCard(Math.sign(wheelSum)); }
+    if (Math.abs(wheelSum) > 18) { lockDir = dir; wheelSum = 0; goCard(dir); }
   }, { passive: false });
 
   // Mouse drag (touch and trackpads scroll natively). Snap is paused while dragging.
@@ -1252,12 +1277,7 @@
     const from = drag.left;
     drag = null;
     vp.classList.remove('is-dragging');
-    if (far) { // a deliberate drag lands on the next / previous card instead of snapping back
-      const pad = parseFloat(getComputedStyle(vp).scrollPaddingInlineStart) || 0;
-      const lefts = [...track.children].map((c) => c.offsetLeft - pad);
-      const to = dir > 0 ? lefts.find((l) => l > from + 10) : [...lefts].reverse().find((l) => l < from - 10);
-      if (to !== undefined) vp.scrollTo({ left: to, behavior: 'smooth' });
-    }
+    if (far) goTo(nearestFrom(from) + dir); // a deliberate drag lands on the next / previous card
     if (moved) vp.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); }, { capture: true, once: true });
   });
   mm.add(DESKTOP, () => {
