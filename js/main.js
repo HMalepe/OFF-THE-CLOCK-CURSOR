@@ -436,8 +436,30 @@
         $('[data-sound-label]', sound).textContent = on ? 'Turn sound off' : 'Turn sound on';
         sound.dataset.tip = on ? 'Sound off' : 'Sound on';
         if (on && userPaused) setPaused(false); // asking for sound means "play it"
+        if (on) hideCue();
       });
-    } else if (sound) sound.remove();
+      // Sound prompt: once per visit, ~1.2s after the trailer first plays (muted), for ~8s.
+      const cue = $('[data-sound-cue]');
+      let cueTimer = 0;
+      var hideCue = () => { if (!cue) return; cue.classList.remove('is-on'); sound.classList.remove('is-cued'); clearTimeout(cueTimer); };
+      const showCue = () => {
+        if (!cue || !video.muted || userPaused || docked) return;
+        try { if (sessionStorage.getItem('otc-sound-cue')) return; sessionStorage.setItem('otc-sound-cue', '1'); } catch (e) {}
+        cue.hidden = false;
+        // point the pill's arrow at the sound button, wherever the layout put them
+        const sr = sound.getBoundingClientRect();
+        const pr = cue.getBoundingClientRect();
+        const left = pr.left + (pr.width - cue.offsetWidth) / 2; // undo the .96 entry scale
+        cue.style.setProperty('--cue-x', `${Math.round(sr.left + sr.width / 2 - left)}px`);
+        requestAnimationFrame(() => { cue.classList.add('is-on'); sound.classList.add('is-cued'); });
+        cueTimer = setTimeout(hideCue, 8000);
+      };
+      if (cue) {
+        cue.addEventListener('click', () => { if (video.muted) sound.click(); hideCue(); });
+        video.addEventListener('playing', () => setTimeout(showCue, 1200), { once: true });
+        video.addEventListener('pause', hideCue);
+      }
+    } else if (sound) { sound.remove(); const c = $('[data-sound-cue]'); if (c) c.remove(); }
     toggle.hidden = false;
     toggle.addEventListener('click', () => setPaused(!userPaused));
 
