@@ -304,6 +304,11 @@ html.skip-loader .loader { display: none !important; }
 /* Video fades in over the poster once it is actually playing (enhancement layer, not content) */
 .hero__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.2s var(--ease-out); pointer-events: none; }
 .hero__video.is-ready { opacity: 1; }
+/* Phones: the widescreen trailer is shown whole, as a band under the header, clear of the title (poster matches it) */
+@media (max-width: 760px) {
+  .hero__video, .ph--hero > picture > img { object-fit: contain; object-position: 50% 14%; }
+  .ph--hero { background: var(--navy); }
+}
 .hero__ctrls { position: absolute; z-index: 3; right: max(var(--gutter), env(safe-area-inset-right, 0px)); bottom: max(28px, env(safe-area-inset-bottom, 0px)); display: flex; gap: 10px; }
 .hero__toggle {
   position: relative; width: 44px; height: 44px; border-radius: 50%;

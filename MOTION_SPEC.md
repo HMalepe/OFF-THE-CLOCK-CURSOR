@@ -76,7 +76,7 @@ The cyan O is a ring with a cyan face behind it, so the clock starts as nothing:
 | No libraries (`html.static`) | No sweep. The pie stays empty |
 
 ### Hero video (basics, `main.js` §1)
-- Current clip: WEBSITE TRAILER V2 (Drive), letterbox cropped (1920x872), first 0.5s black trimmed, last frame (sunset, 85.9s) held through the 7s music fade so it never rests on black. 1280x582 desktop / 480x854 centre-crop phone, MP4 (H.264+AAC) + WebM (VP9+Opus), ~3–6 MB each. Posters = frame 0. Share image moved to `assets/share-book.jpg` so link previews keep the book.
+- Current clip: WEBSITE TRAILER V2 (Drive), letterbox cropped (1920x872), first 0.5s black trimmed, last frame (sunset, 85.9s) held through the 7s music fade so it never rests on black. 1280x582 desktop / 854x388 full-frame phone (shown whole with object-fit: contain, band under the header), MP4 (H.264+AAC) + WebM (VP9+Opus), ~3–6 MB each. Posters = frame 0. Share image moved to `assets/share-book.jpg` so link previews keep the book.
 - `data-play-once` (long trailer): no loop or end fade; plays once, rests on the last frame with the button on Play; pressing Play restarts from 0. Scrolling away and back does not restart it.
 - Controls (bottom right, `.hero__ctrls`): pause/play, plus sound on/off when the `<video>` carries `data-has-audio`. Autoplay is always muted; the sound click is the user gesture that unmutes. Turning sound on while paused also resumes. Desktop social bar reserves room for two buttons via `:has()`. Both hidden in static mode.
 Reference behaviour: a looping muted background video (~18s) under a 65% dark gradient. This build:
