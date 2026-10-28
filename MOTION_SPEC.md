@@ -15,7 +15,7 @@ Source of truth for every animation. If the site is ported (Next.js, Astro, Webf
 | Creation order | DOM order, then `ScrollTrigger.sort()`; `refresh()` after `document.fonts.ready` and `load` |
 | Static mode | `html.static` only when GSAP or ScrollTrigger is missing. No loader, pins, Lenis or tweens. Everything is visible |
 | Anchors | `lenis.scrollTo` duration is `clamp(0.9, 1.6, distance / 1500)` so a short jump doesn’t crawl and a long one doesn’t snap. Offset is 0 for a section, −96 otherwise |
-| Desktop-only motion | `gsap.matchMedia()` with `(min-width: 761px)` for the story and topics pins; tilt only on `(hover:hover) and (pointer:fine)` |
+| Desktop-only motion | `gsap.matchMedia()` with `(min-width: 761px)` for desktop-only motion; tilt only on `(hover:hover) and (pointer:fine)` |
 
 ## Reusable primitives
 
@@ -149,7 +149,7 @@ Clicking any in-page link (top bar, drawer, footer, scroll cue) does NOT play th
 - `gsap.ticker.lagSmoothing(500, 33)` during the intro (a hitch slows the motion instead of skipping it), back to `0` for Lenis when the intro completes.
 
 ### Page order
-Podcast: 02 hero → 03 hosts → 04 story → 05 topics (pinned) → 06 episodes → 07 mission → 08 newsletter. Divider: 09 marquee. Book: 10 book (`reveal`: eyebrow, word-drop heading, fade-ups) → 11 masterclass. JS blocks are created in this order.
+Podcast: 02 hero → 03 hosts → 04 story → 05 topics (sideways row) → 06 episodes → 07 mission → 08 newsletter. Divider: 09 marquee. Book: 10 book (`reveal`: eyebrow, word-drop heading, fade-ups) → 11 masterclass. JS blocks are created in this order.
 
 ### 01 Header (plain scroll listener, all modes)
 - Transparent over the hero. It gets `.is-solid` (ink background, 96 → 80px height) after 60% of the viewport has scrolled.
@@ -187,17 +187,11 @@ Plain section. No pin, no background image, no wheel control. `reveal(.story__he
 - ScrollTrigger on `.marquee` (`top bottom` → `bottom top`) pauses the loop off screen. The row does not skew or change speed with the wheel. Outlined type cannot be moved and restyled on the same frame without a hitch.
 - The section fades up at `top 95%`. Static mode: a single wrapped set with no animation.
 
-### 05 Topics: PINNED horizontal
-Trigger `.topics`, start `top top`, end `+= dist() × 1.15`, where `dist = track.scrollWidth − viewport.clientWidth`. Settings: `pin`, `scrub: true`, `invalidateOnRefresh`. Same as the story pin, it tracks the scroll instead of lagging behind it.
-
-| Step | Scroll % | Target | From → To |
-|---|---|---|---|
-| 1 | 0 → 100% | `[data-track]` | x 0 → −dist() (linear, same timeline as the pin) |
-| 1 | 0 → 100% | `[data-track-bar]` | scaleX 0.02 → 1 (same timeline, no per-frame callback) |
-| once | section `top 75%` | `.tcard__label`, `.tcard__meta` | y 12, opacity 0 → 0/1, 0.8s, stagger 0.05 |
-
-The heading uses `blurIn` and the hint uses `fadeUp`. At 100% the last card's right edge sits one gutter from the viewport edge (verified).
-Below 761px the pin is not created. The track is a native `overflow-x: auto` swipe row with scroll-snap, same as static mode, because a pinned horizontal gallery fights a phone.
+### 05 Topics: native sideways row (no pin)
+No pin at any size: scrolling down always moves the page down. `.topics__viewport` is `overflow-x: auto` with scroll-snap (`scroll-padding-inline: gutter`, `overscroll-behavior-x: contain`), moved only by a sideways swipe, trackpad, shift+wheel or a mouse drag.
+- Mouse drag (pointerType mouse): drags `scrollLeft`, snap paused while dragging; a drag over 60px lands on the next / previous card (smooth). A drag swallows the following click so card links don't fire.
+- `[data-track-bar]` follows `scrollLeft / max` (scaleX, min 0.02) on the row's scroll event.
+- Desktop once: section `top 75%` → `.tcard__label`, `.tcard__meta` y 12, opacity 0 → 0/1, 0.8s, stagger 0.05. Heading `blurIn`, hint `fadeUp` ("Drag or swipe" / "Swipe").
 Static mode: the track becomes a native `overflow-x: auto` swipe row with scroll-snap.
 
 ### 06 Quizzes
@@ -232,7 +226,6 @@ Lives on `faq.html`. The page opens with `.page-lead` (a short ink block under t
 | Lenis `lerp` (0.08) and `wheelMultiplier` (0.7) | setup | Lower lerp = slower travel between screens. Pins still use `scrub: true`, so they follow the eased scroll instead of lagging behind it |
 | `scrub: true` on the pins, the colour wipe, and the scrubbed newsletter words | those triggers | The tween tracks the scroll. Lenis is already the ease |
 | Story length `5.2 × innerHeight`, story step `scrollTo` 1.25s ease-in-out | 04 | One gesture, one step. The step eases out of one screen and into the next |
-| Topics end `+= dist() × 1.15` | 05 | Multiply further for slower travel |
 | `wordRise` stagger 0.12 / 1.55s | primitives | Faster headings = 0.06 / 1.0s |
 | `yPercent 118` | wordRise | Must stay > 100 so words start fully masked |
 | batch `start: 'top 92%'` | primitives | Earlier/later card reveals |

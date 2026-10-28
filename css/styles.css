@@ -449,12 +449,19 @@ html.skip-loader .loader { display: none !important; }
 .marquee__set i { font-style: normal; color: var(--accent); font-size: clamp(1rem, 2vw, 1.6rem); }
 
 /* 05 topics (pinned horizontal) */
-.topics__stage { height: 100svh; min-height: 560px; display: flex; flex-direction: column; justify-content: center; overflow: hidden; padding-top: 72px; padding-bottom: 28px; }
+.topics__stage { display: flex; flex-direction: column; justify-content: center; overflow: hidden; padding-block: var(--sec-pad); }
 .topics__head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
 .topics__head .h-display { margin-bottom: .5em; }
 .topics__hint { color: var(--muted); font-size: .76rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 500; white-space: nowrap; }
 .hint-swipe { display: none; }
-.topics__viewport { overflow: hidden; }
+.topics__viewport {
+  overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;
+  scroll-padding-inline: var(--gutter); padding-bottom: 4px; scrollbar-width: none; cursor: grab;
+}
+.topics__viewport::-webkit-scrollbar { display: none; }
+.topics__viewport.is-dragging { cursor: grabbing; scroll-snap-type: none; user-select: none; }
+.topics__viewport.is-dragging .tcard { pointer-events: none; }
+.tcard { scroll-snap-align: start; }
 .topics__track { display: flex; gap: clamp(14px, 2vw, 28px); padding-inline: var(--gutter); width: max-content; }
 .tcard { position: relative; flex: 0 0 auto; width: min(76vw, 860px, 110svh); height: min(58svh, 540px); overflow: hidden; color: var(--white); border-radius: 2px; }
 .tcard__media { position: absolute; inset: 0; overflow: hidden; }

@@ -1070,22 +1070,52 @@
   if (story) reveal(story);
 
   /* ------------------------------------------------------------------------
-     05 · TOPICS — pinned horizontal track on desktop; native swipe below 761px
+     05 · TOPICS — a native sideways row at every size. Scrolling down moves the page down;
+     the row moves only on a sideways swipe / trackpad / shift+wheel, or a mouse drag on desktop.
      ------------------------------------------------------------------------ */
   const topics = $('.topics');
   const track = $('[data-track]');
   const vp = $('.topics__viewport');
   if (topics && track && vp) {
-  const dist = () => Math.max(0, track.scrollWidth - vp.clientWidth);
   reveal($('.topics__head'));
+  const bar = $('[data-track-bar]');
+  const syncBar = () => {
+    const max = vp.scrollWidth - vp.clientWidth;
+    if (bar) bar.style.transform = `scaleX(${max > 0 ? Math.max(0.02, vp.scrollLeft / max) : 1})`;
+  };
+  vp.addEventListener('scroll', syncBar, { passive: true });
+  window.addEventListener('resize', syncBar);
+  syncBar();
+  // Mouse drag (touch and trackpads scroll natively). Snap is paused while dragging.
+  let drag = null;
+  vp.addEventListener('pointerdown', (e) => {
+    if (e.pointerType !== 'mouse' || e.button !== 0) return;
+    drag = { x: e.clientX, left: vp.scrollLeft, moved: false };
+    vp.classList.add('is-dragging');
+  });
+  window.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    const dx = e.clientX - drag.x;
+    if (Math.abs(dx) > 4) drag.moved = true;
+    vp.scrollLeft = drag.left - dx;
+  });
+  window.addEventListener('pointerup', () => {
+    if (!drag) return;
+    const moved = drag.moved;
+    const dir = Math.sign(vp.scrollLeft - drag.left); // 1 = dragged towards later cards
+    const far = Math.abs(drag.left - vp.scrollLeft) > 60;
+    const from = drag.left;
+    drag = null;
+    vp.classList.remove('is-dragging');
+    if (far) { // a deliberate drag lands on the next / previous card instead of snapping back
+      const pad = parseFloat(getComputedStyle(vp).scrollPaddingInlineStart) || 0;
+      const lefts = [...track.children].map((c) => c.offsetLeft - pad);
+      const to = dir > 0 ? lefts.find((l) => l > from + 10) : [...lefts].reverse().find((l) => l < from - 10);
+      if (to !== undefined) vp.scrollTo({ left: to, behavior: 'smooth' });
+    }
+    if (moved) vp.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); }, { capture: true, once: true });
+  });
   mm.add(DESKTOP, () => {
-    const pin = {
-      trigger: topics, start: 'top top', end: () => '+=' + dist() * 1.15,
-      pin: true, scrub: true, invalidateOnRefresh: true,
-    };
-    gsap.timeline({ scrollTrigger: pin })
-      .fromTo(track, { x: 0 }, { x: () => -dist(), ease: 'none' }, 0)
-      .fromTo('[data-track-bar]', { scaleX: 0.02 }, { scaleX: 1, ease: 'none' }, 0);
     gsap.fromTo($$('.tcard__label, .tcard__meta', track), { y: 12, opacity: 0 }, {
       y: 0, opacity: 1, duration: 0.8, ease: EASE, stagger: 0.05,
       scrollTrigger: { trigger: topics, start: 'top 75%', toggleActions: REPLAY },
