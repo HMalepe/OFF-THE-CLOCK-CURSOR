@@ -348,7 +348,8 @@
       : [[d.srcWebm, 'video/webm'], [d.srcMp4, 'video/mp4']]
     ).filter(([src, type]) => src && video.canPlayType(type));
     const drop = () => { const he = $('.hero'); he.classList.remove('hero--video', 'is-watching'); video.remove(); toggle && toggle.remove(); $$('[data-video-sound], [data-video-seek], [data-video-follow]').forEach((b) => b.remove()); };
-    if (!motionOK || conn.saveData || lowPower || !candidates.length) { drop(); return; }
+    // (lowPower only switches off smooth scrolling; most phones report 4GB and must still get the trailer)
+    if (!motionOK || conn.saveData || !candidates.length) { drop(); return; }
 
     candidates.forEach(([src, type]) => {
       const s = document.createElement('source');
@@ -394,7 +395,13 @@
     const go = () => { if (introDone) return; introDone = true; sync(); };
     document.addEventListener('otc:curtain', go, { once: true }); // the loader starts to lift
     document.addEventListener('otc:intro-done', go, { once: true }); // no loader on this visit
-    video.addEventListener('canplaythrough', () => { buffered = true; sync(); }, { once: true });
+    // iOS often never fires canplaythrough before play() is called (it won't buffer ahead), so also
+    // accept canplay, and simply try 2s after the loader lifts: play() buffers by itself.
+    const canGo = () => { if (buffered) return; buffered = true; sync(); };
+    video.addEventListener('canplaythrough', canGo, { once: true });
+    video.addEventListener('canplay', canGo, { once: true });
+    document.addEventListener('otc:curtain', () => setTimeout(canGo, 2000), { once: true });
+    document.addEventListener('otc:intro-done', () => setTimeout(canGo, 2000), { once: true });
     const setPaused = (p) => {
       userPaused = p;
       toggle.setAttribute('aria-pressed', String(p));
@@ -415,13 +422,21 @@
       sync();
       if (typeof placeDock === 'function') placeDock();
     };
-    setTimeout(() => { if (video.paused && !docked) heroEl.classList.remove('is-watching'); }, 9000);
+    setTimeout(() => { if (video.paused && !docked) heroEl.classList.remove('is-watching', 'hero--video'); }, 9000); // still + title back
+    // Autoplay refused (e.g. iPhone Low Power Mode, data saver): show the still + title and a Play
+    // button; a tap is a user gesture, so playback then starts normally.
+    const blocked = () => {
+      if (userPaused) return;
+      heroEl.classList.remove('hero--video', 'is-watching');
+      setPaused(true);
+    };
+    video.addEventListener('playing', () => heroEl.classList.add('hero--video'));
     const sync = () => {
       if (!video.isConnected) return;
       const ready = introDone && buffered && !userPaused && (inView || docked) && tabVisible;
       if (!gateOpen) { if (ready) stageStart(); return; }
       const shouldPlay = ready;
-      if (shouldPlay && video.paused) video.play().catch(() => {});
+      if (shouldPlay && video.paused) video.play().catch(blocked);
       else if (!shouldPlay && !video.paused) video.pause();
     };
     // Sound on/off: only for a clip that has an audio track (data-has-audio). Starts muted (autoplay rule);
