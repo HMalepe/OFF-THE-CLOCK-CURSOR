@@ -358,6 +358,11 @@
     // If every source fails, the last <source> fires 'error' → fall back to the poster
     video.lastElementChild.addEventListener('error', drop);
     video.addEventListener('playing', () => video.classList.add('is-ready'));
+    // While the trailer plays, the centre title steps aside; it returns on pause or at the end.
+    const heroEl = $('.hero');
+    video.addEventListener('playing', () => heroEl.classList.add('is-watching'));
+    video.addEventListener('pause', () => heroEl.classList.remove('is-watching'));
+    video.addEventListener('ended', () => heroEl.classList.remove('is-watching'));
     // Seamless loop. The clip ends on a black title card, so a native loop hard-cuts back to the
     // opening shot. Instead: fade the video out over the last FADE seconds onto the poster (which is
     // the exact first frame), restart underneath, and fade back in — the restart is invisible.

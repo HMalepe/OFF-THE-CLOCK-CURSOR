@@ -329,6 +329,11 @@ html.skip-loader .loader { display: none !important; }
     radial-gradient(ellipse 34% 28% at 50% 55%, rgba(15,35,63,.74), rgba(15,35,63,.45) 50%, rgba(15,35,63,0) 100%),
     linear-gradient(180deg, rgba(15,35,63,.5) 0%, rgba(15,35,63,0) 22%, rgba(15,35,63,0) 70%, rgba(15,35,63,.6) 100%);
 }
+/* Trailer playing: the centre copy and its darkening step aside, back on pause / end */
+/* filter: opacity() stacks with the inline opacity GSAP scrubs on scroll, so neither fights the other */
+.hero__content, .hero__shade { transition: filter .7s var(--ease-out); }
+.hero.is-watching .hero__content { filter: opacity(0); }
+.hero.is-watching .hero__shade { filter: opacity(.35); }
 /* lighter shade: the title carries its own soft shadow so the video can stay bright */
 .hero__content { text-shadow: 0 2px 24px rgba(15,35,63,.6), 0 1px 3px rgba(15,35,63,.7); }
 @media (max-width: 760px) {
