@@ -347,7 +347,7 @@
       ? [[d.srcWebmMobile, 'video/webm'], [d.srcMp4Mobile, 'video/mp4']]
       : [[d.srcWebm, 'video/webm'], [d.srcMp4, 'video/mp4']]
     ).filter(([src, type]) => src && video.canPlayType(type));
-    const drop = () => { video.remove(); toggle && toggle.remove(); $$('[data-video-sound], [data-video-seek], [data-video-follow]').forEach((b) => b.remove()); };
+    const drop = () => { const he = $('.hero'); he.classList.remove('hero--video', 'is-watching'); video.remove(); toggle && toggle.remove(); $$('[data-video-sound], [data-video-seek], [data-video-follow]').forEach((b) => b.remove()); };
     if (!motionOK || conn.saveData || lowPower || !candidates.length) { drop(); return; }
 
     candidates.forEach(([src, type]) => {
@@ -355,6 +355,9 @@
       s.src = src; s.type = type;
       video.appendChild(s);
     });
+    // Navy start: the poster and title stay hidden while the trailer is on its way (JS-only classes,
+    // so static mode / no-JS still shows the poster and title).
+    $('.hero').classList.add('hero--video', 'is-watching');
     // If every source fails, the last <source> fires 'error' → fall back to the poster
     video.lastElementChild.addEventListener('error', drop);
     video.addEventListener('playing', () => video.classList.add('is-ready'));
@@ -388,7 +391,9 @@
     // of the clip is buffered to play through, then fades in over the identical poster frame.
     let introDone = false;
     let buffered = false;
-    document.addEventListener('otc:intro-done', () => { introDone = true; sync(); }, { once: true });
+    const go = () => { if (introDone) return; introDone = true; sync(); };
+    document.addEventListener('otc:curtain', go, { once: true }); // the loader starts to lift
+    document.addEventListener('otc:intro-done', go, { once: true }); // no loader on this visit
     video.addEventListener('canplaythrough', () => { buffered = true; sync(); }, { once: true });
     const setPaused = (p) => {
       userPaused = p;
@@ -398,20 +403,19 @@
       if (!p && video.ended) video.currentTime = 0;
       sync();
     };
-    // First start is staged so nothing happens at once: the title holds after the intro (HOLD),
-    // fades out slowly (CSS 1.6s), and as it goes the video starts underneath and fades in (1.8s).
-    const HOLD = 1600;
-    const HANDOFF = 1300;
+    // First start: as soon as the loader lifts and enough is buffered (see stageStart).
     let gateOpen = false;
     let staging = false;
+    // The trailer starts the moment the loader lifts and fades in from the navy (no poster, no
+    // title in between). If it has not started a few seconds after that, the title comes back.
     const stageStart = () => {
       if (staging) return;
       staging = true;
-      setTimeout(() => {
-        if (!userPaused) heroEl.classList.add('is-watching');
-        setTimeout(() => { gateOpen = true; sync(); if (typeof placeDock === 'function') placeDock(); }, HANDOFF);
-      }, HOLD);
+      gateOpen = true;
+      sync();
+      if (typeof placeDock === 'function') placeDock();
     };
+    setTimeout(() => { if (video.paused && !docked) heroEl.classList.remove('is-watching'); }, 9000);
     const sync = () => {
       if (!video.isConnected) return;
       const ready = introDone && buffered && !userPaused && (inView || docked) && tabVisible;
@@ -1099,7 +1103,8 @@
         .fromTo('.loader__rule', { scaleX: 0 }, { scaleX: 1, duration: 0.9, ease: 'expo.inOut' }, '-=0.5')
         .fromTo('.loader__word', { opacity: 0, y: 12 }, { opacity: 0.85, y: 0, duration: 0.7, ease: 'power2.out' }, '-=0.4')
         .to('.loader__inner', { opacity: 0, y: -20, duration: 0.6, ease: 'power2.in' }, '+=0.6')
-        .to(loader, { yPercent: -100, duration: 1.35, ease: 'expo.inOut' }, '-=0.15')
+        .call(() => document.dispatchEvent(new Event('otc:curtain')), null, '-=0.15')
+        .to(loader, { yPercent: -100, duration: 1.35, ease: 'expo.inOut' }, '<')
         .fromTo('[data-hero-zoom]', { scale: 1.25 }, { scale: 1, duration: 2.6, ease: EASE }, '-=0.9')
         .addLabel('zoomed', '>')
         .fromTo(hdr, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 1.25, ease: EASE, clearProps: 'transform' }, '<0.25')

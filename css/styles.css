@@ -305,6 +305,9 @@ html.skip-loader .loader { display: none !important; }
 /* Video fades in over the poster once it is actually playing (enhancement layer, not content) */
 .hero__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.8s cubic-bezier(.45, 0, .25, 1); pointer-events: none; }
 .hero__video.is-ready { opacity: 1; }
+/* Trailer on its way: plain navy under it (no poster) so it fades in from the loader's colour */
+.hero--video { background: var(--ink); }
+.hero--video .ph--hero { opacity: 0; }
 /* Phones: the widescreen trailer is shown whole, as a band under the header, clear of the title (poster matches it) */
 @media (max-width: 760px) {
   .hero__video, .ph--hero > picture > img { object-fit: contain; object-position: 50% 14%; }
