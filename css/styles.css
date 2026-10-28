@@ -302,7 +302,7 @@ html.skip-loader .loader { display: none !important; }
 .hero__media { position: absolute; inset: 0; }
 .hero__zoom { position: absolute; inset: 0; }
 /* Video fades in over the poster once it is actually playing (enhancement layer, not content) */
-.hero__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.2s var(--ease-out); pointer-events: none; }
+.hero__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.8s cubic-bezier(.45, 0, .25, 1); pointer-events: none; }
 .hero__video.is-ready { opacity: 1; }
 /* Phones: the widescreen trailer is shown whole, as a band under the header, clear of the title (poster matches it) */
 @media (max-width: 760px) {
@@ -331,7 +331,8 @@ html.skip-loader .loader { display: none !important; }
 }
 /* Trailer playing: the centre copy and its darkening step aside, back on pause / end */
 /* filter: opacity() stacks with the inline opacity GSAP scrubs on scroll, so neither fights the other */
-.hero__content, .hero__shade { transition: filter .7s var(--ease-out); }
+.hero__content, .hero__shade { transition: filter .9s var(--ease-out); } /* coming back (pause / end) */
+.hero.is-watching .hero__content, .hero.is-watching .hero__shade { transition: filter 1.6s cubic-bezier(.45, 0, .25, 1); } /* leaving: slow */
 .hero.is-watching .hero__content { filter: opacity(0); }
 .hero.is-watching .hero__shade { filter: opacity(.35); }
 /* lighter shade: the title carries its own soft shadow so the video can stay bright */

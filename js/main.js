@@ -369,7 +369,7 @@
     // data-play-once (a long trailer): no loop. It plays through once, rests on its last frame and
     // the button shows Play; pressing it starts again from the top.
     const once = 'playOnce' in d;
-    const FADE = 1.2; // matches the .hero__video opacity transition
+    const FADE = 1.8; // matches the .hero__video opacity transition
     if (!once) video.addEventListener('timeupdate', () => {
       if (video.duration && video.duration - video.currentTime <= FADE) video.classList.remove('is-ready');
     });
@@ -396,9 +396,25 @@
       if (!p && video.ended) video.currentTime = 0;
       sync();
     };
+    // First start is staged so nothing happens at once: the title holds after the intro (HOLD),
+    // fades out slowly (CSS 1.6s), and as it goes the video starts underneath and fades in (1.8s).
+    const HOLD = 1600;
+    const HANDOFF = 1300;
+    let gateOpen = false;
+    let staging = false;
+    const stageStart = () => {
+      if (staging) return;
+      staging = true;
+      setTimeout(() => {
+        if (!userPaused) heroEl.classList.add('is-watching');
+        setTimeout(() => { gateOpen = true; sync(); }, HANDOFF);
+      }, HOLD);
+    };
     const sync = () => {
       if (!video.isConnected) return;
-      const shouldPlay = introDone && buffered && !userPaused && inView && tabVisible;
+      const ready = introDone && buffered && !userPaused && inView && tabVisible;
+      if (!gateOpen) { if (ready) stageStart(); return; }
+      const shouldPlay = ready;
       if (shouldPlay && video.paused) video.play().catch(() => {});
       else if (!shouldPlay && !video.paused) video.pause();
     };
