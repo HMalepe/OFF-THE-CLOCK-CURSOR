@@ -351,8 +351,7 @@
     const webm = useMobile ? [d.srcWebmMobile, 'video/webm'] : [d.srcWebm, 'video/webm'];
     const mp4 = useMobile ? [d.srcMp4Mobile, 'video/mp4'] : [d.srcMp4, 'video/mp4'];
     const candidates = (apple ? [mp4] : [webm, mp4]).filter(([src, type]) => src && video.canPlayType(type));
-    // Data Saver: keep the trailer, but don't download it until the viewer asks (Watch / Play)
-    const askFirst = !!conn.saveData;
+    const askFirst = false; // the owner wants the trailer to start straight away, Data Saver or not
     const drop = () => { const he = $('.hero'); he.classList.remove('hero--video', 'is-watching'); video.remove(); toggle && toggle.remove(); $$('[data-video-sound], [data-video-seek], [data-video-follow], [data-video-watch]').forEach((b) => b.remove()); };
     // (lowPower only switches off smooth scrolling; most phones report 4GB and must still get the trailer)
     if (!motionOK || !candidates.length) { drop(); return; }
@@ -406,8 +405,9 @@
     const canGo = () => { if (buffered) return; buffered = true; sync(); };
     video.addEventListener('canplaythrough', canGo, { once: true });
     video.addEventListener('canplay', canGo, { once: true });
-    document.addEventListener('otc:curtain', () => setTimeout(canGo, 2000), { once: true });
-    document.addEventListener('otc:intro-done', () => setTimeout(canGo, 2000), { once: true });
+    // start the moment the loader lifts: play() buffers by itself, the fade-in waits for 'playing'
+    document.addEventListener('otc:curtain', canGo, { once: true });
+    document.addEventListener('otc:intro-done', canGo, { once: true });
     const setPaused = (p) => {
       userPaused = p;
       toggle.setAttribute('aria-pressed', String(p));
@@ -438,6 +438,15 @@
       heroEl.classList.remove('hero--video', 'is-watching');
       setPaused(true);
       if (watch) watch.hidden = false;
+      // Low Power Mode etc.: the browser allows playback after the first touch anywhere, so start then
+      const resume = () => {
+        ['touchend', 'pointerup', 'keydown'].forEach((t) => document.removeEventListener(t, resume, true));
+        if (!userPaused || asked || !video.paused) return;
+        asked = true;
+        if (watch) watch.hidden = true;
+        setPaused(false);
+      };
+      ['touchend', 'pointerup', 'keydown'].forEach((t) => document.addEventListener(t, resume, true));
     };
     if (watch) watch.addEventListener('click', () => {
       // the viewer chose to watch: play from here with sound (a tap allows sound)
