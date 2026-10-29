@@ -1149,6 +1149,10 @@
      A section link, the back button, or a return from the questions page
      opens on the right spot instead of replaying it.
      ------------------------------------------------------------------------ */
+  // Below-the-fold setup (sections 03–12) runs in small slices after this; the loader animation
+  // waits for it (capped) so nothing heavy runs while something is moving.
+  let markSetupDone;
+  const setupDone = new Promise((r) => { markSetupDone = r; });
   const seenIntro = (() => { try { return sessionStorage.getItem('otc-intro') === '1'; } catch (e) { return false; } })();
   playIntro = !!$('.hero') && !fromHistory && !pendingHash && !seenIntro;
   if ($('.hero')) {
@@ -1194,7 +1198,8 @@
         document.fonts && document.fonts.ready,
         logo && logo.decode ? logo.decode().catch(() => {}) : null,
       ].filter(Boolean);
-      Promise.race([Promise.all(ready), new Promise((r) => setTimeout(r, 900))]).then(() => intro.play());
+      const capped = (pr, ms) => Promise.race([pr, new Promise((r) => setTimeout(r, ms))]);
+      Promise.all([capped(Promise.all(ready), 900), capped(setupDone, 1600)]).then(() => intro.play());
     } else {
       document.dispatchEvent(new Event('otc:intro-done'));
     }
@@ -1213,213 +1218,249 @@
     document.dispatchEvent(new Event('otc:intro-done'));
   }
 
+  const queue = [];
+  const step = (fn) => queue.push(fn);
+
   /* ------------------------------------------------------------------------
      03 · HELLO
      ------------------------------------------------------------------------ */
-  reveal($('.hello'));
-  $$('[data-count]').forEach((el) => {
-    const end = +el.dataset.count;
-    const suf = el.dataset.suffix || '';
-    const o = { v: 0 };
-    gsap.to(o, {
-      v: end, duration: 2.4, ease: 'power2.out',
-      scrollTrigger: { trigger: el, start: 'top 92%', toggleActions: REPLAY },
-      onStart: () => { el.textContent = '0' + suf; },
-      onUpdate: () => (el.textContent = Math.round(o.v) + suf),
+  step(() => {
+    reveal($('.hello'));
+    $$('[data-count]').forEach((el) => {
+      const end = +el.dataset.count;
+      const suf = el.dataset.suffix || '';
+      const o = { v: 0 };
+      gsap.to(o, {
+        v: end, duration: 2.4, ease: 'power2.out',
+        scrollTrigger: { trigger: el, start: 'top 92%', toggleActions: REPLAY },
+        onStart: () => { el.textContent = '0' + suf; },
+        onUpdate: () => (el.textContent = Math.round(o.v) + suf),
+      });
     });
+    $$('.hello [data-speed]').forEach(speed);
+    leave($('.hello__grid'));
   });
-  $$('.hello [data-speed]').forEach(speed);
-  leave($('.hello__grid'));
 
   /* ------------------------------------------------------------------------
      04 · STORY — text reveals only (no pin, no scroll hijack)
      ------------------------------------------------------------------------ */
-  // No pin and no wheel control: the section scrolls like any other, and each line
-  // reveals once as it enters. Nothing here is tied to scroll position.
-  const story = $('.story');
-  if (story) reveal(story);
+  step(() => {
+    // No pin and no wheel control: the section scrolls like any other, and each line
+    // reveals once as it enters. Nothing here is tied to scroll position.
+    const story = $('.story');
+    if (story) reveal(story);
+  });
 
   /* ------------------------------------------------------------------------
      05 · TOPICS — a native sideways row at every size. Scrolling down moves the page down;
      the row moves only on a sideways swipe / trackpad / shift+wheel, or a mouse drag on desktop.
      ------------------------------------------------------------------------ */
-  const topics = $('.topics');
-  const track = $('[data-track]');
-  const vp = $('.topics__viewport');
-  if (topics && track && vp) {
-  reveal($('.topics__head'));
-  const bar = $('[data-track-bar]');
-  const syncBar = () => {
-    const max = vp.scrollWidth - vp.clientWidth;
-    if (bar) bar.style.transform = `scaleX(${max > 0 ? Math.max(0.02, vp.scrollLeft / max) : 1})`;
-  };
-  vp.addEventListener('scroll', syncBar, { passive: true });
-  window.addEventListener('resize', syncBar);
-  syncBar();
-  // One card per gesture, from anywhere on the section (heading, gaps, cards, progress line).
-  // A trackpad swipe or shift+wheel moves exactly one card; its momentum tail is ignored, but a
-  // swipe the other way always counts at once (so going back never gets swallowed).
-  // The ← → buttons do the same for mouse users. Vertical wheel passes through to the page.
-  const pad = () => parseFloat(getComputedStyle(vp).scrollPaddingInlineStart) || 0;
-  const maxLeft = () => vp.scrollWidth - vp.clientWidth;
-  // distinct stops only (the last cards can share the end position on wide screens)
-  const stops = () => [...new Set([...track.children].map((c) => Math.round(Math.min(c.offsetLeft - pad(), maxLeft()))))];
-  const nearest = () => { const st = stops(); const cur = vp.scrollLeft; return st.reduce((b, l, k) => (Math.abs(l - cur) < Math.abs(st[b] - cur) ? k : b), 0); };
-  let idx = 0;
-  let gliding = false;
-  const prevBtn = $('[data-topics-prev]');
-  const nextBtn = $('[data-topics-next]');
-  const syncArrows = () => {
-    const last = stops().length - 1;
-    if (prevBtn) prevBtn.disabled = idx <= 0;
-    if (nextBtn) nextBtn.disabled = idx >= last;
-  };
-  const goTo = (i) => {
-    const st = stops();
-    idx = Math.max(0, Math.min(st.length - 1, i));
-    gliding = true;
-    vp.scrollTo({ left: st[idx], behavior: 'smooth' });
+  step(() => {
+    const topics = $('.topics');
+    const track = $('[data-track]');
+    const vp = $('.topics__viewport');
+    if (topics && track && vp) {
+    reveal($('.topics__head'));
+    const bar = $('[data-track-bar]');
+    const syncBar = () => {
+      const max = vp.scrollWidth - vp.clientWidth;
+      if (bar) bar.style.transform = `scaleX(${max > 0 ? Math.max(0.02, vp.scrollLeft / max) : 1})`;
+    };
+    vp.addEventListener('scroll', syncBar, { passive: true });
+    window.addEventListener('resize', syncBar);
+    syncBar();
+    // One card per gesture, from anywhere on the section (heading, gaps, cards, progress line).
+    // A trackpad swipe or shift+wheel moves exactly one card; its momentum tail is ignored, but a
+    // swipe the other way always counts at once (so going back never gets swallowed).
+    // The ← → buttons do the same for mouse users. Vertical wheel passes through to the page.
+    const pad = () => parseFloat(getComputedStyle(vp).scrollPaddingInlineStart) || 0;
+    const maxLeft = () => vp.scrollWidth - vp.clientWidth;
+    // distinct stops only (the last cards can share the end position on wide screens)
+    const stops = () => [...new Set([...track.children].map((c) => Math.round(Math.min(c.offsetLeft - pad(), maxLeft()))))];
+    const nearest = () => { const st = stops(); const cur = vp.scrollLeft; return st.reduce((b, l, k) => (Math.abs(l - cur) < Math.abs(st[b] - cur) ? k : b), 0); };
+    let idx = 0;
+    let gliding = false;
+    const prevBtn = $('[data-topics-prev]');
+    const nextBtn = $('[data-topics-next]');
+    const syncArrows = () => {
+      const last = stops().length - 1;
+      if (prevBtn) prevBtn.disabled = idx <= 0;
+      if (nextBtn) nextBtn.disabled = idx >= last;
+    };
+    const goTo = (i) => {
+      const st = stops();
+      idx = Math.max(0, Math.min(st.length - 1, i));
+      gliding = true;
+      vp.scrollTo({ left: st[idx], behavior: 'smooth' });
+      syncArrows();
+    };
+    const goCard = (dir) => goTo(idx + dir);
+    const nearestFrom = (x) => { const st = stops(); return st.reduce((b, l, k) => (Math.abs(l - x) < Math.abs(st[b] - x) ? k : b), 0); };
+    let settle = 0;
+    vp.addEventListener('scroll', () => {
+      clearTimeout(settle);
+      settle = setTimeout(() => { gliding = false; idx = nearest(); syncArrows(); }, 140); // touch / drag / end of a glide
+    }, { passive: true });
+    if (prevBtn) prevBtn.addEventListener('click', () => goCard(-1));
+    if (nextBtn) nextBtn.addEventListener('click', () => goCard(1));
     syncArrows();
-  };
-  const goCard = (dir) => goTo(idx + dir);
-  const nearestFrom = (x) => { const st = stops(); return st.reduce((b, l, k) => (Math.abs(l - x) < Math.abs(st[b] - x) ? k : b), 0); };
-  let settle = 0;
-  vp.addEventListener('scroll', () => {
-    clearTimeout(settle);
-    settle = setTimeout(() => { gliding = false; idx = nearest(); syncArrows(); }, 140); // touch / drag / end of a glide
-  }, { passive: true });
-  if (prevBtn) prevBtn.addEventListener('click', () => goCard(-1));
-  if (nextBtn) nextBtn.addEventListener('click', () => goCard(1));
-  syncArrows();
-  let wheelSum = 0;
-  let lockDir = 0;
-  let wheelQuiet = 0;
-  topics.addEventListener('wheel', (e) => {
-    const horiz = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : (e.shiftKey ? e.deltaY : 0);
-    if (!horiz) return; // vertical: let the page scroll
-    e.preventDefault();
-    e.stopPropagation(); // keep Lenis from reading a shift+wheel as page scroll
-    const dir = Math.sign(horiz);
-    clearTimeout(wheelQuiet);
-    wheelQuiet = setTimeout(() => { lockDir = 0; wheelSum = 0; }, 160); // gesture (and its momentum) over
-    if (lockDir === dir) return; // momentum of the swipe we already acted on
-    if (lockDir && lockDir !== dir) { lockDir = 0; wheelSum = 0; } // reversed: a new swipe
-    wheelSum += horiz;
-    if (Math.abs(wheelSum) > 18) { lockDir = dir; wheelSum = 0; goCard(dir); }
-  }, { passive: false });
+    let wheelSum = 0;
+    let lockDir = 0;
+    let wheelQuiet = 0;
+    topics.addEventListener('wheel', (e) => {
+      const horiz = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : (e.shiftKey ? e.deltaY : 0);
+      if (!horiz) return; // vertical: let the page scroll
+      e.preventDefault();
+      e.stopPropagation(); // keep Lenis from reading a shift+wheel as page scroll
+      const dir = Math.sign(horiz);
+      clearTimeout(wheelQuiet);
+      wheelQuiet = setTimeout(() => { lockDir = 0; wheelSum = 0; }, 160); // gesture (and its momentum) over
+      if (lockDir === dir) return; // momentum of the swipe we already acted on
+      if (lockDir && lockDir !== dir) { lockDir = 0; wheelSum = 0; } // reversed: a new swipe
+      wheelSum += horiz;
+      if (Math.abs(wheelSum) > 18) { lockDir = dir; wheelSum = 0; goCard(dir); }
+    }, { passive: false });
 
-  // Mouse drag (touch and trackpads scroll natively). Snap is paused while dragging.
-  let drag = null;
-  vp.addEventListener('pointerdown', (e) => {
-    if (e.pointerType !== 'mouse' || e.button !== 0) return;
-    drag = { x: e.clientX, left: vp.scrollLeft, moved: false };
-    vp.classList.add('is-dragging');
-  });
-  window.addEventListener('pointermove', (e) => {
-    if (!drag) return;
-    const dx = e.clientX - drag.x;
-    if (Math.abs(dx) > 4) drag.moved = true;
-    vp.scrollLeft = drag.left - dx;
-  });
-  window.addEventListener('pointerup', () => {
-    if (!drag) return;
-    const moved = drag.moved;
-    const dir = Math.sign(vp.scrollLeft - drag.left); // 1 = dragged towards later cards
-    const far = Math.abs(drag.left - vp.scrollLeft) > 60;
-    const from = drag.left;
-    drag = null;
-    vp.classList.remove('is-dragging');
-    if (far) goTo(nearestFrom(from) + dir); // a deliberate drag lands on the next / previous card
-    if (moved) vp.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); }, { capture: true, once: true });
-  });
-  mm.add(DESKTOP, () => {
-    gsap.fromTo($$('.tcard__label, .tcard__meta', track), { y: 12, opacity: 0 }, {
-      y: 0, opacity: 1, duration: 0.8, ease: EASE, stagger: 0.05,
-      scrollTrigger: { trigger: topics, start: 'top 75%', toggleActions: REPLAY },
+    // Mouse drag (touch and trackpads scroll natively). Snap is paused while dragging.
+    let drag = null;
+    vp.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'mouse' || e.button !== 0) return;
+      drag = { x: e.clientX, left: vp.scrollLeft, moved: false };
+      vp.classList.add('is-dragging');
     });
+    window.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      const dx = e.clientX - drag.x;
+      if (Math.abs(dx) > 4) drag.moved = true;
+      vp.scrollLeft = drag.left - dx;
+    });
+    window.addEventListener('pointerup', () => {
+      if (!drag) return;
+      const moved = drag.moved;
+      const dir = Math.sign(vp.scrollLeft - drag.left); // 1 = dragged towards later cards
+      const far = Math.abs(drag.left - vp.scrollLeft) > 60;
+      const from = drag.left;
+      drag = null;
+      vp.classList.remove('is-dragging');
+      if (far) goTo(nearestFrom(from) + dir); // a deliberate drag lands on the next / previous card
+      if (moved) vp.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); }, { capture: true, once: true });
+    });
+    mm.add(DESKTOP, () => {
+      gsap.fromTo($$('.tcard__label, .tcard__meta', track), { y: 12, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 0.8, ease: EASE, stagger: 0.05,
+        scrollTrigger: { trigger: topics, start: 'top 75%', toggleActions: REPLAY },
+      });
+    });
+    }
   });
-  }
 
   /* ------------------------------------------------------------------------
      06 · QUIZZES — episode cards stay on the home page; the myth/fact block can live on faq.html
      ------------------------------------------------------------------------ */
-  const quizzes = $('.quizzes');
-  if (quizzes) {
-    reveal($('.sec-head', quizzes));
-    reveal($('.ig-head', quizzes));
-    $$('.center', quizzes).forEach((p, i) => { const t = playReveal(p); if (t && t.delay) t.delay(i * 0.16); });
-    batchReveal($('.qgrid'));
-    $$('[data-tilt]').forEach(tilt);
-    $$('.quizzes [data-speed]').forEach(speed);
-    leave($('.sec-head', quizzes));
-  }
-  const tryquiz = $('.tryquiz');
-  if (tryquiz) $$('[data-speed]', tryquiz).forEach(speed);
+  step(() => {
+    const quizzes = $('.quizzes');
+    if (quizzes) {
+      reveal($('.sec-head', quizzes));
+      reveal($('.ig-head', quizzes));
+      $$('.center', quizzes).forEach((p, i) => { const t = playReveal(p); if (t && t.delay) t.delay(i * 0.16); });
+      batchReveal($('.qgrid'));
+      $$('[data-tilt]').forEach(tilt);
+      $$('.quizzes [data-speed]').forEach(speed);
+      leave($('.sec-head', quizzes));
+    }
+    const tryquiz = $('.tryquiz');
+    if (tryquiz) $$('[data-speed]', tryquiz).forEach(speed);
+  });
 
   /* ------------------------------------------------------------------------
      07 · MISSION — image drift + reveal + leave + image fades as it exits
      ------------------------------------------------------------------------ */
-  const mission = $('.mission');
-  if (mission) {
-  reveal(mission);
-  }
+  step(() => {
+    const mission = $('.mission');
+    if (mission) {
+    reveal(mission);
+    }
+  });
 
   /* ------------------------------------------------------------------------
      09 · FAQ — faq.html, ahead of the journal on that page
      ------------------------------------------------------------------------ */
-  reveal($('.page-lead'));
-  reveal($('.faq'));
-  $$('.faq [data-speed]').forEach(speed);
+  step(() => {
+    reveal($('.page-lead'));
+    reveal($('.faq'));
+    $$('.faq [data-speed]').forEach(speed);
+  });
 
   /* ------------------------------------------------------------------------
      08 · JOURNAL — faq.html, after the questions
      ------------------------------------------------------------------------ */
-  const journal = $('.journal');
-  if (journal) {
-    reveal($('.sec-head', journal));
-    batchReveal($('.jgrid'));
-    fadeUp($('.center', journal), 'top 95%');
-  }
+  step(() => {
+    const journal = $('.journal');
+    if (journal) {
+      reveal($('.sec-head', journal));
+      batchReveal($('.jgrid'));
+      fadeUp($('.center', journal), 'top 95%');
+    }
+  });
 
   /* ------------------------------------------------------------------------
      08 · NEWSLETTER
      ------------------------------------------------------------------------ */
-  reveal($('.newsletter'));
+  step(() => {
+    reveal($('.newsletter'));
+  });
 
   /* ------------------------------------------------------------------------
      09 · MARQUEE (podcast/book divider) — one steady loop. No scroll skew: stroking giant type on
      every frame was the hitch through the middle of the home page.
      ------------------------------------------------------------------------ */
-  const mRow = $('[data-marquee]');
-  if (mRow) {
-    const loop = gsap.to(mRow, { xPercent: -50, duration: 46, ease: 'none', repeat: -1 });
-    ScrollTrigger.create({
-      trigger: '.marquee', start: 'top bottom', end: 'bottom top',
-      onToggle: (self) => loop.paused(!self.isActive),
-    });
-    fadeUp($('.marquee'), 'top 95%');
-  }
+  step(() => {
+    const mRow = $('[data-marquee]');
+    if (mRow) {
+      const loop = gsap.to(mRow, { xPercent: -50, duration: 46, ease: 'none', repeat: -1 });
+      ScrollTrigger.create({
+        trigger: '.marquee', start: 'top bottom', end: 'bottom top',
+        onToggle: (self) => loop.paused(!self.isActive),
+      });
+      fadeUp($('.marquee'), 'top 95%');
+    }
+  });
 
   /* ------------------------------------------------------------------------
      10 · BOOK
      ------------------------------------------------------------------------ */
-  const book = $('.book');
-  if (book) reveal(book);
+  step(() => {
+    const book = $('.book');
+    if (book) reveal(book);
+  });
 
   /* ------------------------------------------------------------------------
      11 · MASTERCLASS
      ------------------------------------------------------------------------ */
-  reveal($('.masterclass'));
+  step(() => {
+    reveal($('.masterclass'));
+  });
 
   /* ------------------------------------------------------------------------
      12 · FOOTER
      ------------------------------------------------------------------------ */
-  fadeUp($('.ftr__top'), 'top 92%');
-  reveal($('.ftr'));
+  step(() => {
+    fadeUp($('.ftr__top'), 'top 92%');
+    reveal($('.ftr'));
+  });
 
   /* ------------------------------------------------------------------------
      4 · FINALISE
      ------------------------------------------------------------------------ */
-  ScrollTrigger.sort();
-  settlePlace();
+  // Build the queued sections in DOM order, ~12ms at a time, yielding to the browser between
+  // slices so the main thread never locks up for long.
+  const slice = () => {
+    const t0 = performance.now();
+    while (queue.length && performance.now() - t0 < 12) queue.shift()();
+    if (queue.length) { setTimeout(slice, 0); return; }
+    ScrollTrigger.sort();
+    settlePlace();
+    markSetupDone();
+  };
+  slice();
 })();

@@ -150,6 +150,9 @@ Clicking any in-page link (top bar, drawer, footer, scroll cue) does NOT play th
 - The drawer remembers how it locked the page (`bodyLocked`), not whether Lenis exists now: rotating a phone with the drawer open switches Lenis on/off (761px), and the old check left the body pinned and the page unscrollable.
 - If the screen resized or rotated while the drawer was open, closing it returns to the section that was in view (same offset), not the same pixel.
 
+### Startup slicing (no freezes)
+- Only the loader + hero are built immediately. Sections 03–12 are queued with `step(() => …)` and built in DOM order in ~12ms slices (`setTimeout` yields between), then `ScrollTrigger.sort()` + `settlePlace()`. The loader animation starts when setup is done (`setupDone`, capped 1.6s) and fonts/logo are ready (capped .9s), so the heavy work runs behind the still navy cover, never during motion. Measured: first main-thread block 931 → 336ms (phone, CPU ×4), 724 → 122ms (desktop, CPU ×2); no long task overlaps the loader or intro animation.
+
 ### Intro stillness
 - `html { scrollbar-gutter: stable }` and `.lenis-stopped { overflow-y: hidden }` (not clip): the scrollbar space is always reserved, so when the intro ends and Lenis starts, the classic Windows scrollbar appearing no longer narrows the page by ~15px and shifts the hero sideways (the "jerk" during the title hold). Same for the menu stop/start.
 - Loader marks (`.loader__mark`, `__rule`, `__word`) start at `opacity: 0` in CSS (decorative; the loader removes itself at 5s if JS stalls). Before, they painted, vanished when the timeline set its start state, then rose in.
