@@ -125,6 +125,34 @@
   let thawFx = null;
   let navFromMenu = false;
 
+  // Episodes: refresh the three cards and every "Latest episode" link from /api/episodes (the
+  // YouTube channel feed, cached a few hours at the edge). Cards are updated in place, so their
+  // motion stays attached; if the call fails, the built-in cards stay as they are.
+  (() => {
+    const cards = $$('[data-ep]');
+    const latest = $$('[data-latest-ep]');
+    if (!cards.length && !latest.length) return;
+    fetch('/api/episodes').then((r) => (r.ok ? r.json() : null)).then((data) => {
+      const eps = data && data.episodes;
+      if (!eps || !eps.length) return;
+      const url = (id) => 'https://www.youtube.com/watch?v=' + id;
+      latest.forEach((a) => { a.href = url(eps[0].id); });
+      cards.forEach((li, k) => {
+        const e = eps[k];
+        const link = $('a.pf__btn', li);
+        if (!e || !link || link.href === url(e.id)) return;
+        const img = $('img', li);
+        img.src = 'https://i.ytimg.com/vi/' + e.id + '/hqdefault.jpg';
+        img.alt = 'Off The Clock episode ' + e.n + ' with ' + e.name + '.';
+        $('.tag', li).textContent = 'Episode ' + e.n;
+        $('h3', li).textContent = e.name;
+        $('p', li).textContent = e.line ? e.line.replace(/\.?$/, '.') : '';
+        link.href = url(e.id);
+        link.setAttribute('aria-label', 'Watch episode ' + e.n + ' on YouTube');
+      });
+    }).catch(() => {});
+  })();
+
   // Off-canvas menu (items stagger in when motion is on)
   const drawer = $('#drawer');
   const burger = $('[data-menu-open]');
@@ -909,16 +937,20 @@
   // Fill colour wipes across a duplicate of the line. The dim copy stays put underneath.
   const colorWipe = (el) => {
     const text = el.textContent.replace(/\s+/g, ' ').trim();
-    el.setAttribute('aria-label', text);
     el.textContent = '';
+    // screen readers get the words once (visually hidden); both painted layers are decorative
+    const said = document.createElement('span');
+    said.className = 'sr';
+    said.textContent = text;
     const dim = document.createElement('span');
     dim.className = 'wipe__dim';
     dim.textContent = text;
+    dim.setAttribute('aria-hidden', 'true');
     const fill = document.createElement('span');
     fill.className = 'wipe__fill';
     fill.textContent = text;
     fill.setAttribute('aria-hidden', 'true');
-    el.append(dim, fill);
+    el.append(said, dim, fill);
     return gsap.fromTo(fill, { clipPath: 'inset(0% 100% 0% 0%)' }, {
       clipPath: 'inset(0% 0% 0% 0%)', ease: 'none',
       scrollTrigger: { trigger: el, start: 'top 85%', end: 'top 30%', scrub: true },

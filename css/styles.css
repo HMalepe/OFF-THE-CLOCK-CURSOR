@@ -319,7 +319,9 @@ html.skip-loader .loader { display: none !important; }
 .hero--video .ph--hero { opacity: 0; }
 /* Phones: the widescreen trailer is shown whole, as a band under the header, clear of the title (poster matches it) */
 @media (max-width: 760px) {
-  .hero__video, .ph--hero > picture > img { object-fit: contain; object-position: 50% 14%; }
+  /* band, controls and title are centred as one group: band-top = (screen − band − ~330px of controls+title) / 2 */
+  .hero { --band-h: 45.42vw; --band-top: max(76px, calc((100svh - var(--band-h) - 330px) / 2)); }
+  .hero__video, .ph--hero > picture > img { object-fit: contain; object-position: 50% var(--band-top); }
   .ph--hero { background: var(--ink); }
 }
 .hero__ctrls { position: absolute; z-index: 3; right: max(var(--gutter), env(safe-area-inset-right, 0px)); bottom: max(28px, env(safe-area-inset-bottom, 0px)); display: flex; gap: 10px; }
@@ -407,17 +409,16 @@ body:has(.hero-dock.is-on) .totop { opacity: 0; pointer-events: none; } /* the p
 @media (prefers-reduced-motion: reduce) { .sound-cue__eq i, .hero__toggle.is-cued::before { animation: none; } }
 @media (max-width: 760px) {
   /* controls sit centred just under the video band (band = 45.42vw tall, 14% down the free space) */
-  .hero > .hero__ctrls { right: 0; left: 0; justify-content: center; bottom: auto; top: calc(.14 * (100svh - 45.42vw) + 45.42vw + 14px); }
+  .hero > .hero__ctrls { right: 0; left: 0; justify-content: center; bottom: auto; top: calc(var(--band-top) + var(--band-h) + 14px); }
   .hero > .hero__ctrls .hero__toggle[data-tip]::after { right: 50%; translate: 50% 4px; }
   .hero > .hero__ctrls .hero__toggle.show-tip::after, .hero > .hero__ctrls .hero__toggle:focus-visible::after { translate: 50% 0; }
   .hero-dock { width: min(300px, 72vw); }
   /* the title block starts just under the controls row (band + 14px + 44px button + gap), never under them */
   .hero:has(> .hero__ctrls) { place-items: start center; }
-  .hero:has(> .hero__ctrls) .hero__content { padding-top: calc(.14 * (100svh - 45.42vw) + 45.42vw + 14px + 44px + 30px); }
-  /* phones: the pill sits under the buttons (above them is the video), arrow pointing up */
-  .hero > .hero__ctrls .sound-cue { right: auto; left: 50%; bottom: auto; top: calc(100% + 16px); translate: -50% -8px; transform-origin: var(--cue-x, 50%) 0; }
+  .hero:has(> .hero__ctrls) .hero__content { padding-top: calc(var(--band-top) + var(--band-h) + 14px + 44px + 30px); }
+  /* phones: the pill sits just above the buttons, over the bottom of the video (the title is below) */
+  .hero > .hero__ctrls .sound-cue { right: auto; left: 50%; translate: -50% 8px; }
   .hero > .hero__ctrls .sound-cue.is-on { translate: -50% 0; }
-  .hero > .hero__ctrls .sound-cue::after { top: 0; rotate: 225deg; }
 }
 .hero__shade {
   position: absolute; inset: 0;
@@ -429,8 +430,10 @@ body:has(.hero-dock.is-on) .totop { opacity: 0; pointer-events: none; } /* the p
 /* filter: opacity() stacks with the inline opacity GSAP scrubs on scroll, so neither fights the other */
 .hero__content, .hero__shade { transition: filter .9s var(--ease-out); } /* coming back (pause / end) */
 .hero.is-watching .hero__content, .hero.is-watching .hero__shade { transition: filter 1.6s cubic-bezier(.45, 0, .25, 1); } /* leaving: slow */
-.hero.is-watching .hero__content { filter: opacity(0); }
-.hero.is-watching .hero__shade { filter: opacity(.35); }
+@media (min-width: 761px) { /* phones: the title sits below the video, so it stays */
+  .hero.is-watching .hero__content { filter: opacity(0); }
+  .hero.is-watching .hero__shade { filter: opacity(.35); }
+}
 /* lighter shade: the title carries its own soft shadow so the video can stay bright */
 .hero__content { text-shadow: 0 2px 24px rgba(15,35,63,.6), 0 1px 3px rgba(15,35,63,.7); }
 @media (max-width: 760px) {
@@ -701,6 +704,7 @@ body:has(.hero-dock.is-on) .totop { opacity: 0; pointer-events: none; } /* the p
 /* 10 newsletter */
 .newsletter { padding-block: var(--sec-pad); text-align: center; }
 .newsletter__inner { max-width: 720px; }
+.newsletter__cta { margin-top: 36px; display: flex; justify-content: center; }
 .newsletter p { color: var(--mist); }
 .signup { display: flex; gap: 10px; margin: 36px auto 14px; max-width: 520px; flex-wrap: wrap; justify-content: center; }
 .signup input { flex: 1 1 240px; min-height: 50px; padding: 0 1.3em; border-radius: 999px; border: 1px solid var(--line-dark); background: transparent; color: var(--white); font: inherit; font-size: 1rem; letter-spacing: .02em; }
@@ -834,3 +838,9 @@ body:has(.hero-dock.is-on) .totop { opacity: 0; pointer-events: none; } /* the p
 .static .marquee__set + .marquee__set { display: none; }
 .static .marquee__set { flex-wrap: wrap; justify-content: center; }
 .static *, .static *::before, .static *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+
+/* Touch screens: every video control is at least a 44px target */
+@media (hover: none) {
+  .hero__toggle--sm, .hero-dock .hero__toggle, .hero-dock .hero__toggle--sm { width: 44px; height: 44px; }
+  .hero-dock__close::before { content: ""; position: absolute; inset: -7px; } /* 30px button, 44px touch area */
+}

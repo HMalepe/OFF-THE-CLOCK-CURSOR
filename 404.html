@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en-ZA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Page not found — Off The Clock</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0F233F">
+  <link rel="icon" href="/assets/favicon.png" type="image/png">
+  <style>
+    :root { --ink: #0F233F; --mist: #E7EEF3; --muted: #A8B6C4; --accent: #09F8F5; }
+    * { box-sizing: border-box; margin: 0; }
+    html, body { height: 100%; }
+    body {
+      display: grid; place-items: center; text-align: center; padding: 24px;
+      background: var(--ink); color: var(--mist);
+      font: 400 1rem/1.6 "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+    main { max-width: 34rem; }
+    img { width: min(260px, 60vw); height: auto; margin-bottom: 40px; }
+    .code { color: var(--accent); letter-spacing: .2em; text-transform: uppercase; font-size: .78rem; font-weight: 600; margin-bottom: 14px; }
+    h1 { font: 600 clamp(1.9rem, 6vw, 3rem)/1.1 "Oswald", "Arial Narrow", Impact, sans-serif; text-transform: uppercase; margin-bottom: 14px; color: #fff; }
+    p { color: var(--muted); margin-bottom: 32px; }
+    a.btn { display: inline-block; padding: 14px 26px; border-radius: 999px; background: var(--accent); color: var(--ink); font-weight: 600; letter-spacing: .1em; text-transform: uppercase; font-size: .8rem; text-decoration: none; }
+    a.btn:hover { filter: brightness(1.08); }
+  </style>
+</head>
+<body>
+  <main>
+    <img src="/assets/logo-white.png" alt="Off The Clock" width="720" height="280">
+    <p class="code">Error 404</p>
+    <h1>This page is off the clock</h1>
+    <p>The link may be old, or the page has moved. The conversation is still on.</p>
+    <a class="btn" href="/">Back to Off The Clock</a>
+  </main>
+</body>
+</html>

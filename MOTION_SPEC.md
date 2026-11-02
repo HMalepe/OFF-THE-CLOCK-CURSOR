@@ -247,3 +247,12 @@ Lives on `faq.html`. The page opens with `.page-lead` (a short ink block under t
 | Marquee `duration: 46` | 04b | Base speed of the loop. It does not react to scroll velocity |
 | Slideshow 6s + 2s | 04 slideshow | Hold / crossfade lengths (reference uses 6s / 2s) |
 | Video fade 1.2s | CSS `.hero__video` | How the video appears over the poster |
+
+### Site plumbing (handover audit)
+- Episodes: `/api/episodes` (Vercel function) reads the channel feed (UCGMNq--H05H_Lfa4K4J1b9Q), keeps titles with "Ep. NN", returns the newest 3; edge-cached 3h (`s-maxage=10800`). The page updates the three `[data-ep]` cards in place and every `[data-latest-ep]` link; the built-in cards are the fallback.
+- Share: absolute `og:image` (`assets/share.jpg`, 1200×630), `og:url`, canonical, `twitter:image`. Domain is `off-the-clock-cursor.vercel.app` until a custom domain is set (update canonical, og:url, og:image, robots.txt, sitemap.xml together).
+- `robots.txt`, `sitemap.xml`, branded `404.html`, `vercel.json` (security headers; assets cached 1 day + SWR).
+- Subscribe (header + newsletter section) goes to YouTube `?sub_confirmation=1`; the dead email form is gone.
+- Phones: the hero title stays visible while the trailer plays (it sits below the band); band, controls and title are centred as one group (`--band-top`).
+- Photos: hero-studio and the book cover are served via WebP `srcset` (960/1600/2560, 480/840).
+- Touch: every video control is a 44px target.

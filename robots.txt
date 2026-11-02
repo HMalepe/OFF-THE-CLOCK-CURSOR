@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://off-the-clock-cursor.vercel.app/sitemap.xml
