@@ -508,8 +508,19 @@ body:has(.hero-dock.is-on) .totop { opacity: 0; pointer-events: none; } /* the p
 .book__fwd { border-left: 2px solid var(--accent); padding-left: 14px; }
 .book__fwd strong { color: var(--slate-d); font-weight: 600; }
 .book__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; margin-top: 28px; }
+/* The author: portrait + short bio, under the book */
+.book__author {
+  display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(36px, 7vw, 112px); align-items: center;
+  margin-top: clamp(72px, 10vw, 140px); padding-top: clamp(56px, 8vw, 112px); border-top: 1px solid var(--line-light);
+}
+.book__author-photo { margin: 0; justify-self: center; width: min(100%, 380px); }
+.book__author-photo img { display: block; width: 100%; height: auto; aspect-ratio: 2 / 3; object-fit: cover; border-radius: var(--radius); box-shadow: 0 40px 80px -40px rgba(15, 35, 63, .5); }
+.book__author-name { margin-bottom: .35em; }
+.book__author-copy > p:not(.eyebrow) { color: var(--slate); max-width: 34em; }
+.book__author-copy em { color: var(--slate-d); }
 @media (max-width: 760px) {
-  .book__grid { grid-template-columns: 1fr; }
+  .book__grid, .book__author { grid-template-columns: 1fr; }
+  .book__author-photo { width: min(72%, 300px); }
   .book__cover { width: min(72%, 300px); }
 }
 

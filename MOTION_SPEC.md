@@ -160,6 +160,8 @@ Clicking any in-page link (top bar, drawer, footer, scroll cue) does NOT play th
 - `gsap.ticker.lagSmoothing(500, 33)` during the intro (a hitch slows the motion instead of skipping it), back to `0` for Lenis when the intro completes.
 
 ### Page order
+The book section ends with `.book__author` (portrait `clip`, eyebrow `spread`, name `drop`, bio `blur` / `left`).
+
 Podcast: 02 hero → 03 hosts → 04 story → 05 topics (sideways row) → 06 episodes → 07 mission → 08 newsletter. Divider: 09 marquee. Book: 10 book (`reveal`: eyebrow, word-drop heading, fade-ups) → 11 masterclass. JS blocks are created in this order.
 
 ### 01 Header (plain scroll listener, all modes)
