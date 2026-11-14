@@ -320,7 +320,7 @@ html.skip-loader .loader { display: none !important; }
 /* Phones: the widescreen trailer is shown whole, as a band under the header, clear of the title (poster matches it) */
 @media (max-width: 760px) {
   /* band, controls and title are centred as one group: band-top = (screen − band − ~330px of controls+title) / 2 */
-  .hero { --band-h: 45.42vw; --band-top: max(76px, calc((100svh - var(--band-h) - 330px) / 2)); }
+  .hero { --band-h: 45.42vw; --band-top: max(72px, calc((100svh - var(--band-h) - 430px) / 2)); }
   .hero__video, .ph--hero > picture > img { object-fit: contain; object-position: 50% var(--band-top); }
   .ph--hero { background: var(--ink); }
 }
@@ -430,10 +430,7 @@ body:has(.hero-dock.is-on) .totop { opacity: 0; pointer-events: none; } /* the p
 /* filter: opacity() stacks with the inline opacity GSAP scrubs on scroll, so neither fights the other */
 .hero__content, .hero__shade { transition: filter .9s var(--ease-out); } /* coming back (pause / end) */
 .hero.is-watching .hero__content, .hero.is-watching .hero__shade { transition: filter 1.6s cubic-bezier(.45, 0, .25, 1); } /* leaving: slow */
-@media (min-width: 761px) { /* phones: the title sits below the video, so it stays */
-  .hero.is-watching .hero__content { filter: opacity(0); }
-  .hero.is-watching .hero__shade { filter: opacity(.35); }
-}
+/* Billboard: the title and buttons stay while the trailer plays (Netflix-style); see 02 · BILLBOARD */
 /* lighter shade: the title carries its own soft shadow so the video can stay bright */
 .hero__content { text-shadow: 0 2px 24px rgba(15,35,63,.6), 0 1px 3px rgba(15,35,63,.7); }
 @media (max-width: 760px) {
@@ -843,4 +840,112 @@ body:has(.hero-dock.is-on) .totop { opacity: 0; pointer-events: none; } /* the p
 @media (hover: none) {
   .hero__toggle--sm, .hero-dock .hero__toggle, .hero-dock .hero__toggle--sm { width: 44px; height: 44px; }
   .hero-dock__close::before { content: ""; position: absolute; inset: -7px; } /* 30px button, 44px touch area */
+}
+
+
+/* ==========================================================================
+   02 · BILLBOARD (Netflix-style hero) + 02b · ROWS
+   ========================================================================== */
+.hero__meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .25em .45em; margin: 0 0 .9em; font-size: .92rem; color: var(--mist); letter-spacing: .02em; }
+.hero__badge { padding: .22em .6em; border: 1px solid rgba(231, 238, 243, .55); border-radius: 3px; font-size: .74rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
+.hero__dot { color: var(--muted); }
+.hero__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 1.5em; }
+.bb-btn {
+  display: inline-flex; align-items: center; gap: .55em; min-height: 46px; padding: 0 1.55em 0 1.2em; border-radius: 6px;
+  font: 600 1.02rem/1 var(--f-body); letter-spacing: .01em; text-decoration: none; text-shadow: none;
+  transition: background-color .2s, transform .2s;
+}
+.bb-btn svg { width: 1.45em; height: 1.45em; }
+.bb-btn--play { background: var(--white); color: var(--ink); }
+.bb-btn--play svg { fill: currentColor; }
+.bb-btn--play:hover { background: rgba(255, 255, 255, .78); }
+.bb-btn--info { background: rgba(109, 120, 135, .55); color: var(--white); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.bb-btn--info svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.bb-btn--info:hover { background: rgba(109, 120, 135, .38); }
+.bb-btn:active { transform: scale(.97); }
+.hero__stripe { display: none; }
+
+@media (min-width: 761px) {
+  .hero { place-items: end start; --bb-bottom: clamp(150px, 26vh, 270px); }
+  .hero__content { text-align: left; max-width: min(640px, 48vw); margin-left: max(var(--gutter), 4vw); padding: 0 0 var(--bb-bottom); }
+  .hero__title { font-size: clamp(3rem, 6.6vw, 6.8rem); transform-origin: 0 100%; transition: scale 1.4s var(--ease-out); }
+  .hero__meta, .hero__actions { justify-content: flex-start; }
+  .hero__sub { margin: 0; max-width: 30em; font-size: clamp(1rem, 1.2vw, 1.2rem); transition: opacity 1.2s var(--ease-out), max-height 1.2s var(--ease-out); max-height: 6em; }
+  /* while the trailer plays: description folds away, the title settles smaller (Netflix billboard) */
+  .hero.is-watching .hero__sub { opacity: 0; max-height: 0; }
+  .hero.is-watching .hero__title { scale: .78; }
+  .hero__shade {
+    background:
+      linear-gradient(77deg, rgba(15,35,63,.88) 0%, rgba(15,35,63,.55) 26%, rgba(15,35,63,.08) 56%, rgba(15,35,63,0) 70%),
+      linear-gradient(180deg, rgba(15,35,63,.6) 0%, rgba(15,35,63,0) 16%, rgba(15,35,63,0) 66%, rgba(15,35,63,.75) 88%, var(--ink) 100%);
+  }
+  .hero__ctrls { bottom: var(--bb-bottom); }
+  .hero__stripe {
+    display: flex; align-items: center; gap: .5em; position: absolute; z-index: 3; right: 0; bottom: calc(var(--bb-bottom) + 64px);
+    margin: 0; padding: .55em 2.6em .55em .9em; border-left: 3px solid var(--accent); background: rgba(15, 35, 63, .55);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: var(--white); font-size: .9rem; letter-spacing: .04em;
+  }
+  .hero__stripe span { color: var(--accent); font-weight: 600; text-transform: uppercase; font-size: .72rem; letter-spacing: .14em; }
+  .hero__social, .hero__cue { display: none !important; } /* the shelves take the bottom of the billboard */
+  .hero:has([data-video-seek]:not([hidden])) .hero__social { display: none; }
+}
+
+/* Shelves */
+.rows { position: relative; z-index: 4; padding: 8px 0 clamp(48px, 6vw, 88px); background: var(--ink); color: var(--white); }
+@media (min-width: 761px) { .rows { margin-top: calc(-1 * clamp(110px, 17vh, 190px)); background: linear-gradient(180deg, rgba(15,35,63,0) 0, var(--ink) 150px); } }
+.row { margin-bottom: clamp(18px, 2.4vw, 36px); }
+.row[hidden] { display: none; }
+.row__title { display: flex; align-items: baseline; gap: 14px; margin: 0 0 4px; padding: 0 max(var(--gutter), 4vw); font: 600 clamp(1.05rem, 1.35vw, 1.4rem)/1.2 var(--f-body); letter-spacing: .01em; text-transform: none; }
+.row__more { font-size: .8rem; font-weight: 600; color: var(--accent); text-decoration: none; opacity: 0; translate: -6px 0; transition: opacity .3s, translate .3s; }
+.row:hover .row__more, .row__more:focus-visible { opacity: 1; translate: 0 0; }
+@media (hover: none) { .row__more { opacity: 1; translate: 0 0; } }
+.row__wrap { position: relative; }
+.row__track {
+  list-style: none; margin: 0; display: flex; gap: clamp(8px, .55vw, 12px); padding: 16px max(var(--gutter), 4vw) 18px;
+  overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scroll-padding-inline: max(var(--gutter), 4vw);
+  overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.row__track::-webkit-scrollbar { display: none; }
+.tile { flex: 0 0 clamp(200px, 18.4vw, 330px); scroll-snap-align: start; }
+.tile a { display: block; color: inherit; text-decoration: none; outline: none; }
+.tile__img { position: relative; display: block; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; background: var(--ink-2); box-shadow: 0 6px 18px rgba(0, 0, 0, .25); transition: transform .35s var(--ease-out), box-shadow .35s var(--ease-out); }
+.tile__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tile__play { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; display: grid; place-items: center; background: rgba(15, 35, 63, .7); border: 1.5px solid rgba(255, 255, 255, .85); opacity: 0; scale: .85; transition: opacity .3s, scale .3s; }
+.tile__play svg { width: 18px; height: 18px; fill: #fff; margin-left: 2px; }
+.tile__n { position: absolute; left: 8px; top: 8px; padding: 3px 7px; border-radius: 3px; background: var(--accent); color: var(--ink); font: 700 .66rem/1 var(--f-body); letter-spacing: .1em; }
+.tile__txt { display: block; padding: 10px 2px 0; }
+.tile__txt b { display: block; font-weight: 600; font-size: .92rem; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile__txt small { display: block; margin-top: 2px; color: var(--muted); font-size: .78rem; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile a:hover .tile__img, .tile a:focus-visible .tile__img { transform: scale(1.07); box-shadow: 0 18px 40px rgba(0, 0, 0, .5), 0 0 0 2px var(--accent); }
+.tile a:hover .tile__play, .tile a:focus-visible .tile__play { opacity: 1; scale: 1; }
+.row__arrow {
+  position: absolute; z-index: 3; top: 16px; height: calc(clamp(200px, 18.4vw, 330px) * 9 / 16); width: max(var(--gutter), 4vw); min-width: 40px;
+  display: grid; place-items: center; color: #fff; border: 0; background: rgba(15, 35, 63, .55); opacity: 0; transition: opacity .25s, background-color .25s;
+}
+.row__arrow svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: scale .2s; }
+.row__arrow--prev { left: 0; border-radius: 0 6px 6px 0; }
+.row__arrow--next { right: 0; border-radius: 6px 0 0 6px; }
+.row__wrap:hover .row__arrow:not(:disabled) { opacity: 1; }
+.row__arrow:hover { background: rgba(15, 35, 63, .82); }
+.row__arrow:hover svg { scale: 1.2; }
+.row__arrow:disabled { pointer-events: none; }
+@media (hover: none) { .row__arrow { display: none; } }
+@media (max-width: 760px) {
+  .tile { flex-basis: 64vw; }
+  .rows { padding-top: 4px; }
+  .hero__actions .bb-btn { flex: 1 1 0; justify-content: center; max-width: 180px; }
+}
+.static .row__arrow { display: none; }
+/* billboard / shelves refinements */
+.tile { min-width: 0; } /* long titles must not stretch a tile */
+.hero .eyebrow { display: none; } /* the details line replaces it */
+.tile--short { flex-basis: clamp(150px, 11.5vw, 210px); }
+.tile--short .tile__img { aspect-ratio: 9 / 16; }
+.tile--short .tile__txt b { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-size: .86rem; }
+@media (min-width: 761px) { .hero__stripe { bottom: calc(var(--bb-bottom) + 120px); } }
+@media (max-width: 760px) {
+  .hero__meta { font-size: .8rem; }
+  .hero__meta .hero__nw { display: none; }
+  .hero__cue { display: none; }
+  .tile--short { flex-basis: 38vw; }
 }

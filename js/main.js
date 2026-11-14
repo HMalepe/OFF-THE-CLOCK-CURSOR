@@ -131,8 +131,9 @@
   (() => {
     const cards = $$('[data-ep]');
     const latest = $$('[data-latest-ep]');
-    if (!cards.length && !latest.length) return;
+    if (!cards.length && !latest.length && !$('[data-row]')) return;
     fetch('/api/episodes').then((r) => (r.ok ? r.json() : null)).then((data) => {
+      if (data) fillRows(data);
       const eps = data && data.episodes;
       if (!eps || !eps.length) return;
       const url = (id) => 'https://www.youtube.com/watch?v=' + id;
@@ -152,6 +153,74 @@
       });
     }).catch(() => {});
   })();
+
+  // Shelves (Netflix-style rows under the billboard). Arrows page one view at a time; touch and
+  // trackpads scroll natively. The feed refills the episode row (newest first, merged with the older
+  // built-in tiles) and fills the clips row.
+  const rowArrows = (row) => {
+    const track = $('[data-row-track]', row);
+    const prev = $('[data-row-prev]', row);
+    const next = $('[data-row-next]', row);
+    if (!track || !prev || !next || row._arrows) return;
+    row._arrows = true;
+    const sync = () => {
+      const max = track.scrollWidth - track.clientWidth - 2;
+      prev.disabled = track.scrollLeft <= 2;
+      next.disabled = track.scrollLeft >= max;
+    };
+    const page = (dir) => track.scrollBy({ left: dir * track.clientWidth * 0.86, behavior: 'smooth' });
+    prev.addEventListener('click', () => page(-1));
+    next.addEventListener('click', () => page(1));
+    track.addEventListener('scroll', sync, { passive: true });
+    window.addEventListener('resize', sync);
+    sync();
+  };
+  $$('[data-row]').forEach(rowArrows);
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const tileHTML = (x) => {
+    // Shorts are vertical: YouTube's portrait thumbnail (oardefault), falling back to the standard one
+    const img = x.img || ('https://i.ytimg.com/vi/' + x.id + (x.short ? '/oardefault.jpg' : '/hqdefault.jpg'));
+    const label = (x.n ? 'Episode ' + x.n + ', ' : '') + x.name + '. Watch on YouTube.';
+    return '<li class="tile' + (x.short ? ' tile--short' : '') + '"><a aria-label="' + esc(label) + '" href="https://www.youtube.com/watch?v=' + x.id + '" target="_blank" rel="noopener">'
+      + '<span class="tile__img"><img src="' + esc(img) + '" alt="" width="640" height="360" loading="lazy" decoding="async"' + (x.short ? ' onerror="this.onerror=null;this.src=this.src.replace(\'oardefault\',\'hqdefault\')"' : '') + '>'
+      + '<span class="tile__play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></svg></span>'
+      + (x.n ? '<span class="tile__n" aria-hidden="true">EP ' + x.n + '</span>' : '') + '</span>'
+      + '<span class="tile__txt"><b>' + esc(x.name) + '</b>' + (x.line ? '<small>' + esc(x.line) + '</small>' : '') + '</span></a></li>';
+  };
+  const fillRows = (data) => {
+    const epRow = $('[data-row="episodes"]');
+    if (epRow && data.all && data.all.length) {
+      const track = $('[data-row-track]', epRow);
+      const seen = new Map();
+      // built-in tiles keep their local, sharper thumbnails
+      $$('.tile a', track).forEach((a) => {
+        const id = (a.href.match(/[?&]v=([\w-]+)/) || [])[1];
+        const n = +((a.getAttribute('aria-label') || '').match(/Episode (\d+)/) || [])[1] || 0;
+        const img = $('img', a).getAttribute('src');
+        const b = $('.tile__txt b', a);
+        const sm = $('.tile__txt small', a);
+        if (id) seen.set(id, { id, n, img, name: b ? b.textContent : '', line: sm ? sm.textContent : '' });
+      });
+      data.all.forEach((e) => {
+        const old = seen.get(e.id);
+        seen.set(e.id, { id: e.id, n: e.n, name: old ? old.name : e.name, line: old ? old.line : e.line, img: old && old.img });
+      });
+      const list = [...seen.values()].sort((a, b) => b.n - a.n);
+      track.innerHTML = list.map(tileHTML).join('');
+      const latest = list[0];
+      $$('[data-ep-count]').forEach((el) => { el.textContent = latest.n + ' episodes'; });
+      $$('[data-new-ep]').forEach((el) => { el.textContent = 'Ep ' + latest.n; });
+      track.dispatchEvent(new Event('scroll'));
+    }
+    const clipRow = $('[data-row="clips"]');
+    if (clipRow && data.clips && data.clips.length) {
+      const ct = $('[data-row-track]', clipRow);
+      ct.innerHTML = data.clips.map((c) => tileHTML({ id: c.id, name: c.title, short: true })).join('');
+      clipRow.hidden = false;
+      rowArrows(clipRow);
+      ct.dispatchEvent(new Event('scroll'));
+    }
+  };
 
   // Off-canvas menu (items stagger in when motion is on)
   const drawer = $('#drawer');

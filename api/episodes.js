@@ -27,20 +27,23 @@ module.exports = async (req, res) => {
     const r = await fetch(`https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL}`, { headers: { 'user-agent': 'off-the-clock-site' } });
     if (!r.ok) throw new Error('feed ' + r.status);
     const xml = await r.text();
-    const episodes = [...xml.matchAll(/<entry>([\s\S]*?)<\/entry>/g)]
+    const items = [...xml.matchAll(/<entry>([\s\S]*?)<\/entry>/g)]
       .map(([, e]) => {
         const title = (e.match(/<title>([\s\S]*?)<\/title>/) || [])[1] || '';
         const n = (title.match(/Ep\.?\s*(\d+)/i) || [])[1];
         const id = (e.match(/<yt:videoId>([\w-]+)<\/yt:videoId>/) || [])[1];
         const date = ((e.match(/<published>([^<]+)<\/published>/) || [])[1] || '').slice(0, 10);
-        return n && id ? { n: +n, id, date, title: decode(title), ...shape(title) } : null;
+        if (!id) return null;
+        return n ? { kind: 'episode', n: +n, id, date, title: decode(title), ...shape(title) }
+                 : { kind: 'clip', id, date, title: decode(title) };
       })
-      .filter(Boolean)
-      .sort((a, b) => b.n - a.n)
-      .slice(0, 3);
+      .filter(Boolean);
+    const all = items.filter((x) => x.kind === 'episode').sort((a, b) => b.n - a.n);
+    const clips = items.filter((x) => x.kind === 'clip');
+    const episodes = all.slice(0, 3);
     if (!episodes.length) throw new Error('no episodes');
     res.setHeader('Cache-Control', 'public, s-maxage=10800, stale-while-revalidate=86400');
-    res.status(200).json({ episodes });
+    res.status(200).json({ episodes, all, clips });
   } catch (err) {
     // the page keeps its built-in list when this fails
     res.setHeader('Cache-Control', 'public, s-maxage=300');

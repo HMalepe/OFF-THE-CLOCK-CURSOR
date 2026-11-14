@@ -256,3 +256,9 @@ Lives on `faq.html`. The page opens with `.page-lead` (a short ink block under t
 - Phones: the hero title stays visible while the trailer plays (it sits below the band); band, controls and title are centred as one group (`--band-top`).
 - Photos: hero-studio and the book cover are served via WebP `srcset` (960/1600/2560, 480/840).
 - Touch: every video control is a 44px target.
+
+### Netflix-style homepage (billboard + shelves)
+- Billboard (desktop): copy bottom-left (`--bb-bottom`), details line (Podcast badge · Leadership · Wellbeing · N episodes), ▶ Play (latest episode on YouTube, `[data-play-latest]`) and ⓘ More info (#hello). Title and buttons stay while the trailer plays; the description folds away and the title settles to `scale: .78` (1.4s). Left + bottom shade fades into the shelves. "New · Ep N" stripe on the right edge. Social bar and scroll cue hidden on desktop.
+- Phones: band → controls → title → details → Play / More info (equal-width buttons).
+- Shelves (`.rows#watch`): "Episodes" (feed `all` merged with built-in tiles, newest first, EP badge) and "Shorts & clips" (feed `clips`, portrait tiles from `oardefault.jpg`, hidden until the feed answers). Tiles zoom 1.07 with an accent ring and play glyph on hover/focus. Rows scroll natively (swipe/trackpad); hover arrows page ~86% of the row on desktop. No-JS: the 10 built-in episode tiles show.
+- `/api/episodes` now also returns `all` (every episode in the feed) and `clips` (everything else).
