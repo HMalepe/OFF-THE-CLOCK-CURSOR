@@ -949,3 +949,39 @@ body:has(.hero-dock.is-on) .totop { opacity: 0; pointer-events: none; } /* the p
   .hero__cue { display: none; }
   .tile--short { flex-basis: 38vw; }
 }
+
+/* ==========================================================================
+   One-screen homepage (html.nf, set by JS): long sections fold away, rows replace them,
+   and hosts / story / mission / book / masterclass open in a pop-up sheet.
+   ========================================================================== */
+.nf #main > #hello, .nf #main > #story, .nf #main > #topics, .nf #main > #episodes, .nf #main > #mission,
+.nf #main > #newsletter, .nf #main > .marquee, .nf #main > #book, .nf #main > #masterclass { display: none; }
+.nf .rows { padding-bottom: clamp(36px, 4vw, 64px); }
+.tile--cover { flex-basis: clamp(170px, 13vw, 240px); }
+.tile--cover .tile__img { aspect-ratio: 3 / 4; }
+.tile--cover .tile__play { display: none; }
+@media (max-width: 760px) { .tile--cover { flex-basis: 42vw; } }
+
+.sheet {
+  width: min(1000px, calc(100vw - 48px)); max-width: none; max-height: calc(100dvh - 48px); margin: auto; padding: 0;
+  border: 0; border-radius: 12px; background: var(--ink); color: var(--white); overflow: auto; overscroll-behavior: contain;
+  box-shadow: 0 40px 100px rgba(0, 0, 0, .6);
+}
+.sheet[open] { animation: sheet-in .38s var(--ease-out); }
+.sheet::backdrop { background: rgba(5, 12, 24, .74); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+@keyframes sheet-in { from { opacity: 0; transform: translateY(28px) scale(.98); } }
+.sheet__close {
+  position: sticky; top: 14px; float: right; z-index: 6; margin: 14px 14px -58px 0; width: 44px; height: 44px; border-radius: 50%;
+  display: grid; place-items: center; color: #fff; background: rgba(15, 35, 63, .88); border: 1px solid var(--line-dark); cursor: pointer;
+}
+.sheet__close:hover { background: var(--accent); color: var(--ink); border-color: var(--accent); }
+.sheet__close svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+.sheet > section { min-height: 0; padding-block: clamp(56px, 7vw, 96px); }
+.sheet > .mission { min-height: 70vh; }
+.sheet > .book { border-radius: 0; }
+.sheet .story__bg { position: absolute; }
+@media (max-width: 760px) {
+  .sheet { width: 100vw; max-height: 100dvh; height: 100dvh; border-radius: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .sheet[open] { animation: none; } }
+html.sheet-open, html.sheet-open body { overflow: hidden; } /* the page behind the sheet stays put (phones scroll natively) */

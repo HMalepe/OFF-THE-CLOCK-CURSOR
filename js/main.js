@@ -180,8 +180,7 @@
   const tileHTML = (x) => {
     // Shorts are vertical: YouTube's portrait thumbnail (oardefault), falling back to the standard one
     const img = x.img || ('https://i.ytimg.com/vi/' + x.id + (x.short ? '/oardefault.jpg' : '/hqdefault.jpg'));
-    const label = (x.n ? 'Episode ' + x.n + ', ' : '') + x.name + '. Watch on YouTube.';
-    return '<li class="tile' + (x.short ? ' tile--short' : '') + '"><a aria-label="' + esc(label) + '" href="https://www.youtube.com/watch?v=' + x.id + '" target="_blank" rel="noopener">'
+    return '<li class="tile' + (x.short ? ' tile--short' : '') + '"><a href="https://www.youtube.com/watch?v=' + x.id + '" target="_blank" rel="noopener">'
       + '<span class="tile__img"><img src="' + esc(img) + '" alt="" width="640" height="360" loading="lazy" decoding="async"' + (x.short ? ' onerror="this.onerror=null;this.src=this.src.replace(\'oardefault\',\'hqdefault\')"' : '') + '>'
       + '<span class="tile__play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></svg></span>'
       + (x.n ? '<span class="tile__n" aria-hidden="true">EP ' + x.n + '</span>' : '') + '</span>'
@@ -295,13 +294,106 @@
   // menu jumps travel quietly, with every scroll effect paused, and land on finished states.
   let navTo = null;
   let navQuiet = false;
+  // One-screen homepage (Netflix-style). With JavaScript the long sections are folded away: the rows
+  // under the billboard replace topics / episodes / newsletter, and hosts, story, mission, book and
+  // masterclass open in a pop-up sheet from any tile, menu or footer link (or a #link on load).
+  // Without JavaScript the full long page stays, so nothing is lost for search engines or static mode.
+  const SHEETS = ['hello', 'story', 'mission', 'book', 'masterclass'];
+  const ROW_FOR = { topics: 'row-topics', episodes: 'watch', newsletter: 'watch' };
+  const oneScreen = !!$('#watch') && $$('[data-row]').length > 2;
+  if (oneScreen) root.classList.add('nf');
+  let sheet = null;
+  let sheetSrc = null;
+  let sheetMark = null;
+  const restoreSheet = () => {
+    if (sheetSrc && sheetMark) sheetMark.replaceWith(sheetSrc);
+    sheetSrc = null;
+    sheetMark = null;
+  };
+  const sheetFor = (el) => {
+    const sec = el && el.closest('section');
+    return sec && SHEETS.includes(sec.id) ? sec : null;
+  };
+  const openSheet = (target) => {
+    const sec = sheetFor(target);
+    if (!sec) return false;
+    if (!sheet) {
+      sheet = document.createElement('dialog');
+      sheet.className = 'sheet';
+      sheet.setAttribute('data-lenis-prevent', '');
+      sheet.innerHTML = '<button class="sheet__close" type="button" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>';
+      document.body.appendChild(sheet);
+      $('.sheet__close', sheet).addEventListener('click', () => sheet.close());
+      sheet.addEventListener('click', (e) => { if (e.target === sheet) sheet.close(); }); // backdrop
+      sheet.addEventListener('close', () => {
+        restoreSheet();
+        if (lenis) lenis.start();
+        root.classList.remove('sheet-open');
+        history.replaceState(null, '', location.pathname);
+      });
+    }
+    restoreSheet();
+    sheetMark = document.createComment('sheet');
+    sec.before(sheetMark);
+    sheet.appendChild(sec);
+    sheetSrc = sec;
+    const h = $('h2, h1', sec);
+    sheet.setAttribute('aria-label', h ? h.textContent.replace(/\s+/g, ' ').trim() : 'Details');
+    // everything in the sheet shows at once: finish its reveal animations and stop their scroll triggers
+    if (window.ScrollTrigger) {
+      ScrollTrigger.getAll().forEach((st) => {
+        if (st.trigger && sec.contains(st.trigger) && !st.pin) {
+          if (st.animation) st.animation.progress(1);
+          st.disable(false);
+        }
+      });
+    }
+    if (lenis) lenis.stop();
+    root.classList.add('sheet-open');
+    if (!sheet.open) sheet.showModal();
+    sheet.scrollTop = 0;
+    if (target !== sec) requestAnimationFrame(() => { sheet.scrollTop = target.offsetTop - 24; });
+    history.replaceState(null, '', '#' + (target.id || sec.id));
+    return true;
+  };
+
+  // Arriving on /#book, /#hello … opens the sheet; /#topics or /#episodes lands on the matching row.
+  const arrivedHash = window.__otcHash || location.hash; // the head script strips the hash on load
+  if (oneScreen && arrivedHash.length > 1) {
+    const key = arrivedHash.slice(1);
+    const deep = document.getElementById(key);
+    const row = ROW_FOR[key] && document.getElementById(ROW_FOR[key]);
+    let done = false;
+    const land = () => {
+      if (done) return;
+      done = true;
+      if (deep && sheetFor(deep)) openSheet(deep); // rows (#episodes, #topics) are placed by settlePlace
+    };
+    if (deep && sheetFor(deep)) {
+      document.addEventListener('otc:setup-done', () => setTimeout(land, 60), { once: true });
+      setTimeout(land, motionOK ? 4500 : 60);
+    }
+  }
+
   document.addEventListener('click', (e) => {
     const a = e.target.closest('a[href^="#"]');
     if (!a) return;
     const id = a.getAttribute('href');
     if (id === '#') { e.preventDefault(); return; } // placeholder links
-    const target = $(id);
+    let target = $(id);
     if (!target) return;
+    if (oneScreen) {
+      if (sheetFor(target)) { // folded section: open it in the sheet instead of scrolling
+        e.preventDefault();
+        closeMenu();
+        if (sheet && sheet.open && sheetSrc && sheetSrc.contains(target)) { sheet.scrollTop = target === sheetSrc ? 0 : target.offsetTop - 24; return; }
+        openSheet(target);
+        return;
+      }
+      const alt = ROW_FOR[id.slice(1)];
+      if (alt) target = $('#' + alt) || target; // folded rows stand in for these sections
+      if (sheet && sheet.open) sheet.close();
+    }
     e.preventDefault();
     userScrolled = true; // a late load/fonts settle must not pull the page back after a menu jump
     const wasOpen = root.classList.contains('menu-open');
@@ -722,10 +814,14 @@
         try { y = +(sessionStorage.getItem(scrollKey) || 0); } catch (e) {}
         go(y);
       } else if (pendingHash && pendingHash !== '#top') {
-        const target = document.querySelector(pendingHash);
+        let target = document.querySelector(pendingHash);
         history.replaceState(null, '', pendingHash);
+        if (oneScreen && target) { // folded sections open as a sheet (page stays at the top); some map to rows
+          if (sheetFor(target)) target = null;
+          else if (ROW_FOR[pendingHash.slice(1)]) target = document.getElementById(ROW_FOR[pendingHash.slice(1)]);
+        }
         if (target) {
-          const offset = target.tagName === 'SECTION' ? 0 : -96;
+          const offset = target.tagName === 'SECTION' && !target.matches('.rows') ? 0 : -80;
           go(Math.max(0, target.getBoundingClientRect().top + window.scrollY + offset));
         }
       }
@@ -1562,6 +1658,7 @@
     ScrollTrigger.sort();
     settlePlace();
     markSetupDone();
+    document.dispatchEvent(new Event('otc:setup-done'));
   };
   slice();
 })();
