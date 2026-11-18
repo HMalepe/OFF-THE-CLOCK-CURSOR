@@ -268,3 +268,6 @@ Lives on `faq.html`. The page opens with `.page-lead` (a short ink block under t
 - Tiles, menu links, footer links and deep links to a folded section open it in a native `<dialog class="sheet">` (`data-lenis-prevent`). Opening a sheet moves the section into the dialog, finishes its reveals (`progress(1)`), disables their ScrollTriggers, stops Lenis and locks scroll (`html.sheet-open`). Closing it puts the section back, restarts Lenis and clears the hash.
 - Deep links (`/#hello` etc.) open the sheet; the book and masterclass stay as full sections after `otc:setup-done`. `#topics` and `#episodes` land on their row at an offset of 80px.
 - With JavaScript off or in static mode, the full long page stays.
+- Shelves: platform colours per row (`.row--yt` red, `.row--ig` Instagram pink/gradient marker) drive the hover outline via `--row-accent`. `.row--art` rows (Topics, About) set the title on the image like key art and are sized so the row always runs off the right edge.
+- Tile tilt and glare: on fine-pointer devices in motion mode, `pointermove` sets `--rx/--ry/--gx/--gy` on `.tile__img` (max 4°/3°). CSS does the transform; static mode removes it.
+- Folded sections on the one-screen homepage skip `reveal()` setup entirely (`folded()`), which cut mobile blocking time from ~900ms to ~200ms. Their sheet shows them complete.

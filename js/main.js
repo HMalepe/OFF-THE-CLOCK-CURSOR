@@ -186,6 +186,25 @@
       + (x.n ? '<span class="tile__n" aria-hidden="true">EP ' + x.n + '</span>' : '') + '</span>'
       + '<span class="tile__txt"><b>' + esc(x.name) + '</b>' + (x.line ? '<small>' + esc(x.line) + '</small>' : '') + '</span></a></li>';
   };
+  // Tile tilt + glare: a few degrees toward the pointer (pointer devices, motion mode only)
+  if (!root.classList.contains('static') && matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    document.addEventListener('pointermove', (e) => {
+      const img = e.target.closest && e.target.closest('.tile__img, .tile a');
+      const el = img && (img.classList.contains('tile__img') ? img : $('.tile__img', img));
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+      el.style.setProperty('--ry', ((x - .5) * 8).toFixed(2) + 'deg');
+      el.style.setProperty('--rx', ((.5 - y) * 6).toFixed(2) + 'deg');
+      el.style.setProperty('--gx', (x * 100).toFixed(0) + '%');
+      el.style.setProperty('--gy', (y * 100).toFixed(0) + '%');
+    }, { passive: true });
+    document.addEventListener('pointerout', (e) => {
+      const a = e.target.closest && e.target.closest('.tile a');
+      if (a && !a.contains(e.relatedTarget)) { const el = $('.tile__img', a); if (el) ['--rx', '--ry'].forEach((p) => el.style.removeProperty(p)); }
+    }, { passive: true });
+  }
+
   const fillRows = (data) => {
     const epRow = $('[data-row="episodes"]');
     if (epRow && data.all && data.all.length) {
@@ -953,9 +972,14 @@
         } else if (n.nodeType === 1 && n.tagName !== 'BR') walk(n);
       });
     };
-    el.setAttribute('aria-label', el.textContent.replace(/\s+/g, ' ').trim());
+    const said = el.textContent.replace(/\s+/g, ' ').trim();
     walk(el);
     [...el.children].forEach((c) => c.setAttribute('aria-hidden', 'true'));
+    // the split pieces are hidden from screen readers; one plain copy reads instead (aria-label is not allowed on <p>)
+    const sr = document.createElement('span');
+    sr.className = 'sr';
+    sr.textContent = said;
+    el.appendChild(sr);
     el._words = $$('.wi', el);
     return el._words;
   };
@@ -1206,8 +1230,10 @@
     }
   };
 
+  // folded away on the one-screen homepage: nothing to animate, and its sheet shows it complete
+  const folded = (el) => root.classList.contains('nf') && !!el.closest('#main > section') && getComputedStyle(el.closest('#main > section')).display === 'none';
   const reveal = (scope, skip) => {
-    if (!scope) return;
+    if (!scope || folded(scope)) return;
     // One by one: items in the same section are delayed in DOM order, so elements that
     // enter the screen together still arrive in sequence (0.16s apart, capped at 0.96s).
     let order = 0;

@@ -993,3 +993,40 @@ body:has(.hero-dock.is-on) .totop { opacity: 0; pointer-events: none; } /* the p
 }
 @media (prefers-reduced-motion: reduce) { .sheet[open] { animation: none; } }
 html.sheet-open, html.sheet-open body { overflow: hidden; } /* the page behind the sheet stays put (phones scroll natively) */
+
+/* ==========================================================================
+   Shelves polish: platform colours, art tiles, edge peek, tilt + glare
+   ========================================================================== */
+.row { --row-accent: var(--accent); --tw: clamp(200px, 18.4vw, 330px); }
+.row--yt { --row-accent: var(--yt); }
+.row--ig { --row-accent: var(--ig); }
+.row__mark { align-self: center; width: 4px; height: 1.05em; margin-right: -4px; border-radius: 2px; background: var(--row-accent); }
+.row--ig .row__mark { background: linear-gradient(180deg, var(--ig-1), var(--ig-2), var(--ig), var(--ig-4), var(--ig-5)); }
+.row--yt .tile__n { background: var(--yt); color: var(--white); }
+.row--ig .tile__n { background: linear-gradient(45deg, var(--ig-2), var(--ig), var(--ig-4)); color: var(--white); }
+.tile a:hover .tile__img, .tile a:focus-visible .tile__img { box-shadow: 0 18px 40px rgba(0, 0, 0, .5), 0 0 0 2px var(--row-accent); }
+.row--ig .tile a:hover .tile__img, .row--ig .tile a:focus-visible .tile__img { box-shadow: 0 18px 40px rgba(0, 0, 0, .5), 0 0 0 2px var(--ig), 0 0 22px rgba(214, 41, 118, .35); }
+.row--yt .tile a:hover .tile__img { box-shadow: 0 18px 40px rgba(0, 0, 0, .5), 0 0 0 2px var(--yt), 0 0 22px rgba(255, 0, 51, .28); }
+.row--yt .tile__play { background: var(--yt); border-color: var(--yt); }
+
+/* art tiles: wider so a row always runs off the edge, title set on the image like key art */
+@media (min-width: 761px) { .row--art { --tw: calc((100vw - 8vw) / 3.35); } }
+.row--art .tile { flex-basis: var(--tw); }
+.row__arrow { height: calc(var(--tw) * 9 / 16); }
+.row--art .tile__img::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(10, 24, 44, .9) 0, rgba(10, 24, 44, .35) 38%, rgba(10, 24, 44, 0) 62%); pointer-events: none; }
+.row--art .tile a { position: relative; }
+.row--art .tile__txt { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; padding: 0 16px 14px; pointer-events: none; transition: opacity .3s, translate .4s var(--ease-out); }
+.row--art .tile__txt b { font: 600 clamp(1.15rem, 1.6vw, 1.6rem)/1.15 var(--f-display); letter-spacing: .01em; text-transform: uppercase; color: var(--white); text-shadow: 0 2px 12px rgba(0, 0, 0, .5); }
+.row--art .tile__txt small { color: var(--mist); }
+.tile--read a:hover .tile__txt, .tile--read a:focus-visible .tile__txt { opacity: 0; translate: 0 -8px; }
+.row--art .tile__peek { z-index: 3; }
+@media (max-width: 760px) { .row--art .tile { flex-basis: 78vw; } }
+
+/* tilt + glare (pointer devices; --rx/--ry/--gx/--gy set by main.js) */
+.tile__img { transform: perspective(800px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
+.tile a:hover .tile__img, .tile a:focus-visible .tile__img { transform: perspective(800px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(1.06); }
+.tile__img::before { content: ""; position: absolute; inset: 0; z-index: 2; background: radial-gradient(circle at var(--gx, 50%) var(--gy, 0%), rgba(255, 255, 255, .22), rgba(255, 255, 255, 0) 55%); opacity: 0; transition: opacity .3s; pointer-events: none; }
+.tile a:hover .tile__img::before { opacity: 1; }
+.static .tile__img, .static .tile a:hover .tile__img { transform: none; }
+.row--yt .row__more, .row--ig .row__more { color: var(--white); }
+.row--yt .row__more span { color: var(--yt); } .row--ig .row__more span { color: var(--ig); }
