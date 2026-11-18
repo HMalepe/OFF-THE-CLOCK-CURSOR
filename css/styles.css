@@ -955,7 +955,7 @@ body:has(.hero-dock.is-on) .totop { opacity: 0; pointer-events: none; } /* the p
    and hosts / story / mission / book / masterclass open in a pop-up sheet.
    ========================================================================== */
 .nf #main > #hello, .nf #main > #story, .nf #main > #topics, .nf #main > #episodes, .nf #main > #mission,
-.nf #main > #newsletter, .nf #main > .marquee, .nf #main > #book, .nf #main > #masterclass { display: none; }
+.nf #main > #newsletter, .nf #main > .marquee { display: none; }
 .nf .rows { padding-bottom: clamp(36px, 4vw, 64px); }
 .tile--cover { flex-basis: clamp(170px, 13vw, 240px); }
 .tile--cover .tile__img { aspect-ratio: 3 / 4; }

@@ -298,7 +298,7 @@
   // under the billboard replace topics / episodes / newsletter, and hosts, story, mission, book and
   // masterclass open in a pop-up sheet from any tile, menu or footer link (or a #link on load).
   // Without JavaScript the full long page stays, so nothing is lost for search engines or static mode.
-  const SHEETS = ['hello', 'story', 'mission', 'book', 'masterclass'];
+  const SHEETS = ['hello', 'story', 'mission'];
   const ROW_FOR = { topics: 'row-topics', episodes: 'watch', newsletter: 'watch' };
   const oneScreen = !!$('#watch') && $$('[data-row]').length > 2;
   if (oneScreen) root.classList.add('nf');

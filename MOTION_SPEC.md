@@ -264,7 +264,7 @@ Lives on `faq.html`. The page opens with `.page-lead` (a short ink block under t
 - `/api/episodes` now also returns `all` (every episode in the feed) and `clips` (everything else).
 
 ## One-screen homepage (`html.nf`) and sheets
-- With JavaScript, `main.js` adds `nf` when the page has the rows block. Hosts, story, mission, book and masterclass are hidden from the page flow. Topics, episodes and newsletter are folded into rows.
+- With JavaScript, `main.js` adds `nf` when the page has the rows block. Hosts, story and mission are hidden from the page flow. Topics, episodes and newsletter are folded into rows.
 - Tiles, menu links, footer links and deep links to a folded section open it in a native `<dialog class="sheet">` (`data-lenis-prevent`). Opening a sheet moves the section into the dialog, finishes its reveals (`progress(1)`), disables their ScrollTriggers, stops Lenis and locks scroll (`html.sheet-open`). Closing it puts the section back, restarts Lenis and clears the hash.
-- Deep links (`/#book` etc.) open the sheet after `otc:setup-done`. `#topics` and `#episodes` land on their row at an offset of 80px.
+- Deep links (`/#hello` etc.) open the sheet; the book and masterclass stay as full sections after `otc:setup-done`. `#topics` and `#episodes` land on their row at an offset of 80px.
 - With JavaScript off or in static mode, the full long page stays.
