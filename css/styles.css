@@ -1030,3 +1030,25 @@ html.sheet-open, html.sheet-open body { overflow: hidden; } /* the page behind t
 .static .tile__img, .static .tile a:hover .tile__img { transform: none; }
 .row--yt .row__more, .row--ig .row__more { color: var(--white); }
 .row--yt .row__more span { color: var(--yt); } .row--ig .row__more span { color: var(--ig); }
+
+/* Header "About" dropdown (desktop nav): two columns, About the show + Topics */
+.hdr__dd { position: relative; }
+.hdr__ddbtn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 0; border: 0; background: none; color: inherit; font: inherit; font-size: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; }
+.hdr__ddbtn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: rotate .3s var(--ease-out); }
+.hdr__dd.is-open .hdr__ddbtn svg { rotate: 180deg; }
+.hdr__menu { position: absolute; right: -16px; top: calc(100% + 10px); z-index: 60; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 22px; width: min(640px, 80vw); padding: 18px; border-radius: 12px; background: rgba(15, 35, 63, .96); backdrop-filter: blur(14px); border: 1px solid var(--line-dark); box-shadow: 0 24px 60px rgba(0, 0, 0, .45); text-transform: none; letter-spacing: 0; animation: ddIn .28s var(--ease-out); }
+.hdr__menu[hidden] { display: none; }
+.hdr__menu::before { content: ""; position: absolute; left: 0; right: 0; top: -12px; height: 12px; } /* hover bridge */
+@keyframes ddIn { from { opacity: 0; translate: 0 -6px; } to { opacity: 1; translate: 0 0; } }
+.hdr__col p { margin: 0 0 6px; padding: 0 8px; font: 600 .68rem/1 var(--f-body); letter-spacing: var(--track-caps); text-transform: uppercase; color: var(--accent); }
+.hdr__nav .hdr__menu a { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 8px; color: var(--white); text-decoration: none; transition: background-color .2s; }
+.hdr__nav .hdr__menu a::after { display: none; }
+.hdr__nav .hdr__menu a:hover, .hdr__nav .hdr__menu a:focus-visible { background: rgba(231, 238, 243, .08); }
+.hdr__menu img { flex: 0 0 64px; width: 64px; height: 36px; object-fit: cover; border-radius: 4px; }
+.hdr__menu span { min-width: 0; }
+.hdr__menu b { display: block; font: 600 .9rem/1.25 var(--f-body); }
+.hdr__menu small { display: block; margin-top: 2px; font: 400 .74rem/1.35 var(--f-body); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (prefers-reduced-motion: reduce) { .hdr__menu { animation: none; } }
+.hdr__ddbtn { min-height: 44px; font-weight: 500; font-size: .74rem; letter-spacing: .14em; text-transform: uppercase; color: var(--white); }
+.hdr__menu { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.hdr__nav .hdr__menu a { min-height: 0; font-size: inherit; letter-spacing: 0; text-transform: none; white-space: normal; }

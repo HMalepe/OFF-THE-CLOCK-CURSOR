@@ -318,8 +318,8 @@
   // masterclass open in a pop-up sheet from any tile, menu or footer link (or a #link on load).
   // Without JavaScript the full long page stays, so nothing is lost for search engines or static mode.
   const SHEETS = ['hello', 'story', 'mission'];
-  const ROW_FOR = { topics: 'row-topics', episodes: 'watch', newsletter: 'watch' };
-  const oneScreen = !!$('#watch') && $$('[data-row]').length > 2;
+  const ROW_FOR = { topics: 'watch', episodes: 'watch', newsletter: 'watch' };
+  const oneScreen = !!$('#watch') && $$('[data-row]').length >= 2;
   if (oneScreen) root.classList.add('nf');
   let sheet = null;
   let sheetSrc = null;
@@ -392,6 +392,31 @@
       document.addEventListener('otc:setup-done', () => setTimeout(land, 60), { once: true });
       setTimeout(land, motionOK ? 4500 : 60);
     }
+  }
+
+  // Header "About" dropdown: click or hover opens it; Escape, outside click or picking a link closes it.
+  const dd = $('[data-dd]');
+  if (dd) {
+    const btn = $('[data-dd-btn]', dd);
+    const menu = $('[data-dd-menu]', dd);
+    let hoverT = 0;
+    let hoverAt = 0;
+    const setDD = (open) => {
+      if (open === !menu.hidden) return;
+      menu.hidden = !open;
+      btn.setAttribute('aria-expanded', String(open));
+      dd.classList.toggle('is-open', open);
+    };
+    // a click straight after hover-open keeps it open instead of toggling it shut
+    btn.addEventListener('click', () => setDD(menu.hidden || performance.now() - hoverAt < 600));
+    if (matchMedia('(hover: hover)').matches) {
+      dd.addEventListener('mouseenter', () => { clearTimeout(hoverT); if (menu.hidden) hoverAt = performance.now(); setDD(true); });
+      dd.addEventListener('mouseleave', () => { hoverT = setTimeout(() => setDD(false), 180); });
+    }
+    menu.addEventListener('click', (e) => { if (e.target.closest('a')) setDD(false); });
+    document.addEventListener('click', (e) => { if (!dd.contains(e.target)) setDD(false); });
+    dd.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !menu.hidden) { setDD(false); btn.focus(); } });
+    dd.addEventListener('focusout', (e) => { if (!dd.contains(e.relatedTarget)) setDD(false); });
   }
 
   document.addEventListener('click', (e) => {

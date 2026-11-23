@@ -96,13 +96,20 @@
     <span>Subscribe</span>
   </a>
   <nav class="hdr__nav hdr__nav--l" aria-label="Main menu">
-    <a href="#hello">The hosts</a><a href="#topics">Topics</a><a href="#episodes">Episodes</a>
+    <a href="#episodes">Episodes</a><a href="#book">The book</a><a href="#masterclass">Masterclass</a>
   </nav>
   <a class="hdr__brand" href="#top" aria-label="Off The Clock — home">
     <span class="brand"><img class="brand-logo" src="assets/logo-white.png" alt=""><svg class="brand__clock" viewBox="0 0 100 100" aria-hidden="true"><circle class="brand__face" cx="50" cy="50" r="25"/><path data-pie fill="url(#clock-dark)" d="M50 50 Z"/><circle cx="50" cy="50" r="34" fill="none" stroke-width="24"/></svg></span>
   </a>
   <nav class="hdr__nav hdr__nav--r" aria-label="Main menu, continued">
-    <a href="#book">The book</a><a href="#masterclass">Masterclass</a><a href="faq.html">FAQ</a>
+    <a href="faq.html">FAQ</a>
+    <div class="hdr__dd" data-dd>
+      <button class="hdr__ddbtn" type="button" aria-expanded="false" aria-controls="about-menu" data-dd-btn>About <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+      <div class="hdr__menu" id="about-menu" data-dd-menu hidden>
+        <div class="hdr__col"><p>About the show</p><a href="#hello"><img src="assets/tiles/hosts.webp" alt="" width="64" height="36" loading="lazy" decoding="async"><span><b>The hosts</b><small>Peter, Mahlatse and Tshepiso Mehlape</small></span></a><a href="#story"><img src="assets/tiles/story.webp" alt="" width="64" height="36" loading="lazy" decoding="async"><span><b>Our story</b><small>Where the conversation started</small></span></a><a href="#mission"><img src="assets/tiles/mission.webp" alt="" width="64" height="36" loading="lazy" decoding="async"><span><b>Rest isn’t weakness</b><small>Why the show exists</small></span></a><a href="faq.html"><img src="assets/tiles/worklife.webp" alt="" width="64" height="36" loading="lazy" decoding="async"><span><b>Questions</b><small>Everything you might ask before you press play</small></span></a></div>
+        <div class="hdr__col"><p>Topics</p><a href="#watch"><img src="assets/tiles/leadership.webp" alt="" width="64" height="36" loading="lazy" decoding="async"><span><b>Leadership</b><small>Demystifying the CEO, and the human underneath the title</small></span></a><a href="#watch"><img src="assets/tiles/wellbeing.webp" alt="" width="64" height="36" loading="lazy" decoding="async"><span><b>Wellbeing</b><small>Rest, stress, sleep: not off-limits in the corner office</small></span></a><a href="#hello"><img src="assets/tiles/worklife.webp" alt="" width="64" height="36" loading="lazy" decoding="async"><span><b>Work and life</b><small>How leaders actually live while doing the job</small></span></a><a href="https://www.youtube.com/@OffTheClock-ds3cf" target="_blank" rel="noopener"><img src="assets/yt/cLPuWvQ67SQ-640.webp" alt="" width="64" height="36" loading="lazy" decoding="async"><span><b>On YouTube</b><small>The full catalogue, latest episode first</small></span></a></div>
+      </div>
+    </div>
     <a class="hdr__cta" href="https://www.youtube.com/@OffTheClock-ds3cf?sub_confirmation=1" target="_blank" rel="noopener" aria-label="Subscribe on YouTube">Subscribe</a>
   </nav>
   <button class="hdr__burger" type="button" aria-expanded="false" aria-controls="drawer" data-menu-open>
@@ -117,8 +124,8 @@
   <span class="brand"><img class="brand-logo drawer__logo" src="assets/logo-navy.png" alt="Off The Clock"><svg class="brand__clock" viewBox="0 0 100 100" aria-hidden="true"><circle class="brand__face" cx="50" cy="50" r="25"/><path data-pie fill="url(#clock-dark)" d="M50 50 Z"/><circle cx="50" cy="50" r="34" fill="none" stroke-width="24"/></svg></span>
   <p class="drawer__title">Main menu</p>
   <nav class="drawer__nav">
-    <details><summary>The show</summary>
-      <a href="#hello">The hosts</a><a href="#story">The story</a><a href="#topics">Topics</a>
+    <details><summary>About</summary>
+      <a href="#hello">The hosts</a><a href="#story">The story</a><a href="#mission">Rest isn’t weakness</a><a href="faq.html">Questions</a>
     </details>
     <details><summary>Listen</summary>
       <a href="#episodes">Conversations</a><a href="faq.html">Questions</a><a href="https://www.youtube.com/watch?v=lRXAA3vOIX0" target="_blank" rel="noopener" data-latest-ep>Latest episode</a>
@@ -256,19 +263,6 @@
       <button class="row__arrow row__arrow--next" type="button" aria-label="More clips" data-row-next><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
     </div>
   </div>
-  <div class="row row--art" data-row="topics" id="row-topics">
-    <h2 class="row__title">Topics</h2>
-    <div class="row__wrap">
-      <button class="row__arrow row__arrow--prev" type="button" aria-label="Previous" data-row-prev disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
-      <ul class="row__track" data-row-track>
-        <li class="tile"><a href="#watch"><span class="tile__img"><img src="assets/tiles/leadership.webp" alt="" width="640" height="360" loading="lazy" decoding="async"></span><span class="tile__txt"><b>Leadership</b><small>Demystifying the CEO, and the human underneath the title</small></span></a></li>
-        <li class="tile"><a href="#watch"><span class="tile__img"><img src="assets/tiles/wellbeing.webp" alt="" width="640" height="360" loading="lazy" decoding="async"></span><span class="tile__txt"><b>Wellbeing</b><small>Rest, stress, sleep: not off-limits in the corner office</small></span></a></li>
-        <li class="tile"><a href="#hello"><span class="tile__img"><img src="assets/tiles/worklife.webp" alt="" width="640" height="360" loading="lazy" decoding="async"></span><span class="tile__txt"><b>Work and life</b><small>How leaders actually live while doing the job</small></span></a></li>
-        <li class="tile"><a href="https://www.youtube.com/@OffTheClock-ds3cf" target="_blank" rel="noopener"><span class="tile__img"><img src="assets/yt/cLPuWvQ67SQ-640.webp" alt="" width="640" height="360" loading="lazy" decoding="async"></span><span class="tile__txt"><b>On YouTube</b><small>The full catalogue, latest episode first</small></span></a></li>
-      </ul>
-      <button class="row__arrow row__arrow--next" type="button" aria-label="More" data-row-next><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
-    </div>
-  </div>
   <div class="row row--ig" data-row="instagram" id="row-instagram">
     <h2 class="row__title"><span class="row__mark" aria-hidden="true"></span>On Instagram <a class="row__more" href="https://www.instagram.com/offthe_clock/" target="_blank" rel="noopener">Follow @offthe_clock <span aria-hidden="true">›</span></a></h2>
     <div class="row__wrap">
@@ -278,19 +272,6 @@
         <li class="tile tile--short"><a href="https://www.instagram.com/offthe_clock/reel/Ddy8pSEqAry/" target="_blank" rel="noopener"><span class="tile__img"><img src="assets/ig/Ddy8pSEqAry.webp" alt="" width="480" height="640" loading="lazy" decoding="async"><span class="tile__play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></svg></span><span class="tile__n" aria-hidden="true">REEL</span></span><span class="tile__txt"><b>The law</b><small>Adv. Itumeleng Moeletsi on AI in court</small></span></a></li>
         <li class="tile tile--short"><a href="https://www.instagram.com/offthe_clock/reel/Ddrcf7kKOWQ/" target="_blank" rel="noopener"><span class="tile__img"><img src="assets/ig/Ddrcf7kKOWQ.webp" alt="" width="480" height="640" loading="lazy" decoding="async"><span class="tile__play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></svg></span><span class="tile__n" aria-hidden="true">REEL</span></span><span class="tile__txt"><b>Wellbeing</b><small>Why rest isn’t a reward you earn</small></span></a></li>
         <li class="tile tile--short"><a href="https://www.instagram.com/offthe_clock/reel/DdowPD-CKSM/" target="_blank" rel="noopener"><span class="tile__img"><img src="assets/ig/DdowPD-CKSM.webp" alt="" width="480" height="640" loading="lazy" decoding="async"><span class="tile__play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></svg></span><span class="tile__n" aria-hidden="true">REEL</span></span><span class="tile__txt"><b>Sleep</b><small>Dr Jedd Myers: lack of sleep is not a badge of honour</small></span></a></li>
-      </ul>
-      <button class="row__arrow row__arrow--next" type="button" aria-label="More" data-row-next><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
-    </div>
-  </div>
-  <div class="row row--art" data-row="about" id="row-about">
-    <h2 class="row__title">About the show</h2>
-    <div class="row__wrap">
-      <button class="row__arrow row__arrow--prev" type="button" aria-label="Previous" data-row-prev disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
-      <ul class="row__track" data-row-track>
-        <li class="tile tile--read"><a href="#hello"><span class="tile__img"><img src="assets/tiles/hosts.webp" alt="" width="640" height="360" loading="lazy" decoding="async"><span class="tile__peek" aria-hidden="true"><span>A father, his son and his daughter, sitting with CEOs, founders and leaders to ask about the part the title leaves out.</span><em>Read more <i>›</i></em></span></span><span class="tile__txt"><b>The hosts</b><small>Peter, Mahlatse and Tshepiso Mehlape</small></span></a></li>
-        <li class="tile tile--read"><a href="#story"><span class="tile__img"><img src="assets/tiles/story.webp" alt="" width="640" height="360" loading="lazy" decoding="async"><span class="tile__peek" aria-hidden="true"><span>Founded to demystify the CEO and bring the human back into leadership.</span><em>Read more <i>›</i></em></span></span><span class="tile__txt"><b>Our story</b><small>Where the conversation started</small></span></a></li>
-        <li class="tile tile--read"><a href="#mission"><span class="tile__img"><img src="assets/tiles/mission.webp" alt="" width="640" height="360" loading="lazy" decoding="async"><span class="tile__peek" aria-hidden="true"><span>Executive rest, stress and mental wellness are not off-limits. Burnout is not a strategy.</span><em>Read more <i>›</i></em></span></span><span class="tile__txt"><b>Rest isn’t weakness</b><small>Why the show exists</small></span></a></li>
-        <li class="tile tile--read"><a href="faq.html"><span class="tile__img"><img src="assets/tiles/worklife.webp" alt="" width="640" height="360" loading="lazy" decoding="async"><span class="tile__peek" aria-hidden="true"><span>Who hosts it, where to watch, and a myth-or-fact from the show.</span><em>Read the FAQ <i>›</i></em></span></span><span class="tile__txt"><b>Questions</b><small>Everything you might ask before you press play</small></span></a></li>
       </ul>
       <button class="row__arrow row__arrow--next" type="button" aria-label="More" data-row-next><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
     </div>
