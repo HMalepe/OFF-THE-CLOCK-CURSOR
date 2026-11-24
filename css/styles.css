@@ -1053,3 +1053,9 @@ html.sheet-open, html.sheet-open body { overflow: hidden; } /* the page behind t
 .hdr__ddbtn { min-height: 44px; font-weight: 500; font-size: .74rem; letter-spacing: .14em; text-transform: uppercase; color: var(--white); }
 .hdr__menu { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 .hdr__nav .hdr__menu a { min-height: 0; font-size: inherit; letter-spacing: 0; text-transform: none; white-space: normal; }
+
+/* Shorts and reels: wider cards and captions that wrap, so the whole caption reads */
+.tile--short { flex-basis: clamp(180px, 14.5vw, 290px); }
+.tile--short .tile__txt b { -webkit-line-clamp: 6; font-size: .92rem; line-height: 1.32; }
+.tile--short .tile__txt small { white-space: normal; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; line-height: 1.38; }
+@media (max-width: 760px) { .tile--short { flex-basis: 46vw; } }
