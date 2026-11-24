@@ -1053,16 +1053,3 @@ html.sheet-open, html.sheet-open body { overflow: hidden; } /* the page behind t
 .hdr__ddbtn { min-height: 44px; font-weight: 500; font-size: .74rem; letter-spacing: .14em; text-transform: uppercase; color: var(--white); }
 .hdr__menu { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 .hdr__nav .hdr__menu a { min-height: 0; font-size: inherit; letter-spacing: 0; text-transform: none; white-space: normal; }
-
-/* Instagram reels without cover art: designed text cards, tinted with the Instagram palette */
-.tile--text .tile__img { background:
-  radial-gradient(130% 75% at 100% 0%, var(--card-a, var(--ig)) 0%, rgba(15, 35, 63, 0) 62%),
-  linear-gradient(175deg, var(--ink-2), var(--ink)); }
-.tile--text:nth-child(5n+1) { --card-a: var(--ig-5); }
-.tile--text:nth-child(5n+2) { --card-a: var(--ig-4); }
-.tile--text:nth-child(5n+3) { --card-a: var(--ig); }
-.tile--text:nth-child(5n+4) { --card-a: var(--ig-2); }
-.tile--text:nth-child(5n+5) { --card-a: var(--ig-1); }
-.tile__word { position: absolute; left: 14px; right: 12px; bottom: 16px; z-index: 1; font: 700 clamp(1.25rem, 1.7vw, 1.7rem)/1.05 var(--f-display); letter-spacing: .01em; text-transform: uppercase; color: var(--white); text-shadow: 0 2px 14px rgba(0, 0, 0, .45); overflow-wrap: anywhere; }
-.tile--text .tile__txt b { display: none; }
-.tile--text .tile__txt small { margin-top: 0; color: var(--mist); font-size: .8rem; white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
