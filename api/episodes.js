@@ -1,5 +1,5 @@
 // Latest full episodes from the Off The Clock YouTube channel's public feed.
-// Shorts are skipped: only titles with "Ep. NN" count. Cached at the edge for 3 hours, so the
+// Shorts are skipped: only titles with "Ep. NN" count. Cached at the edge for 1 hour, so the
 // site picks up a new episode within a few hours with nobody editing anything.
 const CHANNEL = 'UCGMNq--H05H_Lfa4K4J1b9Q';
 
@@ -42,7 +42,7 @@ module.exports = async (req, res) => {
     const clips = items.filter((x) => x.kind === 'clip');
     const episodes = all.slice(0, 3);
     if (!episodes.length) throw new Error('no episodes');
-    res.setHeader('Cache-Control', 'public, s-maxage=10800, stale-while-revalidate=86400');
+    res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
     res.status(200).json({ episodes, all, clips });
   } catch (err) {
     // the page keeps its built-in list when this fails
