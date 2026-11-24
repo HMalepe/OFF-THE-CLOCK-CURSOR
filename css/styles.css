@@ -1059,3 +1059,7 @@ html.sheet-open, html.sheet-open body { overflow: hidden; } /* the page behind t
 .tile--short .tile__txt b { -webkit-line-clamp: 6; font-size: .92rem; line-height: 1.32; }
 .tile--short .tile__txt small { white-space: normal; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; line-height: 1.38; }
 @media (max-width: 760px) { .tile--short { flex-basis: 46vw; } }
+/* Episode covers carry small host and guest names: show them larger so the names read */
+.row[data-row="episodes"] { --tw: clamp(250px, 27vw, 480px); }
+.row[data-row="episodes"] .tile { flex-basis: var(--tw); }
+@media (max-width: 760px) { .row[data-row="episodes"] { --tw: 78vw; } }

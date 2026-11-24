@@ -181,9 +181,9 @@
     // Shorts are vertical: YouTube's portrait thumbnail (oardefault), falling back to the standard one
     // thumbnails come through our own /api/thumb (blocked-ytimg networks), falling back to the standard one
     const thumb = (v) => '/api/thumb?id=' + x.id + '&v=' + v;
-    const img = x.img || thumb(x.short ? 'oardefault' : 'hqdefault');
+    const img = x.img || thumb(x.short ? 'oardefault' : 'maxresdefault');
     return '<li class="tile' + (x.short ? ' tile--short' : '') + '"><a href="https://www.youtube.com/watch?v=' + x.id + '" target="_blank" rel="noopener">'
-      + '<span class="tile__img"><img src="' + esc(img) + '" alt="" width="640" height="360" loading="lazy" decoding="async"' + ' onerror="this.onerror=null;this.src=\'' + thumb(x.short ? 'hqdefault' : 'mqdefault') + '\'"'+ '>'
+      + '<span class="tile__img"><img src="' + esc(img) + '" alt="" width="640" height="360" loading="lazy" decoding="async"' + ' onerror="this.onerror=null;this.src=\'' + thumb('hqdefault') + '\'"'+ '>'
       + '<span class="tile__play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></svg></span>'
       + (x.n ? '<span class="tile__n" aria-hidden="true">EP ' + x.n + '</span>' : '') + '</span>'
       + '<span class="tile__txt"><b>' + esc(x.name) + '</b>' + (x.line ? '<small>' + esc(x.line) + '</small>' : '') + '</span></a></li>';
