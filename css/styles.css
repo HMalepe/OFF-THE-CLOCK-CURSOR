@@ -866,7 +866,7 @@ body:has(.hero-dock.is-on) .totop { opacity: 0; pointer-events: none; } /* the p
 .hero__stripe { display: none; }
 
 @media (min-width: 761px) {
-  .hero { place-items: end start; --bb-bottom: clamp(150px, 26vh, 270px); }
+  .hero { place-items: end start; --bb-bottom: clamp(56px, 9vh, 96px); }
   .hero__content { text-align: left; max-width: min(640px, 48vw); margin-left: max(var(--gutter), 4vw); padding: 0 0 var(--bb-bottom); }
   .hero__title { font-size: clamp(3rem, 6.6vw, 6.8rem); transform-origin: 0 100%; transition: scale 1.4s var(--ease-out); }
   .hero__meta, .hero__actions { justify-content: flex-start; }
@@ -892,7 +892,8 @@ body:has(.hero-dock.is-on) .totop { opacity: 0; pointer-events: none; } /* the p
 
 /* Shelves */
 .rows { position: relative; z-index: 4; padding: 8px 0 clamp(48px, 6vw, 88px); background: var(--ink); color: var(--white); }
-@media (min-width: 761px) { .rows { margin-top: calc(-1 * clamp(110px, 17vh, 190px)); background: linear-gradient(180deg, rgba(15,35,63,0) 0, var(--ink) 150px); } }
+/* the hero owns the whole first screen; the shelves start below it */
+@media (min-width: 761px) { .rows { margin-top: 0; background: var(--ink); } }
 .row { margin-bottom: clamp(18px, 2.4vw, 36px); }
 .row[hidden] { display: none; }
 .row__title { display: flex; align-items: baseline; gap: 14px; margin: 0 0 4px; padding: 0 max(var(--gutter), 4vw); font: 600 clamp(1.05rem, 1.35vw, 1.4rem)/1.2 var(--f-body); letter-spacing: .01em; text-transform: none; }
