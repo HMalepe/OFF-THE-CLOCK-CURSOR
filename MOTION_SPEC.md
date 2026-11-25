@@ -272,3 +272,9 @@ Lives on `faq.html`. The page opens with `.page-lead` (a short ink block under t
 - Tile tilt and glare: on fine-pointer devices in motion mode, `pointermove` sets `--rx/--ry/--gx/--gy` on `.tile__img` (max 4°/3°). CSS does the transform; static mode removes it.
 - Folded sections on the one-screen homepage skip `reveal()` setup entirely (`folded()`), which cut mobile blocking time from ~900ms to ~200ms. Their sheet shows them complete.
 - The Topics and About rows are gone. Their tiles live in the header's "About" dropdown (`[data-dd]`), in two columns: About the show and Topics. On hover devices it opens on hover or click; Escape, an outside click, focus leaving it, or picking a link closes it. It fades in with `ddIn` (none with reduced motion). On phones the drawer's "About" group carries the same links.
+
+## Book entrance (`bookFlip`, section 10)
+- `.book__cover` skips the generic reveal. `main.js` builds a 3D book around the cover image (`.book3d`: spine, page block, top and bottom edges, back, 7 page leaves, ground shadow) and a paused timeline, then plays it once from a ScrollTrigger (`top 78%`, `once`).
+- Sequence (~4.7s): slide in from the right turned to show the spine (`expo.out`), cover swings open (-142°), the 7 leaves riffle across (0.12s stagger) and turn back, cover closes, the book turns flat (rotationY/X → 0) and the stage returns to its slot.
+- Landing state is the original 2D cover. `teardown()` moves the `<img>` back into the figure, removes the 3D parts and `.is-3d`, and the cover's shadow eases back in via CSS. Any error also tears down, so the flat cover always remains.
+- The 3D parts only exist while `.is-3d` is set. Static mode returns before this block, so it never runs there.
