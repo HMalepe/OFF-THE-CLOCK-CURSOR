@@ -1475,7 +1475,7 @@
      closes and turns flat to land exactly as the 2D cover. The 3D parts exist only for the animation. */
   const bookFlip = (fig, img) => {
     const W = Math.round(fig.getBoundingClientRect().width);
-    if (W < 80 || !window.gsap) return;
+    if (W < 80 || !window.gsap || matchMedia('(prefers-reduced-motion: reduce)').matches) return; // 3D spin is skipped for reduced motion
     const D = Math.max(18, Math.round(W * 0.075));
     const mk = (cls, parent) => { const d = document.createElement('div'); d.className = cls; if (parent) parent.appendChild(d); return d; };
     const stage = document.createElement('div');
