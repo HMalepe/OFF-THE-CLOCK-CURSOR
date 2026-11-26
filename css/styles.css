@@ -27,7 +27,7 @@
   --shade: rgba(15, 35, 63, .62);
   /* fixed copies of the palette, so a section can swap light and dark without losing the originals */
   --c-navy: #0F233F; --c-paper: #F0EDE9; --c-mist: #E7EEF3; --c-white: #FFFFFF;
-  --c-slate: #5A6B7C; --c-slate-d: #1A3358; --c-muted: #A8B6C4; --c-teal: #087F8C; /* teal: the cyan, darkened to pass contrast on light */
+  --c-slate: #5A6B7C; --c-slate-d: #1A3358; --c-muted: #A8B6C4; --c-fog: #EDEFF3; /* cool grey panel behind the blocks */ --c-teal: #087F8C; /* teal: the cyan, darkened to pass contrast on light */
 
   /* type — heavy condensed display, clean body. The wordmark is the logo image. */
   --f-display: "Oswald", "Arial Narrow", "Franklin Gothic Medium", Impact, sans-serif;
@@ -1076,8 +1076,21 @@ html.sheet-open, html.sheet-open body { overflow: hidden; } /* the page behind t
   --muted: var(--c-slate); --line-dark: rgba(20, 32, 51, .14); --accent: var(--c-teal);
 }
 .newsletter { --ink: var(--c-mist); --ink-2: var(--c-paper); }
-.book {
+/* Rounded blocks on a white page: grey panels behind the shelves and the masterclass, navy blocks for the book */
+.rows { background: var(--c-white); --ink: var(--c-white); }
+@media (min-width: 761px) { .rows { background: var(--c-white); margin-top: 0; } }
+.rows { padding-top: clamp(18px, 2.4vw, 36px); }
+.row { margin: 0 max(14px, 3vw) clamp(16px, 2.2vw, 30px); padding: clamp(16px, 1.8vw, 26px) 0 clamp(4px, .8vw, 12px); border-radius: clamp(22px, 2.6vw, 40px); background: var(--c-fog); overflow: hidden; }
+.row__title, .row__track { padding-inline: clamp(18px, 2.4vw, 40px); }
+.row__track { scroll-padding-inline: clamp(18px, 2.4vw, 40px); }
+.row__arrow { width: clamp(40px, 3.4vw, 60px); }
+.tile__img { border-radius: 14px; }
+.masterclass { --ink: var(--c-white); }
+.masterclass__inner { background: var(--c-fog); border-radius: clamp(22px, 2.6vw, 40px); padding: clamp(32px, 5vw, 72px) clamp(22px, 4vw, 64px); }
+.book { --paper: var(--c-white); }
+.book__grid, .book__author {
   --paper: var(--c-navy); --charcoal: var(--c-mist); --slate-d: var(--c-white); --slate: var(--c-muted);
+  background: var(--c-navy); color: var(--c-mist); border-radius: clamp(22px, 2.6vw, 40px); padding: clamp(28px, 5vw, 72px);
 }
+.book__author { margin-top: clamp(16px, 2.2vw, 30px); }
 .book .btn--ink:hover { background: var(--c-white); color: var(--c-navy); }
-@media (min-width: 761px) { .rows { background: var(--c-paper); } }
