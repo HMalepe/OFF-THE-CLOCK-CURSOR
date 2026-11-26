@@ -1471,70 +1471,6 @@
   const queue = [];
   const step = (fn) => queue.push(fn);
 
-  /* Book entrance: a real 3D book (spine, page block, flipping leaves) slides in, opens, riffles its pages,
-     closes and turns flat to land exactly as the 2D cover. The 3D parts exist only for the animation. */
-  const bookFlip = (fig, img) => {
-    const W = Math.round(fig.getBoundingClientRect().width);
-    if (W < 80 || !window.gsap || matchMedia('(prefers-reduced-motion: reduce)').matches) return; // 3D spin is skipped for reduced motion
-    const D = Math.max(18, Math.round(W * 0.075));
-    const mk = (cls, parent) => { const d = document.createElement('div'); d.className = cls; if (parent) parent.appendChild(d); return d; };
-    const stage = document.createElement('div');
-    stage.className = 'book3d';
-    const body = mk('book3d__body', stage);
-    const back = mk('book3d__back', body);
-    const LEAVES = 7;
-    const leaves = [];
-    for (let i = 0; i < LEAVES; i++) leaves.push(mk('book3d__leaf', body));
-    const front = mk('book3d__front', body);
-    mk('book3d__inner', front);
-    const spine = mk('book3d__spine', body);
-    const edge = mk('book3d__edge', body);
-    const top = mk('book3d__top', body);
-    const bottom = mk('book3d__bottom', body);
-    const shadow = mk('book3d__shadow', stage);
-    fig.insertBefore(stage, img);
-    front.insertBefore(img, front.firstChild);
-    fig.style.setProperty('--bd', D + 'px');
-    fig.classList.add('is-3d');
-    gsap.set(back, { z: -D / 2 });
-    gsap.set(front, { z: D / 2, transformOrigin: '0% 50%' });
-    leaves.forEach((l, i) => gsap.set(l, { z: D / 2 - 2 - i * ((D - 4) / LEAVES), transformOrigin: '0% 50%' }));
-    gsap.set([spine, edge, top, bottom], { transformStyle: 'flat' });
-
-    const teardown = () => {
-      if (!stage.parentNode) return;
-      fig.insertBefore(img, stage);
-      stage.remove();
-      fig.classList.remove('is-3d');
-      fig.style.removeProperty('--bd');
-    };
-
-    try {
-      const tl = gsap.timeline({ paused: true, onComplete: teardown });
-      // slide in from the right, turned to show the spine
-      tl.fromTo(stage, { xPercent: 70, opacity: 0 }, { xPercent: 28, opacity: 1, duration: 0.95, ease: 'expo.out' }, 0);
-      tl.fromTo(body, { rotationY: 64, rotationX: 12, scale: 0.94, transformOrigin: '50% 50%' }, { rotationY: 30, rotationX: 8, scale: 1, duration: 1.05, ease: 'power3.out' }, 0);
-      tl.fromTo(shadow, { opacity: 0 }, { opacity: 1, duration: 0.8, ease: 'none' }, 0.1);
-      // cover swings open
-      tl.to(front, { rotationY: -142, duration: 0.95, ease: 'power2.inOut' }, 0.85);
-      tl.to(body, { rotationY: 14, rotationX: 6, duration: 0.95, ease: 'power2.inOut' }, 0.85);
-      // pages riffle across, one by one
-      leaves.forEach((l, i) => tl.to(l, { rotationY: -(118 + i * 3), duration: 0.55, ease: 'power2.inOut' }, 1.5 + i * 0.12));
-      // pages and cover turn back
-      const back0 = 1.5 + LEAVES * 0.12 + 0.25;
-      leaves.slice().reverse().forEach((l, i) => tl.to(l, { rotationY: 0, duration: 0.4, ease: 'power2.inOut' }, back0 + i * 0.07));
-      const close0 = back0 + LEAVES * 0.07 + 0.2;
-      tl.to(front, { rotationY: 0, duration: 0.8, ease: 'power2.inOut' }, close0);
-      tl.to(stage, { xPercent: 0, duration: 1.1, ease: 'power3.inOut' }, close0);
-      // turn flat: 3D to 2D, landing on the original cover
-      tl.to(body, { rotationY: 0, rotationX: 0, duration: 1.05, ease: 'power3.out' }, close0 + 0.55);
-      tl.to(shadow, { opacity: 0, duration: 0.6, ease: 'none' }, close0 + 0.9);
-      ScrollTrigger.create({ trigger: fig, start: 'top 78%', once: true, onEnter: () => tl.play() });
-    } catch (e) {
-      teardown();
-    }
-  };
-
   /* ------------------------------------------------------------------------
      03 · HELLO
      ------------------------------------------------------------------------ */
@@ -1745,12 +1681,7 @@
      ------------------------------------------------------------------------ */
   step(() => {
     const book = $('.book');
-    if (book) {
-      const cover = $('.book__cover', book);
-      reveal(book, (el) => el === cover); // the cover has its own 3D entrance below
-      const cimg = cover && $('img', cover);
-      if (cimg) bookFlip(cover, cimg);
-    }
+    if (book) reveal(book);
   });
 
   /* ------------------------------------------------------------------------
