@@ -25,6 +25,9 @@
   --line-dark: rgba(231, 238, 243, .18);
   --line-light: rgba(20, 32, 51, .12);
   --shade: rgba(15, 35, 63, .62);
+  /* fixed copies of the palette, so a section can swap light and dark without losing the originals */
+  --c-navy: #0F233F; --c-paper: #F0EDE9; --c-mist: #E7EEF3; --c-white: #FFFFFF;
+  --c-slate: #5A6B7C; --c-slate-d: #1A3358; --c-muted: #A8B6C4; --c-teal: #087F8C; /* teal: the cyan, darkened to pass contrast on light */
 
   /* type — heavy condensed display, clean body. The wordmark is the logo image. */
   --f-display: "Oswald", "Arial Narrow", "Franklin Gothic Medium", Impact, sans-serif;
@@ -1063,3 +1066,18 @@ html.sheet-open, html.sheet-open body { overflow: hidden; } /* the page behind t
 .row[data-row="episodes"] { --tw: clamp(250px, 27vw, 480px); }
 .row[data-row="episodes"] .tile { flex-basis: var(--tw); }
 @media (max-width: 760px) { .row[data-row="episodes"] { --tw: 78vw; } }
+
+/* ==========================================================================
+   Light theme: the formerly dark sections are light, the book section is dark.
+   Done by re-pointing the palette tokens inside each section; the hero, mission photo and footer keep their look.
+   ========================================================================== */
+.rows, .hello, .topics, .newsletter, .masterclass { /* .story and .mission sit on photos, so they stay dark */
+  --ink: var(--c-paper); --ink-2: var(--c-white); --white: var(--c-navy); --mist: var(--c-slate-d);
+  --muted: var(--c-slate); --line-dark: rgba(20, 32, 51, .14); --accent: var(--c-teal);
+}
+.newsletter { --ink: var(--c-mist); --ink-2: var(--c-paper); }
+.book {
+  --paper: var(--c-navy); --charcoal: var(--c-mist); --slate-d: var(--c-white); --slate: var(--c-muted);
+}
+.book .btn--ink:hover { background: var(--c-white); color: var(--c-navy); }
+@media (min-width: 761px) { .rows { background: var(--c-paper); } }

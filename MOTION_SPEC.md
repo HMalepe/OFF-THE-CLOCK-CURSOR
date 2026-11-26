@@ -272,3 +272,7 @@ Lives on `faq.html`. The page opens with `.page-lead` (a short ink block under t
 - Tile tilt and glare: on fine-pointer devices in motion mode, `pointermove` sets `--rx/--ry/--gx/--gy` on `.tile__img` (max 4°/3°). CSS does the transform; static mode removes it.
 - Folded sections on the one-screen homepage skip `reveal()` setup entirely (`folded()`), which cut mobile blocking time from ~900ms to ~200ms. Their sheet shows them complete.
 - The Topics and About rows are gone. Their tiles live in the header's "About" dropdown (`[data-dd]`), in two columns: About the show and Topics. On hover devices it opens on hover or click; Escape, an outside click, focus leaving it, or picking a link closes it. It fades in with `ddIn` (none with reduced motion). On phones the drawer's "About" group carries the same links.
+
+## Light theme
+- Rows, hosts, newsletter and masterclass are light; the book section is dark. This is done by re-pointing palette tokens inside each section (see "Light theme" at the end of styles.css), using the fixed `--c-*` copies in `:root`. Hero, the story and mission photo sections, and the footer keep their dark look.
+- `--c-teal` replaces the cyan for text and rules on light backgrounds (contrast).
