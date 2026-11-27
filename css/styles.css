@@ -1094,3 +1094,10 @@ html.sheet-open, html.sheet-open body { overflow: hidden; } /* the page behind t
 }
 .book__author { margin-top: clamp(16px, 2.2vw, 30px); }
 .book .btn--ink:hover { background: var(--c-white); color: var(--c-navy); }
+
+/* Phones: the hero is only as tall as its content (band, controls, title, buttons), so the shelves follow
+   straight after instead of a screen of empty navy. The band keeps the full widescreen frame. */
+@media (max-width: 760px) {
+  .hero { height: auto; min-height: 0; --band-top: calc(var(--hdr-h) + 4px); padding-bottom: clamp(28px, 6vw, 44px); }
+  .hero:has(> .hero__ctrls) .hero__content { padding-bottom: 0; }
+}
